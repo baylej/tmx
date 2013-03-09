@@ -4,78 +4,10 @@
 
 #include "tmx.h"
 
-/*
-	Utility functions
-*/
-
-#define BIG_ENDIAN 'B'
-#define LIT_ENDIAN 'L'
-static char find_endianness() {
-	int num=1;
-	if(*(char*)&num==1)
-		return LIT_ENDIAN;
-	return BIG_ENDIAN;
-}
-
-/* BASE 64 */
-
-static const char b64enc[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789" "+/";
-
-static char * b64_encode(const char* source, unsigned int length) {
-	unsigned int i, mlen, r_pos;
-	unsigned short dif, j;
-	unsigned int frame = 0;
-	char out[5];
-	char *res;
-
-	mlen = 4 * length/3 + 1; /* +1 : returns a null-terminated string */
-	if (length%3) {
-		mlen += 4;
-	}
-
-	res = (char*) malloc(mlen * sizeof(char));
-	if (!res) return NULL;
-	res[mlen-1] = '\0';
-	out[4] = '\0';
-
-	for (i=0; i<length; i+=3) {
-		/*frame = 0; clean frame not needed because '>>' inserts '0' */
-		dif = (length-i)/3 ? 3 : (length-i)%3; /* number of byte to read */
-		for (j=0; j<dif; j++) {
-			memcpy(((char*)&frame)+2-j, source+i+j, 1); /* copy 3 bytes in reverse order */
-		}
-		/*
-			now 3 cases :
-			 . 3B red => 4chars
-			 . 2B red => 3chars + "="
-			 . 1B red => 2chars + "=="
-		*/
-		for (j=0; j<dif+1; j++) {
-			out[j] = (frame & 0xFC0000) >> 18; /* first 6 bits */
-			out[j] = b64enc[out[j]];
-			frame = frame << 6; /* next 6b word */
-		}
-		if (dif == 1) {
-			out[2] = out [3] = '=';
-		} else if (dif == 2) {
-			out [3] = '=';
-		}
-		r_pos = (i/3)*4;
-		strcpy(res+r_pos, out);
-	}
-	return res;
-}
-
-static char * b64_decode(const char* source) { /* NULL terminated string */
-	return NULL;
-}
-
-/* returns true if c belongs to b64enc */
-static short is_b64(char c) {
-	if (c>='A' && c<='Z' || c>='a' && c<='z' || c>='0' && c<='9' || c=='+' || c=='/')
-		return 1;
-	return 0;
-}
+/* From tmx_utils.c */
+extern char* b64_encode(const char* source, unsigned int length);
+extern char* b64_decode(const char* source, unsigned int *rlength);
+char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength);
 
 /*
 	Public functions
@@ -96,11 +28,34 @@ void tmx_free(tmx_map map) {
 
 #ifdef DEBUG
 
-int main(void) {
-	puts(b64_encode("Hi!", 3));
-	/*puts(b64_decode("SGkh"));*/
-	system("pause");
-	return 0;	
+int main(int argc, char *argv[]) {
+	unsigned int l, rl;
+	char *c1, *c2;
+	//FILE *dump;
+
+	/*puts((c=b64_encode("Hello", 5)));
+	free(c);*/
+	c1 = b64_decode("eJy9ld0KgDAIhbfWVr3/C8dggYh61KiLQ+Dfd2aLeiml/aDONGNjidZVQVq8At58niQ2FKbGt3KalygvK84bH/OawsvOuYi8PK3fmsVzWt0mvD/kk8eQB8RD+0C7spge3rHk8cNruT9rn2iGxHzDQ3vz5iWeZ/fZu+/lRc5pfS8RXuQckfsZ6fVwtdqNMHuCa0nqlf5/j/akkN/JuQE3eggd", &l);
+	if (!c1) return -1;
+	/*if ((dump=fopen("c1.dump", "wb"))) {
+		fwrite(c1, 1, l, dump);
+		fclose(dump);
+	}*/
+	printf("c1[5]=0x%x\n", c1[5]);
+
+	c2 = zlib_decompress(c1, l, 0, &rl);
+	if (!c2) return -1;
+
+	printf ("unencoded uncompressed data is %u bytes long\n", rl);
+
+	if (!(rl%4)) {
+		printf ("it contains %u ints\n", rl/4u);
+	}
+
+	//free(c1);
+	free(c2);
+	getchar();
+	return 0;
 }
 
 #endif

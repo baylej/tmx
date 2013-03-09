@@ -73,5 +73,7 @@ typedef struct {
 	Functions
 */
 
+tmx_map tmx_load(const char * path);
+void tmx_free(tmx_map map);
 
 #endif /* TMX_H */
