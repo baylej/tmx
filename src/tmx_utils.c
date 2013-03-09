@@ -152,8 +152,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 	if (initial_capacity) {
 		*rlength = initial_capacity;
 	} else {
-		*rlength = slength;
-		/**rlength = slength * 2; 50% cmp rate ? */
+		*rlength = slength * 2;
 	}
 	res = (char*) malloc(*rlength);
 	if (!res) {
