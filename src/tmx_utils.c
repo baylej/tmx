@@ -2,8 +2,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "tmx.h"
+#include "tmx_utils.h"
+
 /*
 	Utility functions
+*/
+
+/*
+	Endianness
+	If the Host is BigEndian, we have to convert layers data from LittleEndian
 */
 
 #define T_BIG_ENDIAN 'B'
@@ -14,6 +22,8 @@ static char find_endianness() {
 		return T_LIT_ENDIAN;
 	return T_BIG_ENDIAN;
 }
+
+/* TODO : function that do LE --> BE */
 
 /* BASE 64 */
 
@@ -32,7 +42,10 @@ char* b64_encode(const char* source, unsigned int length) {
 	}
 
 	res = (char*) malloc(mlen);
-	if (!res) return NULL;
+	if (!res) {
+		tmx_errno = E_ALLOC;
+		return NULL;
+	}
 	res[mlen-1] = '\0';
 	out[4] = '\0';
 
@@ -88,13 +101,22 @@ char* b64_decode(const char* source, unsigned int *rlength) { /* NULL terminated
 	unsigned int in = 0;
 	unsigned int src_len = strlen(source);
 
+	if (!source) {
+		tmx_err(E_INVAL, "Base64: invalid argument: source is NULL");
+		return NULL;
+	}
+
 	if (src_len%4) {
+		tmx_err(E_BDATA, "Base64: invalid source");
 		return NULL; /* invalid source */
 	}
 
 	*rlength = (src_len/4)*3;
 	res = (char*) malloc(*rlength);
-	if (!res) return NULL;
+	if (!res) {
+		tmx_errno = E_ALLOC;
+		return NULL;
+	}
 
 	for (i=0; i<src_len; i+=4) {
 		in = 0;
@@ -102,6 +124,7 @@ char* b64_decode(const char* source, unsigned int *rlength) { /* NULL terminated
 		for (j=0; j<4; j++) {
 			v = b64_value(source[i+j]);
 			if (v == -1) {
+				tmx_err(E_BDATA, "Base64: invalid char '%c' in source", source[i+j]);
 				goto cleanup;
 			}
 			in = in << 6;
@@ -130,6 +153,7 @@ cleanup:
 	ZLib
 */
 
+#ifdef WANT_ZLIB
 #include <zlib.h>
 
 /* in in out */
@@ -141,8 +165,13 @@ char* zlib_compress(const char *source, unsigned int slength, unsigned int *rlen
 char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength) {
 	int ret;
 	char *res = NULL, *tmp;
-
 	z_stream strm;
+
+	if (!source) {
+		tmx_err(E_INVAL, "zlib_decompress: invalid argument: source is NULL");
+		return NULL;
+	}
+
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
 	strm.opaque = Z_NULL;
@@ -156,7 +185,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 	}
 	res = (char*) malloc(*rlength);
 	if (!res) {
-		fprintf(stderr, "zlib_decompress(%s:%d): mem alloc returned NULL\n", __FILE__, __LINE__);
+		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 
@@ -165,7 +194,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 	
 	/* 15+32 to enable zlib and gzip decoding with automatic header detection */
 	if ((ret=inflateInit2(&strm, 15 + 32)) != Z_OK) {
-		fprintf(stderr, "zlib_decompress(%s:%d): inflateInit2 returned %d\n", __FILE__, __LINE__, ret);
+		tmx_err(E_UNKN, "zlib_decompress: inflateInit2 returned %d\n", ret);
 		goto cleanup;
 	}
 
@@ -175,13 +204,13 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 			strm.avail_out = *rlength;
 			*rlength *= 2;
 			if (!(tmp = (char*)realloc(res, *rlength))) {
-				fprintf(stderr, "zlib_decompress(%s:%d): mem alloc returned NULL\n", __FILE__, __LINE__);
+				tmx_errno = E_ALLOC;
 				inflateEnd(&strm);
 				goto cleanup;
 			}
 			res = tmp;
 		} else if (ret != Z_STREAM_END && ret != Z_OK) {
-			fprintf(stderr, "zlib_decompress(%s:%d): inflate returned %d\n", __FILE__, __LINE__, ret);
+			tmx_err(E_ZDATA, "zlib_decompress: inflate returned %d\n", ret);
 			inflateEnd(&strm);
 			goto cleanup;
 		}
@@ -189,7 +218,6 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 
 	if (strm.avail_in != 0) {
 		/* FIXME There is remains in the source */
-		fprintf(stderr, "zlib_decompress(%s:%d): remains(%d) in the source\n", __FILE__, __LINE__, strm.avail_in);
 	}
 	*rlength -= strm.avail_out;
 	inflateEnd(&strm);
@@ -199,3 +227,103 @@ cleanup:
 	free(res);
 	return NULL;
 }
+
+/*
+	Node allocation
+*/
+
+tmx_property alloc_prop(void) {
+	tmx_property res = (tmx_property)malloc(sizeof(struct _tmx_prop));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_prop));
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+tmx_image alloc_image(void) {
+	tmx_image res = (tmx_image)malloc(sizeof(struct _tmx_img));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_img));
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+tmx_object alloc_object(void) {
+	tmx_object res = (tmx_object)malloc(sizeof(struct _tmx_obj));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_obj));
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+tmx_objectgroup alloc_objgrp(void) {
+	tmx_objectgroup res = (tmx_objectgroup)malloc(sizeof(struct _tmx_objgrp));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_objgrp));
+		res->opacity = 1.0f;
+		res->visible = 1;
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+tmx_layer alloc_layer(void) {
+	tmx_layer res = (tmx_layer)malloc(sizeof(struct _tmx_layer));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_layer));
+		res->opacity = 1.0f;
+		res->visible = 1;
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+tmx_tileset alloc_tileset(void) {
+	tmx_tileset res = (tmx_tileset)malloc(sizeof(struct _tmx_ts));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_ts));
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+tmx_map alloc_map(void) {
+	tmx_map res = (tmx_map)malloc(sizeof(struct _tmx_map));
+	if (res) {
+		memset(res, 0, sizeof(struct _tmx_map));
+	} else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
+/*
+	Misc
+*/
+
+/* "orthogonal" -> ORT */
+enum tmx_map_orient parse_orient(const char* orient_str) {
+	if (!strcmp(orient_str, "orthogonal")) {
+		return T_ORT;
+	}
+	if (!strcmp(orient_str, "isometric")) {
+		return T_ISO;
+	}
+	return -1;
+}
+
+/* "#337FA2" -> 0x337FA2 */
+int get_color_rgb(const char *c) {
+	return 0; /* TODO */
+}
+
+#endif /* WANT_ZLIB */
