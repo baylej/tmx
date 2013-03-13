@@ -4,7 +4,7 @@
 
 ## About
 
-Loads **.tmx** tiled maps in you games.
+Loads **.tmx** [tiled](http://mapeditor.org) maps in you games.
 
 ## Dependencies
 
@@ -15,8 +15,9 @@ Binaries for windows are available :
 
 ## Compiling
 This project uses [cmake](http://cmake.org) as a *build system* builder.
-You can either use cmake or cmake-gui
-You can disable XML support by setting **WANT_XML** to *off*
+You can either use cmake or cmake-gui.
+
+You can disable XML support by setting `WANT_XML` to *off*.
 
 ### Exemple with cmake on linux :
 

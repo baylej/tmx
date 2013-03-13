@@ -1,4 +1,7 @@
 /*
+	TMH.H - TMX C LOADER
+	Copyright (c) 2013, Bayle Jonathan <baylej@github>
+
 	Stuctures storing the map and functions prototypes
 	
 	See : (I'm using names from this documentation)
@@ -17,18 +20,27 @@
 #define FLIPPED_DIAGONALLY_FLAG   0x20000000;
 
 /*
+	Configuration
+*/
+/* Custom realloc and free function, for memalloc debugging purposes
+   Please modify these values if once before you use tmx_load */
+void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
+void  (*tmx_free_func ) (void *address);             /* free */
+
+/*
 	Data Structures
 */
 
-enum tmx_map_orient{T_ORT = 1, T_ISO}; /* T_STA : stagging (0.9) */
+enum tmx_map_orient{O_NONE, O_ORT, O_ISO}; /* T_STA : stagging (0.9) */
+enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE}; /* ellipse(0.9) */
 
-typedef struct _tmx_prop {
+typedef struct _tmx_prop { /* <properties> and <property> */
 	char *name;
 	char *value;
 	struct _tmx_prop *next;
 } * tmx_property;
 
-typedef struct _tmx_img {
+typedef struct _tmx_img { /* <image> */
 	char *source;
 	int trans; /* bytes : RGB */
 	unsigned long width, height;
@@ -36,7 +48,7 @@ typedef struct _tmx_img {
 	//char *data; /* (0.9) */
 } * tmx_image;
 
-typedef struct _tmx_ts {
+typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
 	char *name;
 	//char *source; /* not supporting this */
@@ -51,7 +63,7 @@ typedef struct _tmx_ts {
 
 /* TODO: terrains(0.9) and imagelayer(0.9) */
 
-typedef struct _tmx_layer {
+typedef struct _tmx_layer { /* <layer> and it's <data> */
 	char *name;
 	float opacity;
 	char visible; /* 0 == false */
@@ -60,17 +72,19 @@ typedef struct _tmx_layer {
 	struct _tmx_layer *next;
 } * tmx_layer;
 
-typedef struct _tmx_obj {
+typedef struct _tmx_obj { /* <object> */
 	char *name;
-	enum tmx_shape {square, polygon, polyline} shape; /* ellipse(0.9) */
+	enum tmx_shape shape;
 	unsigned long x, y;
 	unsigned long width, height;
 	int gid;
+	int **points; /* point[i][x,y]; x=0 y=1 */
+	int points_len;
 	//char visible; /* 0 == false (0.9) */
 	struct _tmx_obj *next;
 } * tmx_object;
 
-typedef struct _tmx_objgrp {
+typedef struct _tmx_objgrp { /* <objectgroup> */
 	char *name;
 	int color; /* bytes : RGB */
 	float opacity;
@@ -79,7 +93,7 @@ typedef struct _tmx_objgrp {
 	struct _tmx_objgrp *next;
 } * tmx_objectgroup;
 
-typedef struct _tmx_map {
+typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_map_orient orient;
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
@@ -96,7 +110,10 @@ typedef struct _tmx_map {
 	Functions
 */
 
+/* Load a map and return the head of the data structure
+   returns NULL if an error occured and set tmx_errno */
 tmx_map tmx_load(const char * path);
+/* Free the map data structure */
 void tmx_free(tmx_map *map);
 
 /*
@@ -106,9 +123,12 @@ void tmx_free(tmx_map *map);
 
 int tmx_errno;
 
+/* print the error message prefixed with the parameter */
 void tmx_perror(const char*);
-const char* tmx_strerr(void); /* DO NOT FREE */
+/* return the error message for the current value of `tmx_errno` */
+const char* tmx_strerr(void); /* FIXME errno parameter ? (as strerror) */
 
+/* possible values for `tmx_errno` */
 enum _tmx_error_codes {
 	/* Syst */
 	E_NONE   = 0,     /* No error so far */
@@ -118,6 +138,8 @@ enum _tmx_error_codes {
 	/* I/O */
 	E_ACCESS = 10,    /* privileges needed */
 	E_NOENT  = 11,    /* File not found */
+	E_FORMAT = 12,    /* Unsupproted/Unknown file format */
+	E_FONCT  = 13,    /* Fonctionnality not enbled */
 	E_BDATA  = 20,    /* B64 bad data */
 	E_ZDATA  = 21,    /* Zlib corrupted data */
 	E_XDATA  = 22,    /* XML corrupted data */

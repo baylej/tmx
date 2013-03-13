@@ -41,7 +41,7 @@ char* b64_encode(const char* source, unsigned int length) {
 		mlen += 4;
 	}
 
-	res = (char*) malloc(mlen);
+	res = (char*) tmx_alloc_func(NULL, mlen);
 	if (!res) {
 		tmx_errno = E_ALLOC;
 		return NULL;
@@ -112,7 +112,7 @@ char* b64_decode(const char* source, unsigned int *rlength) { /* NULL terminated
 	}
 
 	*rlength = (src_len/4)*3;
-	res = (char*) malloc(*rlength);
+	res = (char*) tmx_alloc_func(NULL, *rlength);
 	if (!res) {
 		tmx_errno = E_ALLOC;
 		return NULL;
@@ -156,6 +156,14 @@ cleanup:
 #ifdef WANT_ZLIB
 #include <zlib.h>
 
+void * z_alloc(void *opaque, unsigned int items, unsigned int size) {
+	return tmx_alloc_func(NULL, items * size);
+}
+
+void z_free(void *opaque, void *address) {
+	tmx_free_func(address);
+}
+
 /* in in out */
 char* zlib_compress(const char *source, unsigned int slength, unsigned int *rlength) {
 	return NULL;
@@ -172,8 +180,8 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 		return NULL;
 	}
 
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
+	strm.zalloc = z_alloc;
+	strm.zfree = z_free;
 	strm.opaque = Z_NULL;
 	strm.next_in = (Bytef*)source;
 	strm.avail_in = strlen(source);
@@ -183,7 +191,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 	} else {
 		*rlength = slength * 2;
 	}
-	res = (char*) malloc(*rlength);
+	res = (char*) tmx_alloc_func(NULL, *rlength);
 	if (!res) {
 		tmx_errno = E_ALLOC;
 		return NULL;
@@ -203,7 +211,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 		if (ret == Z_BUF_ERROR) { /* too tiny buffer */
 			strm.avail_out = *rlength;
 			*rlength *= 2;
-			if (!(tmp = (char*)realloc(res, *rlength))) {
+			if (!(tmp = (char*)tmx_alloc_func(res, *rlength))) {
 				tmx_errno = E_ALLOC;
 				inflateEnd(&strm);
 				goto cleanup;
@@ -227,13 +235,14 @@ cleanup:
 	free(res);
 	return NULL;
 }
+#endif /* WANT_ZLIB */
 
 /*
 	Node allocation
 */
 
 tmx_property alloc_prop(void) {
-	tmx_property res = (tmx_property)malloc(sizeof(struct _tmx_prop));
+	tmx_property res = (tmx_property)tmx_alloc_func(NULL, sizeof(struct _tmx_prop));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_prop));
 	} else {
@@ -243,7 +252,7 @@ tmx_property alloc_prop(void) {
 }
 
 tmx_image alloc_image(void) {
-	tmx_image res = (tmx_image)malloc(sizeof(struct _tmx_img));
+	tmx_image res = (tmx_image)tmx_alloc_func(NULL, sizeof(struct _tmx_img));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_img));
 	} else {
@@ -253,7 +262,7 @@ tmx_image alloc_image(void) {
 }
 
 tmx_object alloc_object(void) {
-	tmx_object res = (tmx_object)malloc(sizeof(struct _tmx_obj));
+	tmx_object res = (tmx_object)tmx_alloc_func(NULL, sizeof(struct _tmx_obj));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_obj));
 	} else {
@@ -263,7 +272,7 @@ tmx_object alloc_object(void) {
 }
 
 tmx_objectgroup alloc_objgrp(void) {
-	tmx_objectgroup res = (tmx_objectgroup)malloc(sizeof(struct _tmx_objgrp));
+	tmx_objectgroup res = (tmx_objectgroup)tmx_alloc_func(NULL, sizeof(struct _tmx_objgrp));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_objgrp));
 		res->opacity = 1.0f;
@@ -275,7 +284,7 @@ tmx_objectgroup alloc_objgrp(void) {
 }
 
 tmx_layer alloc_layer(void) {
-	tmx_layer res = (tmx_layer)malloc(sizeof(struct _tmx_layer));
+	tmx_layer res = (tmx_layer)tmx_alloc_func(NULL, sizeof(struct _tmx_layer));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_layer));
 		res->opacity = 1.0f;
@@ -287,7 +296,7 @@ tmx_layer alloc_layer(void) {
 }
 
 tmx_tileset alloc_tileset(void) {
-	tmx_tileset res = (tmx_tileset)malloc(sizeof(struct _tmx_ts));
+	tmx_tileset res = (tmx_tileset)tmx_alloc_func(NULL, sizeof(struct _tmx_ts));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_ts));
 	} else {
@@ -297,7 +306,7 @@ tmx_tileset alloc_tileset(void) {
 }
 
 tmx_map alloc_map(void) {
-	tmx_map res = (tmx_map)malloc(sizeof(struct _tmx_map));
+	tmx_map res = (tmx_map)tmx_alloc_func(NULL, sizeof(struct _tmx_map));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_map));
 	} else {
@@ -313,17 +322,25 @@ tmx_map alloc_map(void) {
 /* "orthogonal" -> ORT */
 enum tmx_map_orient parse_orient(const char* orient_str) {
 	if (!strcmp(orient_str, "orthogonal")) {
-		return T_ORT;
+		return O_ORT;
 	}
 	if (!strcmp(orient_str, "isometric")) {
-		return T_ISO;
+		return O_ISO;
 	}
-	return -1;
+	return O_NONE;
 }
 
 /* "#337FA2" -> 0x337FA2 */
 int get_color_rgb(const char *c) {
-	return 0; /* TODO */
+	if (*c == '#') c++;
+	return (int)strtol(c, NULL, 16);
 }
 
-#endif /* WANT_ZLIB */
+int count_char_occurences(const char *str, char c) {
+	int res = 0;
+	while(*str != '\0') {
+		if (*str == c) res++;
+		str++;
+	}
+	return res;
+}

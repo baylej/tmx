@@ -71,7 +71,6 @@ target_link_libraries(${PROJECT_NAME} ${LIBS})
 #  Install
 #-----------#
 
-# Install target only on non-win systems
 if(INSTALL_TARGET)
 install(TARGETS ${PROJECT_NAME} 
         LIBRARY DESTINATION lib

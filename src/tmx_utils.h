@@ -43,6 +43,7 @@ tmx_map         alloc_map(void);
 */
 enum tmx_map_orient parse_orient(const char* orient_str);
 int get_color_rgb(const char *c);
+int count_char_occurences(const char *str, char c);
 
 /*
 	Error handling

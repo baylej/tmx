@@ -10,6 +10,8 @@ static char *errmsgs[] = {
 	"No error",
 	"Memory alloc failed",
 	"Missing privileges to access the file",
+	"File not found",
+	"Unsupproted/Unknown map file format"
 };
 
 char custom_msg[256];
@@ -20,6 +22,8 @@ const char* tmx_strerr(void) {
 		case E_NONE:   msg = errmsgs[0]; break;
 		case E_ALLOC:  msg = errmsgs[1]; break;
 		case E_ACCESS: msg = errmsgs[2]; break;
+		case E_NOENT:  msg = errmsgs[3]; break;
+		case E_FORMAT: msg = errmsgs[4]; break;
 		default: msg = custom_msg;
 	}
 	return msg;
