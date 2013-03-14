@@ -64,47 +64,63 @@ tmx_map tmx_load(const char * path) {
 	return map;
 }
 
+static void free_props(tmx_property p) {
+	if (p) {
+		free_props(p->next);
+		tmx_free_func(p->name);
+		tmx_free_func(p->value);
+		tmx_free_func(p);
+	}
+}
+
+static void free_layers(tmx_layer l) {
+	if (l) {
+		free_layers(l->next);
+		tmx_free_func(l->name);
+		tmx_free_func(l->gids);
+		free_props(l->properties);
+		tmx_free_func(l);
+	}
+}
+
 static void free_obj(tmx_object o) {
-	if (o->next) free_obj(o->next);
-	tmx_free_func(o->name);
-	if (o->points) tmx_free_func(*(o->points));
-	tmx_free_func(o->points);
-	tmx_free_func(o);
+	if (o) {
+		free_obj(o->next);
+		tmx_free_func(o->name);
+		if (o->points) tmx_free_func(*(o->points));
+		tmx_free_func(o->points);
+		tmx_free_func(o);
+	}
 }
 
 static void free_objgrp(tmx_objectgroup o) {
-	if (o->head) free_obj(o->head);
-	tmx_free_func(o->name);
-	tmx_free_func(o);
-}
-
-static void free_props(tmx_property p) {
-	if (p->next) free_props(p->next);
-	tmx_free_func(p->name);
-	tmx_free_func(p->value);
-	tmx_free_func(p);
+	if (o) {
+		free_objgrp(o->next);
+		free_obj(o->head);
+		tmx_free_func(o->name);
+		tmx_free_func(o);
+	}
 }
 
 static void free_ts(tmx_tileset ts) {
-	if (ts->next) free_ts(ts->next);
-	tmx_free_func(ts->name);
-	if (ts->image) {
-		tmx_free_func(ts->image->source);
+	if (ts) {
+		free_ts(ts->next);
+		tmx_free_func(ts->name);
+		if (ts->image) tmx_free_func(ts->image->source);
 		tmx_free_func(ts->image);
+		tmx_free_func(ts);
 	}
-	tmx_free_func(ts);
 }
 
 void tmx_free(tmx_map *map) {
-	/* TODO */
-	if ((*map)->ts_head)
+	if (*map) {
 		free_ts((*map)->ts_head);
-	if ((*map)->ob_head)
 		free_objgrp((*map)->ob_head);
-	if ((*map)->properties)
 		free_props((*map)->properties);
-	tmx_free_func(*map);
-	*map = NULL;
+		free_layers((*map)->ly_head);
+		tmx_free_func(*map);
+		*map = NULL;
+	}
 }
 
 #ifdef DEBUG
@@ -167,8 +183,9 @@ void dump_image(tmx_image i) {
 }
 
 void dump_tileset(tmx_tileset t) {
-	printf("tileset(%s)={", t->name);
+	printf("tileset={");
 	if (t) {
+		printf("\n\tname=%d", t->name);
 		printf("\n\ttile_height=%d", t->tile_height);
 		printf("\n\ttile_width=%d", t->tile_width);
 		printf("\n\tfirstgid=%d", t->firstgid);
@@ -182,6 +199,30 @@ void dump_tileset(tmx_tileset t) {
 	if (t) {
 		dump_image(t->image);
 	}
+}
+
+void dump_layer(tmx_layer l, unsigned int tc) {
+	unsigned int i;
+	printf("layer={");
+	if (!l) {
+		fputs("\n(NULL)", stdout);
+	} else {
+		printf("\n\tname='%s'", l->name);
+		printf("\n\tvisible='%d'", l->visible);
+		printf("\n\topacity='%f'", l->opacity);
+		printf("\n\ttiles=");
+		if (l->gids) {
+			for (i=0; i<tc; i++)
+				printf("%d,", l->gids[i] & TMX_FLIP_BITS_REMOVAL);
+		} else {
+			fputs("(NULL)", stdout);
+		}
+	}
+	puts("\n}");
+
+	if (l->properties) dump_prop(l->properties);
+	if (l->next) dump_layer(l->next, tc);
+
 }
 
 void dump_map(tmx_map m) {
@@ -201,15 +242,35 @@ void dump_map(tmx_map m) {
 		dump_tileset(m->ts_head);
 		dump_prop(m->properties);
 		dump_objgrps(m->ob_head);
+		dump_layer(m->ly_head, m->height * m->width);
 	}
+}
+
+static int mal_vs_free_count = 0;
+
+void* dbg_alloc(void *address, size_t len) {
+	mal_vs_free_count++;
+	return realloc(address, len);
+}
+
+void dbg_free(void *address) {
+	if (address) mal_vs_free_count--;
+	free(address);
 }
 
 int main(int argc, char *argv[]) {
 	tmx_map m;
-	m = tmx_load("test.tmx");
-	if (!m) tmx_perror("parse_xml(text.xml)");
+
+	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
+	tmx_free_func  = dbg_free;
+
+	m = tmx_load("test_csv.tmx");
+	if (!m) tmx_perror("parse_xml(text_csv.xml)");
 	dump_map(m);
 	tmx_free(&m);
+
+	printf("%d mem alloc not freed\n", mal_vs_free_count);
+
 	getchar();
 	return 0;
 }

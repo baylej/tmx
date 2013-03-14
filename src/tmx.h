@@ -15,9 +15,10 @@
 
 #include <stdint.h>
 
-#define FLIPPED_HORIZONTALLY_FLAG 0x80000000;
-#define FLIPPED_VERTICALLY_FLAG   0x40000000;
-#define FLIPPED_DIAGONALLY_FLAG   0x20000000;
+#define TMX_FLIPPED_HORIZONTALLY 0x80000000
+#define TMX_FLIPPED_VERTICALLY   0x40000000
+#define TMX_FLIPPED_DIAGONALLY   0x20000000
+#define TMX_FLIP_BITS_REMOVAL    0x1FFFFFFF
 
 /*
 	Configuration
@@ -139,11 +140,13 @@ enum _tmx_error_codes {
 	E_ACCESS = 10,    /* privileges needed */
 	E_NOENT  = 11,    /* File not found */
 	E_FORMAT = 12,    /* Unsupproted/Unknown file format */
-	E_FONCT  = 13,    /* Fonctionnality not enbled */
+	E_ENCCMP = 13,    /* Unsupproted/Unknown data encoding/compression */
+	E_FONCT  = 16,    /* Fonctionnality not enbled */
 	E_BDATA  = 20,    /* B64 bad data */
 	E_ZDATA  = 21,    /* Zlib corrupted data */
 	E_XDATA  = 22,    /* XML corrupted data */
 	E_JDATA  = 23,    /* JSON corrupted data */
+	E_CDATA  = 24,    /* CVS corrupted data */
 	E_MISSEL = 30     /* Missing element, incomplete source */
 };
 

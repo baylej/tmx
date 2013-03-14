@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h> /* is */
 
 #include "tmx.h"
 #include "tmx_utils.h"
@@ -145,7 +146,7 @@ char* b64_decode(const char* source, unsigned int *rlength) { /* NULL terminated
 	return res;
 
 cleanup:
-	free(res);
+	tmx_free_func(res);
 	return NULL;
 }
 
@@ -165,9 +166,9 @@ void z_free(void *opaque, void *address) {
 }
 
 /* in in out */
-char* zlib_compress(const char *source, unsigned int slength, unsigned int *rlength) {
+/*char* zlib_compress(const char *source, unsigned int slength, unsigned int *rlength) {
 	return NULL;
-}
+}*/
 
 /* in in in out */
 char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength) {
@@ -232,7 +233,12 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 
 	return res;
 cleanup:
-	free(res);
+	tmx_free_func(res);
+	return NULL;
+}
+#else
+char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength) {
+	tmx_err(E_FONCT, "This library was not builded with the zlib/gzip support");
 	return NULL;
 }
 #endif /* WANT_ZLIB */
@@ -343,4 +349,14 @@ int count_char_occurences(const char *str, char c) {
 		str++;
 	}
 	return res;
+}
+
+/* trim 'str' to avoid blank characters at its beginning and end */
+char* str_trim(char *str) {
+	int end = strlen(str)-1;
+	while (end>=0 && isspace(str[end])) end--;
+	str[end+1] = '\0';
+
+	while(isspace(str[0])) str++;
+	return str;
 }

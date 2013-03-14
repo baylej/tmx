@@ -28,6 +28,6 @@ You can disable XML support by setting `WANT_XML` to *off*.
 
 ## Usage
 
-    tmx map = tmx_load("path/map.tmx");
+    tmx_map map = tmx_load("path/map.tmx");
     ...
     tmx_free(map);

@@ -8,18 +8,12 @@
 /* From tmx_utils.c */
 char* b64_encode(const char* source, unsigned int length);
 char* b64_decode(const char* source, unsigned int *rlength);
-#ifdef WANT_ZLIB
 char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength);
-#endif
 
 /* from tmx_xml.c */
-#ifdef WANT_XML
 tmx_map parse_xml(const char *filename);
-#endif
 
 /* from tmx_json.c */
-#ifdef WANT_JSON
-#endif
 
 struct _tmp_tmxdata {
 	enum enc{cvs, b64} encoding;
@@ -44,6 +38,7 @@ tmx_map         alloc_map(void);
 enum tmx_map_orient parse_orient(const char* orient_str);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
+char* str_trim(char *str);
 
 /*
 	Error handling
