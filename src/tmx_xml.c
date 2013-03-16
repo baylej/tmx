@@ -27,53 +27,6 @@
 void * tmx_malloc(size_t len) {
 	return tmx_alloc_func(NULL, len);
 }
-char * tmx_strdup(char *str) {
-	return (char*)tmx_alloc_func(NULL, strlen(str));
-}
-
-/*
-	Layer data decoders
-*/
-enum enccmp_t {CSV, B64Z};
-
-static int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids) {
-	char *b64dec;
-	unsigned int b64_len, zdec_len, i;
-
-	if (type==CSV) {
-		if (!(*gids = (int32_t*)tmx_alloc_func(NULL, gids_count * sizeof(int32_t)))) {
-			tmx_errno = E_ALLOC;
-			return 0;
-		}
-		for (i=0; i<gids_count; i++) {
-			if (sscanf(source, "%d", (*gids)+i) != 1) {
-				tmx_free_func(*gids);
-				*gids = NULL;
-				tmx_err(E_CDATA, "error in CVS while reading tile #%d", i);
-				return 0;
-			}
-			if (!(source = strchr(source, ',')) && i!=gids_count-1) {
-				tmx_free_func(*gids);
-				*gids = NULL;
-				tmx_err(E_CDATA, "error in CVS after reading tile #%d", i);
-				return 0;
-			}
-			source++;
-		}
-	}
-	else if (type==B64Z) {
-		if (!(b64dec = b64_decode(source, &b64_len))) return 0;
-		*gids = (int32_t*)zlib_decompress(b64dec, b64_len, gids_count*4, &zdec_len);
-		tmx_free_func(b64dec);
-		if (!(*gids) || gids_count*4 != zdec_len) {
-			tmx_free_func(*gids);
-			*gids = NULL;
-			return 0;
-		}
-	}
-
-	return 1;
-}
 
 /*
 	 - Parsers -
@@ -90,7 +43,6 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property prop) {
 		prop->name = value;
 	} else {
 		tmx_err(E_MISSEL, "missing 'name' attribute in the 'property' element");
-		tmx_free_func(value);
 		return 0;
 	}
 
@@ -98,8 +50,6 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property prop) {
 		prop->value = value;
 	} else {
 		tmx_err(E_MISSEL, "missing 'value' attribute in the 'property' element");
-		tmx_free_func(value);
-		tmx_free_func(prop->name);
 		return 0;
 	}
 	return 1;
@@ -114,38 +64,24 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_property *prop_headadr)
 
 	/* Parse each child */
 	do {
-		if (xmlTextReaderRead(reader) != 1) {
-			goto cleanup; /* error_handler has been called */
-		}
+		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+		
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "property")) {
-				if (!(res = alloc_prop())) goto cleanup;
-				
-				if (!parse_property(reader, res)) {
-					tmx_free_func(res);
-					goto cleanup;
-				}
+				if (!(res = alloc_prop())) return 0;
 				res->next = *prop_headadr;
 				*prop_headadr = res;
-			} else {
-				/* Unknow element, skipping it's tree */
-				if (xmlTextReaderNext(reader) != 1) goto cleanup;
+				
+				if (!parse_property(reader, res)) return 0;
+
+			} else { /* Unknow element, skipping it's tree */
+				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
 	return 1;
-
-cleanup:
-	while(*prop_headadr) {
-		res = (*prop_headadr)->next;
-		tmx_free_func((*prop_headadr)->name);
-		tmx_free_func((*prop_headadr)->value);
-		tmx_free_func(*prop_headadr);
-		*prop_headadr = res;
-	}
-	return 0;
 }
 
 static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscount) {
@@ -202,6 +138,8 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 	curr_depth = xmlTextReaderDepth(reader);
 
 	if (!(res = alloc_layer())) return 0;
+	res->next = *layer_headadr;
+	*layer_headadr = res;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
@@ -222,32 +160,23 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 	}
 
 	do {
-		if (xmlTextReaderRead(reader) != 1) {
-			goto cleanup; /* error_handler has been called */
-		}
+		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+		
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "properties")) {
-				if (!parse_properties(reader, &(res->properties))) goto cleanup;
+				if (!parse_properties(reader, &(res->properties))) return 0;
 			} else if (!strcmp(name, "data")) {
-				if (!parse_data(reader, &(res->gids), map_height * map_width)) goto cleanup;
+				if (!parse_data(reader, &(res->gids), map_height * map_width)) return 0;
 			} else {
 				/* Unknow element, skipping it's tree */
-				if (xmlTextReaderNext(reader) != 1) goto cleanup;
+				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
 
-	res->next = *layer_headadr;
-	*layer_headadr = res;
-
 	return 1;
-cleanup:
-	tmx_free_func(res->name);
-	tmx_free_func(res->gids);
-	tmx_free_func(res);
-	return 0;
 }
 
 static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslenadr) {
@@ -337,31 +266,27 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 	} else {
 		curr_depth = xmlTextReaderDepth(reader);
 		do {
-			if (xmlTextReaderRead(reader) != 1) {
-				return 0; /* error_handler has been called */
-			}
+			if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+			
 			if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 				name = (char*)xmlTextReaderConstName(reader);
 				if (!strcmp(name, "polygon")) {
 					obj->shape = S_POLYGON;
-					parse_points(reader, &(obj->points), &(obj->points_len));
 				} else if (!strcmp(name, "polyline")) {
 					obj->shape = S_POLYLINE;
-					parse_points(reader, &(obj->points), &(obj->points_len));
-				} else {
-					/* Unknow element, skipping it's tree */
+				} else { /* Unknow element, skipping it's tree */
 					if (xmlTextReaderNext(reader) != 1) return 0;
 				}
+				if (!parse_points(reader, &(obj->points), &(obj->points_len))) return 0;
 			}
 		} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 		         xmlTextReaderDepth(reader) != curr_depth);
 	}
-
-
 	return 1;
 }
 
 static int parse_objectgroup(xmlTextReaderPtr reader, tmx_objectgroup *objgadr) {
+	tmx_objectgroup objgrp;
 	tmx_object res;
 	int curr_depth;
 	const char *name;
@@ -369,66 +294,55 @@ static int parse_objectgroup(xmlTextReaderPtr reader, tmx_objectgroup *objgadr) 
 
 	curr_depth = xmlTextReaderDepth(reader);
 
-	if (!(*objgadr = alloc_objgrp())) return 0;
+	if (!(objgrp = alloc_objgrp())) return 0;
+	objgrp->next = *objgadr;
+	*objgadr = objgrp;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
-		(*objgadr)->name = value;
+		objgrp->name = value;
 	} else {
 		tmx_err(E_MISSEL, "missing 'name' attribute in the 'objectgroup' element");
 		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
-		(*objgadr)->visible = value[0]=='t' ? 1: 0; /* if (visible=="true") visible <-- 1 */
+		objgrp->visible = value[0]=='t' ? 1: 0; /* if (visible=="true") visible <-- 1 */
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "color"))) { /* color */
-		(*objgadr)->color = get_color_rgb(value);
+		objgrp->color = get_color_rgb(value);
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "opacity"))) { /* opacity */
-		(*objgadr)->opacity = (float)strtod(value, NULL);
+		objgrp->opacity = (float)strtod(value, NULL);
 		tmx_free_func(value);
 	}
 
 	/* Parse each child */
 	do {
-		if (xmlTextReaderRead(reader) != 1) {
-			goto cleanup; /* error_handler has been called */
-		}
+		if (xmlTextReaderRead(reader) != 1) return 0;
+
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "object")) {
-				if (!(res = alloc_object())) goto cleanup;
+				if (!(res = alloc_object())) return 0;
 				
-				if (!parse_object(reader, res)) {
-					tmx_free_func(res);
-					goto cleanup;
-				}
-				res->next = (*objgadr)->head;
-				(*objgadr)->head = res;
-			} else {
-				/* Unknow element, skipping it's tree */
-				if (xmlTextReaderNext(reader) != 1) goto cleanup;
+				res->next = objgrp->head;
+				objgrp->head = res;
+
+				if (!parse_object(reader, res)) return 0;
+
+			} else { /* Unknow element, skipping it's tree */
+				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
-	return 1;
 
-cleanup:
-	while((*objgadr)->head) {
-		res = (*objgadr)->head->next;
-		tmx_free_func((*objgadr)->head);
-		(*objgadr)->head = res;
-	}
-	tmx_free_func((*objgadr)->name);
-	tmx_free_func(*objgadr);
-	*objgadr = NULL;
-	return 0;
+	return 1;
 }
 
 static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
@@ -436,12 +350,13 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 	char *value;
 
 	if (!(res = alloc_image())) return 0;
+	*img_adr = res;
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "source"))) { /* source */
 		res->source = value;
 	} else {
 		tmx_err(E_MISSEL, "missing 'source' attribute in the 'image' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "height"))) { /* height */
@@ -449,7 +364,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "missing 'height' attribute in the 'image' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "width"))) { /* width */
@@ -457,7 +372,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "missing 'width' attribute in the 'image' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "trans"))) { /* trans */
@@ -465,12 +380,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 		tmx_free_func(value);
 	}
 
-	*img_adr = res;
 	return 1;
-
-cleanup:
-	tmx_free_func(res);
-	return 0;
 }
 
 static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned int *y) {
@@ -503,13 +413,15 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 	curr_depth = xmlTextReaderDepth(reader);
 
 	if (!(res = alloc_tileset())) return 0;
+	res->next = *ts_headadr;
+	*ts_headadr = res;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
 		res->name = value;
 	} else {
 		tmx_err(E_MISSEL, "missing 'name' attribute in the 'tileset' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "firstgid"))) { /* fisrtgid */
@@ -517,7 +429,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "missing 'firstgid' attribute in the 'tileset' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "tilewidth"))) { /* tile_width */
@@ -525,7 +437,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "missing 'tilewidth' attribute in the 'tileset' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "tileheight"))) { /* tile_height */
@@ -533,7 +445,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "missing 'tileheight' attribute in the 'tileset' element");
-		goto cleanup;
+		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "spacing"))) { /* spacing */
@@ -548,40 +460,28 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 
 	/* Parse each child */
 	do {
-		if (xmlTextReaderRead(reader) != 1) {
-			goto cleanup; /* error_handler has been called */
-		}
+		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+		
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->image))) {
-					goto cleanup;
-				}
+				if (!parse_image(reader, &(res->image))) return 0;
 			} else if (!strcmp(name, "tileoffset")) {
-				if (!parse_tileoffset(reader, &(res->x_offset), &(res->y_offset))) {
-					goto cleanup;
-				}
+				if (!parse_tileoffset(reader, &(res->x_offset), &(res->y_offset))) return 0;
 			} else {
 				/* Unknow element, skipping it's tree */
-				if (xmlTextReaderNext(reader) != 1) goto cleanup;
+				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
-	if ((*ts_headadr)) { /* Insert the new element */
-		res->next = *ts_headadr;
-	}
-	*ts_headadr = res;
-	return 1;
 
-cleanup:
-	tmx_free_func(res);
-	return 0;
+	return 1;
 }
 
 static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 	tmx_map res = NULL;
-	int curr_depth, ret;
+	int curr_depth;
 	const char *name;
 	char *value;
 	
@@ -597,11 +497,10 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "orientation"))) { /* orientation */
-		tmx_err(E_XDATA, "unsupported 'orientation' '%'", value);
-		if (ret = parse_orient(value), ret == O_NONE) {
+		if (res->orient = parse_orient(value), res->orient == O_NONE) {
+			tmx_err(E_XDATA, "unsupported 'orientation' '%s'", value);
 			goto cleanup;
 		}
-		res->orient = (enum tmx_map_orient)ret;
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "missing 'orientation' attribute in the 'map' element");
@@ -642,9 +541,8 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 
 	/* Parse each child */
 	do {
-		if (xmlTextReaderRead(reader) != 1) {
-			goto cleanup; /* error_handler has been called */
-		}
+		if (xmlTextReaderRead(reader) != 1) goto cleanup; /* error_handler has been called */
+		
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "tileset")) {
@@ -669,7 +567,7 @@ cleanup:
 }
 
 static void error_handler(void *arg, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
-	if (severity == XML_PARSER_SEVERITY_ERROR) { /* FIXME : use msg ? */
+	if (severity == XML_PARSER_SEVERITY_ERROR) { /* FIXME : use msg ? free msg ? */
 		tmx_err(E_XDATA, "xml parser: error at line #%d", xmlTextReaderLocatorLineNumber(locator));
 	}
 }

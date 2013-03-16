@@ -6,20 +6,14 @@
 #define TMXUTILS_H
 
 /* From tmx_utils.c */
-char* b64_encode(const char* source, unsigned int length);
-char* b64_decode(const char* source, unsigned int *rlength);
-char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength);
+enum enccmp_t {CSV, B64Z};
+int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
 
 /* from tmx_xml.c */
 tmx_map parse_xml(const char *filename);
 
 /* from tmx_json.c */
-
-struct _tmp_tmxdata {
-	enum enc{cvs, b64} encoding;
-	enum cmp{none, zlib, gzip} compression;
-	char *rawdata;
-};
+tmx_map parse_json(const char *filename);
 
 /*
 	Node allocation
@@ -39,6 +33,7 @@ enum tmx_map_orient parse_orient(const char* orient_str);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);
+char * tmx_strdup(char *str);
 
 /*
 	Error handling

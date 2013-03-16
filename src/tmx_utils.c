@@ -244,6 +244,44 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 #endif /* WANT_ZLIB */
 
 /*
+	Layer data decoders
+*/
+
+int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids) {
+	char *b64dec;
+	unsigned int b64_len, zdec_len, i;
+
+	if (type==CSV) {
+		if (!(*gids = (int32_t*)tmx_alloc_func(NULL, gids_count * sizeof(int32_t)))) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+		for (i=0; i<gids_count; i++) {
+			if (sscanf(source, "%d", (*gids)+i) != 1) {
+				tmx_err(E_CDATA, "error in CVS while reading tile #%d", i);
+				return 0;
+			}
+			if (!(source = strchr(source, ',')) && i!=gids_count-1) {
+				tmx_err(E_CDATA, "error in CVS after reading tile #%d", i);
+				return 0;
+			}
+			source++;
+		}
+	}
+	else if (type==B64Z) {
+		if (!(b64dec = b64_decode(source, &b64_len))) return 0;
+		*gids = (int32_t*)zlib_decompress(b64dec, b64_len, gids_count*4, &zdec_len);
+		tmx_free_func(b64dec);
+		if (!(*gids)) return 0;
+		if (gids_count*4 != zdec_len) {
+			tmx_err(E_ZDATA, "layer contains not enough tiles (%d)", zdec_len/4);
+		}
+	}
+
+	return 1;
+}
+
+/*
 	Node allocation
 */
 
@@ -359,4 +397,11 @@ char* str_trim(char *str) {
 
 	while(isspace(str[0])) str++;
 	return str;
+}
+
+/* duplicate a string */
+char * tmx_strdup(char *str) {
+	char *res =  (char*)tmx_alloc_func(NULL, strlen(str)+1);
+	strcpy(res, str);
+	return res;
 }

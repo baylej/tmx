@@ -19,6 +19,13 @@ void  (*tmx_free_func ) (void *address) = NULL;
 #ifndef WANT_XML
 static tmx_map parse_xml(const char *path) {
 	tmx_err(E_FONCT, "This library was not builded with the XML parser");
+	return NULL;
+}
+#endif
+#ifndef WANT_JSON
+tmx_map parse_json(const char *filename) {
+	tmx_err(E_FONCT, "This library was not builded with the JSON parser");
+	return NULL;
 }
 #endif
 
@@ -50,7 +57,6 @@ tmx_map tmx_load(const char * path) {
 				tmx_errno = E_FORMAT;
 			}
 		} else {
-			/* TODO error access or file not found ? */
 			if (errno == EACCES) {
 				tmx_errno = E_ACCESS;
 			} else if (errno == ENOENT) {
@@ -137,7 +143,8 @@ void dump_objects(tmx_object o) {
 	}
 	puts("\n}");
 
-	if (o->next) dump_objects(o->next);
+	if (o)
+		if (o->next) dump_objects(o->next);
 }
 
 void dump_objgrps(tmx_objectgroup o) {
@@ -152,8 +159,10 @@ void dump_objgrps(tmx_objectgroup o) {
 	}
 	puts("\n}");
 
-	if (o->head) dump_objects(o->head);
-	if (o->next) dump_objgrps(o->next);
+	if (o) {
+		if (o->head) dump_objects(o->head);
+		if (o->next) dump_objgrps(o->next);
+	}
 }
 
 void dump_prop(tmx_property p) {
@@ -185,7 +194,7 @@ void dump_image(tmx_image i) {
 void dump_tileset(tmx_tileset t) {
 	printf("tileset={");
 	if (t) {
-		printf("\n\tname=%d", t->name);
+		printf("\n\tname=%s", t->name);
 		printf("\n\ttile_height=%d", t->tile_height);
 		printf("\n\ttile_width=%d", t->tile_width);
 		printf("\n\tfirstgid=%d", t->firstgid);
@@ -197,7 +206,8 @@ void dump_tileset(tmx_tileset t) {
 	puts("\n}");
 
 	if (t) {
-		dump_image(t->image);
+		if (t->image) dump_image(t->image);
+		if (t->next) dump_tileset(t->next);
 	}
 }
 
@@ -220,9 +230,10 @@ void dump_layer(tmx_layer l, unsigned int tc) {
 	}
 	puts("\n}");
 
-	if (l->properties) dump_prop(l->properties);
-	if (l->next) dump_layer(l->next, tc);
-
+	if (l) {
+		if (l->properties) dump_prop(l->properties);
+		if (l->next) dump_layer(l->next, tc);
+	}
 }
 
 void dump_map(tmx_map m) {
@@ -249,7 +260,7 @@ void dump_map(tmx_map m) {
 static int mal_vs_free_count = 0;
 
 void* dbg_alloc(void *address, size_t len) {
-	mal_vs_free_count++;
+	if (!address) mal_vs_free_count++; /* !realloc */
 	return realloc(address, len);
 }
 
@@ -264,8 +275,8 @@ int main(int argc, char *argv[]) {
 	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
 	tmx_free_func  = dbg_free;
 
-	m = tmx_load("test_csv.tmx");
-	if (!m) tmx_perror("parse_xml(text_csv.xml)");
+	m = tmx_load("test.json");
+	if (!m) tmx_perror("parse_json(test.json)");
 	dump_map(m);
 	tmx_free(&m);
 

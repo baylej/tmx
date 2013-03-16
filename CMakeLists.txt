@@ -10,14 +10,24 @@ option(INSTALL_TARGET "adds a 'Install' target to the build system ?" off)
 option(WANT_ZLIB "use zlib (ability to decompress layers data) ?" on)
 option(WANT_XML "use libXml2 (ability to read .tmx maps) ?" on)
 option(WANT_JSON "use JSON (ability to read .json maps) ?" on)
-SET(BUILD_SHARED_LIBS OFF)
-SET(CMAKE_BUILD_TYPE Release)
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_BUILD_TYPE Release)
+set(DEPENDENCIES_DIR "" CACHE FILEPATH "Dependencies root directory, contains include and lib subdirectories")
 
 #-----------#
 #    Env
 #-----------#
 
+# Search in the `cmake' directory for additional CMake modules.
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
+# variable containing sources to compile
 set(SOURCES "src/tmx.c" "src/tmx_utils.c" "src/tmx_err.c")
+
+if(DEPENDENCIES_DIR)
+    message(STATUS "Adding ${DEPENDENCIES_DIR} to CMAKE_FIND_ROOT_PATH")
+    list(APPEND CMAKE_FIND_ROOT_PATH "${DEPENDENCIES_DIR}")
+endif(DEPENDENCIES_DIR)
 
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES("stdint.h" STDINT_H)
@@ -54,11 +64,19 @@ endif(WANT_XML)
 
 if(WANT_JSON)
     add_definitions(-DWANT_JSON)
-    list(APPEND ${SOURCES} "src/tmx_xml.c")
-    # TODO
-else(WANT_ZLIB)
+    set(SOURCES ${SOURCES} "src/tmx_json.c")
+    include(FindLibXml2)
+    find_package(yajl REQUIRED)
+    include_directories(${YAJL_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${YAJL_LIBRARIES})
+else(WANT_JSON)
     message("Json not wanted")
 endif(WANT_JSON)
+
+if(WIN32)
+    # disable warning on _strncpy (spams the output)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif(WIN32)
 
 #-----------#
 #   Build
