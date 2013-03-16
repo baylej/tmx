@@ -43,7 +43,7 @@ tmx_map tmx_load(const char * path) {
 	if (!strcmp(extension, ".tmx") || !strcmp(extension, ".xml")) {
 		map = parse_xml(path);
 	} else if (!strcmp(extension, ".json")) {
-		/* TODO */
+		map = parse_json(path);
 	} else {
 		/* open the file and check with the first character */
 		if ((file = fopen(path, "r"))) {
@@ -79,16 +79,6 @@ static void free_props(tmx_property p) {
 	}
 }
 
-static void free_layers(tmx_layer l) {
-	if (l) {
-		free_layers(l->next);
-		tmx_free_func(l->name);
-		tmx_free_func(l->gids);
-		free_props(l->properties);
-		tmx_free_func(l);
-	}
-}
-
 static void free_obj(tmx_object o) {
 	if (o) {
 		free_obj(o->next);
@@ -99,12 +89,16 @@ static void free_obj(tmx_object o) {
 	}
 }
 
-static void free_objgrp(tmx_objectgroup o) {
-	if (o) {
-		free_objgrp(o->next);
-		free_obj(o->head);
-		tmx_free_func(o->name);
-		tmx_free_func(o);
+static void free_layers(tmx_layer l) {
+	if (l) {
+		free_layers(l->next);
+		tmx_free_func(l->name);
+		if (l->type == L_LAYER)
+			tmx_free_func(l->content.gids);
+		else if (l->type == L_OBJGR)
+			free_obj(l->content.head);
+		free_props(l->properties);
+		tmx_free_func(l);
 	}
 }
 
@@ -121,7 +115,6 @@ static void free_ts(tmx_tileset ts) {
 void tmx_free(tmx_map *map) {
 	if (*map) {
 		free_ts((*map)->ts_head);
-		free_objgrp((*map)->ob_head);
 		free_props((*map)->properties);
 		free_layers((*map)->ly_head);
 		tmx_free_func(*map);
@@ -145,24 +138,6 @@ void dump_objects(tmx_object o) {
 
 	if (o)
 		if (o->next) dump_objects(o->next);
-}
-
-void dump_objgrps(tmx_objectgroup o) {
-	printf("objectgroup={");
-	if (!o) {
-		fputs("\n(NULL)", stdout);
-	} else {
-		printf("\n\tname='%s'", o->name);
-		printf("\n\tcolor='0x%x'", o->color);
-		printf("\n\tvisible='%d'", o->visible);
-		printf("\n\topacity='%f'", o->opacity);
-	}
-	puts("\n}");
-
-	if (o) {
-		if (o->head) dump_objects(o->head);
-		if (o->next) dump_objgrps(o->next);
-	}
 }
 
 void dump_prop(tmx_property p) {
@@ -220,17 +195,18 @@ void dump_layer(tmx_layer l, unsigned int tc) {
 		printf("\n\tname='%s'", l->name);
 		printf("\n\tvisible='%d'", l->visible);
 		printf("\n\topacity='%f'", l->opacity);
-		printf("\n\ttiles=");
-		if (l->gids) {
+		if (l->type == L_LAYER && l->content.gids) {
+			printf("\n\ttype=Layer\n\ttiles=");
 			for (i=0; i<tc; i++)
-				printf("%d,", l->gids[i] & TMX_FLIP_BITS_REMOVAL);
-		} else {
-			fputs("(NULL)", stdout);
+				printf("%d,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
+		} else if (l->type == L_OBJGR) {
+			printf("\n\ttype=ObjectGroup");
 		}
 	}
 	puts("\n}");
 
 	if (l) {
+		if (l->type == L_OBJGR && l->content.head) dump_objects(l->content.head);
 		if (l->properties) dump_prop(l->properties);
 		if (l->next) dump_layer(l->next, tc);
 	}
@@ -252,7 +228,6 @@ void dump_map(tmx_map m) {
 	if (m) {
 		dump_tileset(m->ts_head);
 		dump_prop(m->properties);
-		dump_objgrps(m->ob_head);
 		dump_layer(m->ly_head, m->height * m->width);
 	}
 }
@@ -275,8 +250,9 @@ int main(int argc, char *argv[]) {
 	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
 	tmx_free_func  = dbg_free;
 
-	m = tmx_load("test.json");
-	if (!m) tmx_perror("parse_json(test.json)");
+	m = tmx_load("test.tmx");
+	//if (!m) tmx_perror("parse_json(test.json)");
+	if (!m) tmx_perror("parse_xml(test.tmx)");
 	dump_map(m);
 	tmx_free(&m);
 

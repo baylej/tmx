@@ -138,6 +138,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 	curr_depth = xmlTextReaderDepth(reader);
 
 	if (!(res = alloc_layer())) return 0;
+	res->type = L_LAYER;
 	res->next = *layer_headadr;
 	*layer_headadr = res;
 
@@ -167,7 +168,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 			if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) return 0;
 			} else if (!strcmp(name, "data")) {
-				if (!parse_data(reader, &(res->gids), map_height * map_width)) return 0;
+				if (!parse_data(reader, &(res->content.gids), map_height * map_width)) return 0;
 			} else {
 				/* Unknow element, skipping it's tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
@@ -285,8 +286,8 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 	return 1;
 }
 
-static int parse_objectgroup(xmlTextReaderPtr reader, tmx_objectgroup *objgadr) {
-	tmx_objectgroup objgrp;
+static int parse_objectgroup(xmlTextReaderPtr reader, tmx_layer *layers_headadr) {
+	tmx_layer objgrp;
 	tmx_object res;
 	int curr_depth;
 	const char *name;
@@ -294,9 +295,10 @@ static int parse_objectgroup(xmlTextReaderPtr reader, tmx_objectgroup *objgadr) 
 
 	curr_depth = xmlTextReaderDepth(reader);
 
-	if (!(objgrp = alloc_objgrp())) return 0;
-	objgrp->next = *objgadr;
-	*objgadr = objgrp;
+	if (!(objgrp = alloc_layer())) return 0;
+	objgrp->type = L_OBJGR;
+	objgrp->next = *layers_headadr;
+	*layers_headadr = objgrp;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
@@ -330,8 +332,8 @@ static int parse_objectgroup(xmlTextReaderPtr reader, tmx_objectgroup *objgadr) 
 			if (!strcmp(name, "object")) {
 				if (!(res = alloc_object())) return 0;
 				
-				res->next = objgrp->head;
-				objgrp->head = res;
+				res->next = objgrp->content.head;
+				objgrp->content.head = res;
 
 				if (!parse_object(reader, res)) return 0;
 
@@ -550,7 +552,7 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 			} else if (!strcmp(name, "layer")) {
 				if (!parse_layer(reader, &(res->ly_head), res->height, res->width)) goto cleanup;
 			} else if (!strcmp(name, "objectgroup")) {
-				if (!parse_objectgroup(reader, &(res->ob_head))) goto cleanup;
+				if (!parse_objectgroup(reader, &(res->ly_head))) goto cleanup;
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) goto cleanup;
 			} else {

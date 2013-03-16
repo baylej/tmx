@@ -40,46 +40,50 @@ void yajl_freef(void *ctx, void *address) {
 */
 
 int cb_null(void * ctx) {
+	printf("(NULL)\n");
 	return 1;
 }
 
 int cb_boolean(void * ctx, int boolVal) {
-	return 1;
-}
-
-int cb_integer(void * ctx, long long integerVal) {
-	return 1;
-}
-
-int cb_double(void * ctx, double doubleVal) {
+	printf("%d(bool)\n", boolVal);
 	return 1;
 }
 
 int cb_number(void * ctx, const char * numberVal, size_t numberLen) {
+	fwrite(numberVal, 1, numberLen, stdout);
+	printf("(number)\n");
 	return 1;
 }
 
 int cb_string(void * ctx, const unsigned char * stringVal, size_t stringLen) {
+	fwrite(stringVal, 1, stringLen, stdout);
+	printf("(string)\n");
 	return 1;
 }
 
 int cb_start_map(void * ctx) {
+	printf("map start\n");
 	return 1;
 }
 
 int cb_map_key(void * ctx, const unsigned char * key, size_t stringLen) {
+	fwrite(key, 1, stringLen, stdout);
+	printf("(map key)\n");
 	return 1;
 }
 
 int cb_end_map(void * ctx) {
+	printf("map stop\n");
 	return 1;
 }
 
 int cb_start_array(void * ctx) {
+	printf("array start\n");
 	return 1;
 }
 
 int cb_end_array(void * ctx) {
+	printf("array end\n");
 	return 1;
 }
 
@@ -109,19 +113,24 @@ tmx_map parse_json(const char *filename) {
 	mem_f.free = yajl_freef;
 
 	/* set callback functions */
+	cb_f.yajl_integer = NULL;
+	cb_f.yajl_double = NULL;
 	cb_f.yajl_boolean = cb_boolean;
-	cb_f.yajl_double = cb_double;
-	cb_f.yajl_end_array = cb_end_array;
-	cb_f.yajl_end_map = cb_end_map;
-	cb_f.yajl_integer = cb_integer;
-	cb_f.yajl_map_key = cb_map_key;
 	cb_f.yajl_null = cb_null;
 	cb_f.yajl_number = cb_number;
-	cb_f.yajl_start_array = cb_start_array;
-	cb_f.yajl_start_map = cb_start_map;
 	cb_f.yajl_string = cb_string;
+	cb_f.yajl_start_array = cb_start_array;
+	cb_f.yajl_end_array = cb_end_array;
+	cb_f.yajl_start_map = cb_start_map;
+	cb_f.yajl_map_key = cb_map_key;
+	cb_f.yajl_end_map = cb_end_map;
 
-	if (!(handle = yajl_alloc(&cb_f, &mem_f, NULL))) goto cleanup;
+	if (!(handle = yajl_alloc(&cb_f, &mem_f, NULL))) {
+		yajl_errstr = (char*)yajl_get_error(handle, 0, NULL, 0);
+		tmx_err(E_UNKN, yajl_errstr);
+		yajl_free_error(handle, (unsigned char*)yajl_errstr);
+		goto cleanup;
+	}
 	yajl_config(handle, yajl_dont_validate_strings, 1); /* disable utf8 checking */
 
 	/* Open and parse the file */

@@ -21,7 +21,6 @@ tmx_map parse_json(const char *filename);
 tmx_property    alloc_prop(void);
 tmx_image       alloc_image(void);
 tmx_object      alloc_object(void);
-tmx_objectgroup alloc_objgrp(void);
 tmx_layer       alloc_layer(void);
 tmx_tileset     alloc_tileset(void);
 tmx_map         alloc_map(void);

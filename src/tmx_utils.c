@@ -315,18 +315,6 @@ tmx_object alloc_object(void) {
 	return res;
 }
 
-tmx_objectgroup alloc_objgrp(void) {
-	tmx_objectgroup res = (tmx_objectgroup)tmx_alloc_func(NULL, sizeof(struct _tmx_objgrp));
-	if (res) {
-		memset(res, 0, sizeof(struct _tmx_objgrp));
-		res->opacity = 1.0f;
-		res->visible = 1;
-	} else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
-}
-
 tmx_layer alloc_layer(void) {
 	tmx_layer res = (tmx_layer)tmx_alloc_func(NULL, sizeof(struct _tmx_layer));
 	if (res) {
@@ -403,5 +391,17 @@ char* str_trim(char *str) {
 char * tmx_strdup(char *str) {
 	char *res =  (char*)tmx_alloc_func(NULL, strlen(str)+1);
 	strcpy(res, str);
+	return res;
+}
+
+/* duplicate a substring */
+char * tmx_strndup(char *str, int len) {
+	char c, *res;
+	
+	c = str[len];
+	str[len] = '\0';
+
+	res = tmx_strdup(str);
+	str[len] = c;
 	return res;
 }

@@ -33,6 +33,7 @@ void  (*tmx_free_func ) (void *address);             /* free */
 */
 
 enum tmx_map_orient{O_NONE, O_ORT, O_ISO}; /* T_STA : stagging (0.9) */
+enum tmx_layer_type{L_NONE, L_LAYER, L_OBJGR}; /* L_LIM */
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE}; /* ellipse(0.9) */
 
 typedef struct _tmx_prop { /* <properties> and <property> */
@@ -62,16 +63,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	struct _tmx_ts *next;
 } * tmx_tileset;
 
-/* TODO: terrains(0.9) and imagelayer(0.9) */
-
-typedef struct _tmx_layer { /* <layer> and it's <data> */
-	char *name;
-	float opacity;
-	char visible; /* 0 == false */
-	int32_t *gids;
-	tmx_property properties;
-	struct _tmx_layer *next;
-} * tmx_layer;
+/* TODO: terrains(0.9) */
 
 typedef struct _tmx_obj { /* <object> */
 	char *name;
@@ -85,14 +77,21 @@ typedef struct _tmx_obj { /* <object> */
 	struct _tmx_obj *next;
 } * tmx_object;
 
-typedef struct _tmx_objgrp { /* <objectgroup> */
+typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	char *name;
 	int color; /* bytes : RGB */
 	float opacity;
 	char visible; /* 0 == false */
-	tmx_object head;
-	struct _tmx_objgrp *next;
-} * tmx_objectgroup;
+
+	enum tmx_layer_type type;
+	union layer_content {
+		int32_t *gids;
+		tmx_object head;
+	}content;
+
+	tmx_property properties;
+	struct _tmx_layer *next;
+} * tmx_layer;
 
 typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_map_orient orient;
@@ -103,8 +102,6 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	tmx_property properties;
 	tmx_tileset ts_head;
 	tmx_layer ly_head;
-	tmx_objectgroup ob_head;
-	/* TODO: can contain: imagelayer(0.9) */
 } * tmx_map;
 
 /*
