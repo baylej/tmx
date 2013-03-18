@@ -47,19 +47,17 @@ enum tmx_str_type {
 	TMX_LAY,
 	TMX_OBJ,
 	TMX_TST,
-	TMX_IMG,
 	TMX_PRP,
-	TMX_DAT,
 	TMX_PTS,
 	J_ARRAY
 };
 
 union tmx_str_vals {
+	void *addr;
 	tmx_map map;
 	tmx_layer lay;
 	tmx_object obj;
 	tmx_tileset tst;
-	tmx_image img;
 	enum tmx_str_type arraytype;
 };
 
@@ -86,10 +84,6 @@ static enum tmx_str_type get_struct_entity(const char *name) {
 			return TMX_LAY;
 		if (!strcmp(name, "objects"))
 			return TMX_OBJ;
-		if (!strcmp(name, "image"))
-			return TMX_IMG;
-		if (!strcmp(name, "data"))
-			return TMX_DAT;
 		if (!strcmp(name, "map"))
 			return TMX_MAP;
 		if (!strcmp(name, "polygon") || !strcmp(name, "polyline"))
@@ -109,7 +103,6 @@ static void* anc_append(enum tmx_str_type type) { /* return NULL if an error occ
 	curr_depth++;
 	switch(type) {
 		case TMX_LAY: res = ancestry[curr_depth].vals.lay = alloc_layer();      break;
-		case TMX_IMG: res = ancestry[curr_depth].vals.img = alloc_image();      break;
 		case TMX_OBJ: res = ancestry[curr_depth].vals.obj = alloc_object();     break;
 		case TMX_TST: res = ancestry[curr_depth].vals.tst = alloc_tileset();    break;
 		case TMX_MAP: res = fres = ancestry[curr_depth].vals.map = alloc_map(); break;
@@ -137,7 +130,7 @@ static void* anc_append(enum tmx_str_type type) { /* return NULL if an error occ
 	return 0 if an error occured
 */
 /* !#!#!# remove key, key is actually in the 'last_key' glob */
-static int set_property(tmx_property *prop, const char *key, const char *value) {
+static int set_property(tmx_property *propaddr, const char *value, size_t value_len) {
 	tmx_property p;
 
 	if (!(p = alloc_prop())) {
@@ -145,13 +138,13 @@ static int set_property(tmx_property *prop, const char *key, const char *value) 
 		return 0;
 	}
 
-	p->name  = tmx_strdup((char*)key);
-	p->value = tmx_strdup((char*)value);
+	p->name  = tmx_strdup((char*)last_key);
+	p->value = tmx_strndup((char*)value, value_len);
 
 	if (!p->name || !p->value) goto cleanup;
 
-	p->next = *prop;
-	*prop = p;
+	p->next = *propaddr;
+	*propaddr = p;
 
 	return 1;
 cleanup:
@@ -161,8 +154,115 @@ cleanup:
 	return 0;
 }
 
-static int set_layer(tmx_layer *layer_headadr, const char *key, const char *value) {
+static int set_layer(tmx_layer layeraddr, const char *value, size_t value_len) {
 	return 1;
+}
+
+static int set_tileset(tmx_tileset tilesetaddr, const char *value, size_t value_len) {
+	if (!(tilesetaddr->image)) {
+		if (!(tilesetaddr->image = alloc_image())) return 0;
+	}
+
+	if (!strcmp(last_key, "name")) {
+		tilesetaddr->name = tmx_strndup((char*)value, value_len);
+		if (!(tilesetaddr->name)) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+	} else if (!strcmp(last_key, "image")) {
+		tilesetaddr->image->source = tmx_strndup((char*)value, value_len);
+		if (!(tilesetaddr->image->source)) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+	} else if (!strcmp(last_key, "imageheight")) {
+		tilesetaddr->image->height = atoi(value);
+	} else if (!strcmp(last_key, "imagewidth")) { /* TODO: image.trans */
+		tilesetaddr->image->width = atoi(value);
+	} else if (!strcmp(last_key, "firstgid")) {
+		tilesetaddr->firstgid = atoi(value);
+	} else if (!strcmp(last_key, "tileheight")) {
+		tilesetaddr->tile_height = atoi(value);
+	} else if (!strcmp(last_key, "tilewidth")) {
+		tilesetaddr->tile_width = atoi(value);
+	} else if (!strcmp(last_key, "spacing")) {
+		tilesetaddr->spacing = atoi(value);
+	} else if (!strcmp(last_key, "margin")) {
+		tilesetaddr->margin = atoi(value);
+	} /* TODO: offset X,Y */
+	return 1;
+}
+
+static int set_object(tmx_object objectaddr, const char *value, size_t value_len) {
+	return 1;
+}
+
+static int set_map(tmx_map mapaddr, const char *value, size_t value_len) {
+	char orient_s[11];
+	enum tmx_map_orient orient_v;
+
+	if (!strcmp(last_key, "orientation")) {
+		if (value_len > 10) {
+			tmx_err(E_JDATA, "parse_json: invalid orientation");
+			return 0;
+		}
+		memcpy(orient_s, value, value_len);
+		orient_s[value_len] = '\0';
+		orient_v = parse_orient(orient_s);
+		if (orient_v == O_NONE) {
+			tmx_err(E_JDATA, "parse_json: unsupported orientation %s", orient_s);
+			return 0;
+		}
+		mapaddr->orient = orient_v;
+	} else if (!strcmp(last_key, "height")) {
+		mapaddr->height = atoi(value);
+	} else if (!strcmp(last_key, "width")) {
+		mapaddr->width = atoi(value);
+	} else if (!strcmp(last_key, "tileheight")) {
+		mapaddr->tile_height = atoi(value);
+	} else if (!strcmp(last_key, "tilewidth")) {
+		mapaddr->tile_width = atoi(value);
+	}
+	return 1;
+}
+
+static int set(const char *value, size_t value_len) {
+	int i, res;
+
+	i = curr_depth;
+	if (ancestry[i].type == J_ARRAY) { /* get the type of the array */
+		if (--i == -1) {
+			tmx_err(E_UNKN, "json_parser: wrong type of root element (array)");
+			return 0;
+		}
+	}
+	if (ancestry[i].type == TMX_PTS) {
+		res = 1; /* TODO */
+	} else if (ancestry[i].type == TMX_PRP) { /* properties */
+		if (--i == -1) {
+			tmx_err(E_UNKN, "json_parser: wrong type of root element (property)");
+			return 0;
+		}
+		switch(ancestry[i].type) {
+			case TMX_MAP: res = set_property(&(ancestry[i].vals.map->properties), value, value_len); break;
+			case TMX_LAY: res = set_property(&(ancestry[i].vals.lay->properties), value, value_len); break;
+			case TMX_OBJ: res = set_property(&(ancestry[i].vals.obj->properties), value, value_len); break;
+			//case TMX_TST: res = set_property(&(ancestry[i].vals.tst->properties), value, value_len); break; /* FIXME */
+			default: tmx_err(E_JDATA, "json_parser: unallowed 'properties' in an element of type %d", ancestry[i].type);
+			         res = 0;
+		}
+	} else {
+
+		switch(ancestry[i].type) {
+			case TMX_MAP: res = set_map    (ancestry[i].vals.map, value, value_len); break;
+			case TMX_LAY: res = set_layer  (ancestry[i].vals.lay, value, value_len); break;
+			case TMX_OBJ: res = set_object (ancestry[i].vals.obj, value, value_len); break;
+			case TMX_TST: res = set_tileset(ancestry[i].vals.tst, value, value_len); break;
+			default: tmx_err(E_JDATA, "json_parser: cannot set values in an element of type %d", ancestry[i].type);
+			         res = 0;
+		}
+	}
+	return res;
 }
 
 /*
@@ -205,25 +305,6 @@ static int chain_object(tmx_object o, tmx_layer parent) {
 	return 1;
 }
 
-/* insert p in in_adr of type in_type */
-static int chain_properties(tmx_property p, void *in_adr, enum tmx_str_type in_type) {
-	tmx_property *headadr = NULL;
-	switch (in_type) {
-		case TMX_MAP: headadr = &(((tmx_map)in_adr)->properties);    break;
-		case TMX_LAY: headadr = &(((tmx_layer)in_adr)->properties);  break;
-		case TMX_OBJ: headadr = &(((tmx_object)in_adr)->properties); break;
-		//case TMX_TST: ((tmx_tileset)in_adr); break; /* currently no way to set properties on a tileset */
-	}
-	if (headadr) {
-		p->next = *headadr;
-		*headadr = p;
-		return 1;
-	} else {
-		/* FIXME error */
-		return 0;
-	}
-}
-
 /*
 	Callback functions
 	called by the event-driven JSON parser
@@ -233,20 +314,24 @@ static int chain_properties(tmx_property p, void *in_adr, enum tmx_str_type in_t
 static int cb_boolean(void * ctx, int boolVal) {
 	char btrue[] = "true";
 	char bfalse[] = "false";
-	printf("%d(bool)\n", boolVal);
-	return 1;
+	printf("%d(bool)\n", boolVal); /* DBG */
+	if (boolVal) {
+		return set(btrue, 4);
+	} else {
+		return set(bfalse, 5);
+	}
 }
 
 static int cb_number(void * ctx, const char *numberVal, size_t numberLen) {
-	fwrite(numberVal, 1, numberLen, stdout);
+	fwrite(numberVal, 1, numberLen, stdout); /* DBG */
 	printf("(number)\n");
-	return 1;
+	return set(numberVal, numberLen);
 }
 
 static int cb_string(void * ctx, const unsigned char *stringVal, size_t stringLen) {
-	fwrite(stringVal, 1, stringLen, stdout);
+	fwrite(stringVal, 1, stringLen, stdout); /* DBG */
 	printf("(string)\n");
-	return 1;
+	return set(stringVal, stringLen);
 }
 
 /* raised if the right-value is '{' */
@@ -279,8 +364,6 @@ static int cb_end_map(void * ctx) {
 		chain_tileset((tmx_tileset)val);
 	} else if (type == TMX_PRP || type == TMX_PTS) {
 		;/* Nothing to do */
-	} else if (type == TMX_IMG) {
-		((tmx_tileset)anc_take(tst))->image = (tmx_image)val;
 	} else if (type == TMX_OBJ) {
 		chain_object((tmx_object)val, ancestry[curr_depth-1].vals.lay);
 	} else if (type != TMX_MAP) {
