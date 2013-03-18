@@ -33,6 +33,7 @@ int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);
 char * tmx_strdup(char *str);
+char * tmx_strndup(char *str, int len);
 
 /*
 	Error handling

@@ -32,8 +32,8 @@ void  (*tmx_free_func ) (void *address);             /* free */
 	Data Structures
 */
 
-enum tmx_map_orient{O_NONE, O_ORT, O_ISO}; /* T_STA : stagging (0.9) */
-enum tmx_layer_type{L_NONE, L_LAYER, L_OBJGR}; /* L_LIM */
+enum tmx_map_orient {O_NONE, O_ORT, O_ISO}; /* T_STA : stagging (0.9) */
+enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR}; /* L_LIM */
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE}; /* ellipse(0.9) */
 
 typedef struct _tmx_prop { /* <properties> and <property> */
@@ -74,6 +74,7 @@ typedef struct _tmx_obj { /* <object> */
 	int **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
 	//char visible; /* 0 == false (0.9) */
+	tmx_property properties;
 	struct _tmx_obj *next;
 } * tmx_object;
 
