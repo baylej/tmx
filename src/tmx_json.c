@@ -129,7 +129,7 @@ static void* anc_append(enum tmx_str_type type) { /* return NULL if an error occ
 	parses the key and set the value in the right field
 	return 0 if an error occured
 */
-/* !#!#!# remove key, key is actually in the 'last_key' glob */
+
 static int set_property(tmx_property *propaddr, const char *value, size_t value_len) {
 	tmx_property p;
 
@@ -155,6 +155,31 @@ cleanup:
 }
 
 static int set_layer(tmx_layer layeraddr, const char *value, size_t value_len) {
+	unsigned int d_len;
+
+	if (!strcmp(last_key, "name")) {
+		layeraddr->name = tmx_strndup((char*)value, value_len);
+		if (!(layeraddr->name)) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+	} else if (!strcmp(last_key, "color")) { 
+		layeraddr->color = get_color_rgb(value);
+	} else if (!strcmp(last_key, "type")) { 
+		if (!strcmp(value, "tilelayer"))
+			layeraddr->type = L_LAYER;
+		else
+			layeraddr->type = L_OBJGR;
+	} else if (!strcmp(last_key, "opacity")) { 
+		layeraddr->opacity = atof(value);
+	} else if (!strcmp(last_key, "visible")) { 
+		layeraddr->visible = (value[0] == 't');
+	}
+	else if (!strcmp(last_key, "data")) { 
+		
+	} else if (!strcmp(last_key, "polygon") || !strcmp(last_key, "polygon")) {
+
+	}
 	return 1;
 }
 
@@ -312,14 +337,9 @@ static int chain_object(tmx_object o, tmx_layer parent) {
 */
 
 static int cb_boolean(void * ctx, int boolVal) {
-	char btrue[] = "true";
-	char bfalse[] = "false";
-	printf("%d(bool)\n", boolVal); /* DBG */
-	if (boolVal) {
-		return set(btrue, 4);
-	} else {
-		return set(bfalse, 5);
-	}
+	char b_val;
+	b_val = boolVal ? 't': 'f';
+	return set(&b_val, 1);
 }
 
 static int cb_number(void * ctx, const char *numberVal, size_t numberLen) {

@@ -81,7 +81,7 @@ typedef struct _tmx_obj { /* <object> */
 typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	char *name;
 	int color; /* bytes : RGB */
-	float opacity;
+	double opacity;
 	char visible; /* 0 == false */
 
 	enum tmx_layer_type type;
