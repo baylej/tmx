@@ -6,6 +6,7 @@
 	linked list.
 	This parser is less strict than the XML parser because it does not
 	verify the presence of every needed keys.
+	Not thread-safe, uses globals
 */
 
 #include <stdlib.h>
@@ -48,6 +49,7 @@ enum tmx_str_type {
 	TMX_OBJ,
 	TMX_TST,
 	TMX_PRP,
+	TMX_DAT,
 	TMX_PTS,
 	J_ARRAY
 };
@@ -86,10 +88,22 @@ static enum tmx_str_type get_struct_entity(const char *name) {
 			return TMX_OBJ;
 		if (!strcmp(name, "map"))
 			return TMX_MAP;
+		if (!strcmp(name, "data"))
+			return TMX_DAT;
 		if (!strcmp(name, "polygon") || !strcmp(name, "polyline"))
 			return TMX_PTS;
 	}
 	return TMX_NON;
+}
+
+/* DEBUG */
+void dump_ancestry() {
+	int i;
+	printf("ancestry(%d)=\n", curr_depth+1);
+	for (i=0; i<=curr_depth; i++) {
+		printf("\t[%d]=%d\n", i, ancestry[i].type);
+	}
+	putchar('\n');
 }
 
 /* return NULL if an error occured */
@@ -108,10 +122,11 @@ static void* anc_append(enum tmx_str_type type) { /* return NULL if an error occ
 		case TMX_MAP: res = fres = ancestry[curr_depth].vals.map = alloc_map(); break;
 		case J_ARRAY: ancestry[curr_depth].vals.arraytype = get_struct_entity(last_key);
 		case TMX_PTS:
-		case TMX_PRP: res = (void*)1;
+		case TMX_PRP: res = (void*)1; break;
+		default: puts("error");
 	}
 	ancestry[curr_depth].type = type;
-
+	dump_ancestry();
 	return res;
 }
 
@@ -123,6 +138,75 @@ static void* anc_append(enum tmx_str_type type) { /* return NULL if an error occ
 
 /* int anc_drop() (return 0 if error) */
 #define anc_drop() (!(curr_depth-- == 0))
+
+/*
+	arrays of unknown length
+	/!\ JSON files from Tiled have their attributes badly placed
+	ex : map.width can be the very last attribute in the document
+
+	layer.data and object.points need this ugly hack
+	cb_end_array trim the mem bloc
+*/
+
+struct _unkn_larray{
+	void *addr;
+	unsigned int length, count; /*arrays length VS elements count*/
+	union {
+		int32_t *gids;
+		int *points;
+	} val;
+} unkn_array;
+
+static int _ularray_appd(struct _unkn_larray *a, void *addr, enum tmx_str_type t, void *v) {
+	int32_t *gids = NULL;
+	int *points = NULL;
+
+	if (t==TMX_NON || a->addr != addr) {
+		a->addr = addr;
+		a->count = a->length = 0;
+		a->val.gids = NULL;
+		if (t==TMX_NON) return 1;
+	}
+
+	if (a->count+1 > a->length) {
+		if (t == TMX_DAT) {
+			a->length += 500; /* reallocs 500 more tiles */
+			gids = (int32_t*)tmx_alloc_func(a->val.gids, a->length*sizeof(int32_t));
+			if (gids && gids != a->val.gids) a->val.gids = gids;
+		} else if (t == TMX_PTS) {
+			a->length += 5; /* realloc 5 more points */
+			points = (int*)tmx_alloc_func(a->val.points, a->length*2*sizeof(int));
+			if (points && points != a->val.points) a->val.points = points;
+		}
+		if (gids==NULL && points==NULL) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+	}
+
+	if (t == TMX_DAT) {
+		memmove(a->val.gids+a->count, v, sizeof(int32_t));
+	} else if (t == TMX_PTS) {
+		memmove(a->val.points+a->count*2, v, 2*sizeof(int));
+	}
+	a->count++;
+
+	return 1;
+}
+
+static int _ularray_trim(struct _unkn_larray *a, enum tmx_str_type t) {
+	int32_t *gids = NULL;
+	int *points = NULL;
+
+	if (t == TMX_DAT && a->val.gids) {
+		gids = (int32_t*)tmx_alloc_func(a->val.gids, a->count);
+		if (gids && gids != a->val.gids) a->val.gids = gids;
+	} else if (t == TMX_PTS && a->val.points) {
+		points = (int*)tmx_alloc_func(a->val.points, a->count*2);
+		if (points && points != a->val.points) a->val.points = points;
+	}
+	return (gids!=NULL || points!=NULL);
+}
 
 /*
 	Setters
@@ -155,8 +239,7 @@ cleanup:
 }
 
 static int set_layer(tmx_layer layeraddr, const char *value, size_t value_len) {
-	unsigned int d_len;
-
+	int v;
 	if (!strcmp(last_key, "name")) {
 		layeraddr->name = tmx_strndup((char*)value, value_len);
 		if (!(layeraddr->name)) {
@@ -166,9 +249,9 @@ static int set_layer(tmx_layer layeraddr, const char *value, size_t value_len) {
 	} else if (!strcmp(last_key, "color")) { 
 		layeraddr->color = get_color_rgb(value);
 	} else if (!strcmp(last_key, "type")) { 
-		if (!strcmp(value, "tilelayer"))
+		if (!strncmp(value, "tilelayer", value_len))
 			layeraddr->type = L_LAYER;
-		else
+		else if (!strncmp(value, "objectgroup", value_len))
 			layeraddr->type = L_OBJGR;
 	} else if (!strcmp(last_key, "opacity")) { 
 		layeraddr->opacity = atof(value);
@@ -176,10 +259,10 @@ static int set_layer(tmx_layer layeraddr, const char *value, size_t value_len) {
 		layeraddr->visible = (value[0] == 't');
 	}
 	else if (!strcmp(last_key, "data")) { 
-		
-	} else if (!strcmp(last_key, "polygon") || !strcmp(last_key, "polygon")) {
-
+		v = atoi(value);
+		_ularray_appd(&unkn_array, layeraddr, TMX_DAT, &v);
 	}
+
 	return 1;
 }
 
@@ -218,7 +301,41 @@ static int set_tileset(tmx_tileset tilesetaddr, const char *value, size_t value_
 	return 1;
 }
 
+static int set_point(tmx_object o, const char *value, size_t value_len) {
+	static int v[2];
+	static char x_s=0, y_s=0;
+
+	switch (last_key[0]) {
+		case 'x': x_s=1; v[0]=atoi(value); break;
+		case 'y': y_s=1; v[1]=atoi(value); break;
+		default: return 0;
+	}
+
+	if (x_s && y_s) {
+		_ularray_appd(&unkn_array, o, TMX_PTS, v);
+		x_s = y_s = 0;
+	}
+
+	return 1;
+}
+
 static int set_object(tmx_object objectaddr, const char *value, size_t value_len) {
+	if (!strcmp(last_key, "name") && value_len > 0) {
+		objectaddr->name = tmx_strndup((char*)value, value_len);
+		if (!(objectaddr->name)) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+	} else if (!strcmp(last_key, "y")) {
+		objectaddr->y = atoi(value);
+	} else if (!strcmp(last_key, "x")) {
+		objectaddr->x = atoi(value);
+	} else if (!strcmp(last_key, "height")) {
+		objectaddr->height = atoi(value);
+	} else if (!strcmp(last_key, "width")) {
+		objectaddr->width = atoi(value);
+	}
+
 	return 1;
 }
 
@@ -262,7 +379,9 @@ static int set(const char *value, size_t value_len) {
 		}
 	}
 	if (ancestry[i].type == TMX_PTS) {
-		res = 1; /* TODO */
+		if (i-2 != -1 && ancestry[i-2].type == TMX_OBJ) {
+			res = set_point(ancestry[i-2].vals.obj, value, value_len);
+		}
 	} else if (ancestry[i].type == TMX_PRP) { /* properties */
 		if (--i == -1) {
 			tmx_err(E_UNKN, "json_parser: wrong type of root element (property)");
@@ -343,22 +462,20 @@ static int cb_boolean(void * ctx, int boolVal) {
 }
 
 static int cb_number(void * ctx, const char *numberVal, size_t numberLen) {
-	fwrite(numberVal, 1, numberLen, stdout); /* DBG */
-	printf("(number)\n");
 	return set(numberVal, numberLen);
 }
 
 static int cb_string(void * ctx, const unsigned char *stringVal, size_t stringLen) {
-	fwrite(stringVal, 1, stringLen, stdout); /* DBG */
-	printf("(string)\n");
 	return set(stringVal, stringLen);
 }
 
 /* raised if the right-value is '{' */
 static int cb_start_map(void * ctx) {
 	if (anc_type() == J_ARRAY) { /* if the parent is an array */
+		printf("new obj of type %d\n", anc_take(arraytype));
 		return (anc_append(anc_take(arraytype)) != NULL); /* alloc with the type of the array */
 	} else {
+		printf("new obj: %s\n", last_key); /* DEBUG */
 		return (anc_append(get_struct_entity(last_key)) != NULL);
 	}
 }
@@ -384,7 +501,7 @@ static int cb_end_map(void * ctx) {
 		chain_tileset((tmx_tileset)val);
 	} else if (type == TMX_PRP || type == TMX_PTS) {
 		;/* Nothing to do */
-	} else if (type == TMX_OBJ) {
+	} else if (type == TMX_OBJ && anc_type()==J_ARRAY) {
 		chain_object((tmx_object)val, ancestry[curr_depth-1].vals.lay);
 	} else if (type != TMX_MAP) {
 		tmx_err(E_UNKN, "json_parser: unexpected element of type %d at map end", type);
@@ -399,7 +516,27 @@ static int cb_start_array(void * ctx) {
 	return (anc_append(J_ARRAY) != NULL);
 }
 
-static int cb_end_array(void * ctx) {
+/* raised by a ']' */
+static int cb_end_array(void * ctx) { /* FIXME : make functions */
+	unsigned int i;
+	if (anc_take(arraytype) == TMX_DAT) {
+		_ularray_trim(&unkn_array, TMX_DAT);
+		((tmx_layer)unkn_array.addr)->content.gids = unkn_array.val.gids;
+	} else if (anc_take(arraytype) == TMX_PTS) {
+		_ularray_trim(&unkn_array, TMX_PTS);
+		((tmx_object)unkn_array.addr)->points_len = unkn_array.count;
+		((tmx_object)unkn_array.addr)->points = tmx_alloc_func(NULL, sizeof(int*));
+		if (!(((tmx_object)unkn_array.addr)->points)) {
+			tmx_errno = E_ALLOC;
+			return 0;
+		}
+		((tmx_object)unkn_array.addr)->points[0] = unkn_array.val.points;
+		printf("array has %d points", unkn_array.count);
+		for (i=1; i<unkn_array.count; i++) {
+			((tmx_object)unkn_array.addr)->points[i] = ((tmx_object)unkn_array.addr)->points[0]+(i*2);
+		}
+		_ularray_appd(&unkn_array, NULL, TMX_NON, NULL);
+	}
 	return anc_drop();
 }
 
