@@ -32,8 +32,7 @@ enum tmx_map_orient parse_orient(const char* orient_str);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);
-char* tmx_strdup(char *str);
-char* tmx_strndup(char *str, int len);
+char* tmx_strdup(const char *str);
 
 /*
 	Error handling

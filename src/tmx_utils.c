@@ -388,20 +388,8 @@ char* str_trim(char *str) {
 }
 
 /* duplicate a string */
-char * tmx_strdup(char *str) {
+char * tmx_strdup(const char *str) {
 	char *res =  (char*)tmx_alloc_func(NULL, strlen(str)+1);
 	strcpy(res, str);
-	return res;
-}
-
-/* duplicate a substring */
-char * tmx_strndup(char *str, int len) {
-	char c, *res;
-	
-	c = str[len];
-	str[len] = '\0';
-
-	res = tmx_strdup(str);
-	str[len] = c;
 	return res;
 }

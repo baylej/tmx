@@ -5,9 +5,6 @@
 	XML Parser using the XMLReader API because maps may be huge
 	see http://www.xmlsoft.org/xmlreader.html
 	see http://www.xmlsoft.org/examples/index.html#reader1.c
-	It uses top-appended linked lists, so if you have several layers
-	in your map, your first layer in the xml will be the last in the
-	linked list.
 */
 
 #include <stdlib.h>
@@ -42,14 +39,14 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property prop) {
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
 		prop->name = value;
 	} else {
-		tmx_err(E_MISSEL, "missing 'name' attribute in the 'property' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'property' element");
 		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "value"))) { /* source */
 		prop->value = value;
 	} else {
-		tmx_err(E_MISSEL, "missing 'value' attribute in the 'property' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'value' attribute in the 'property' element");
 		return 0;
 	}
 	return 1;
@@ -88,12 +85,12 @@ static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscou
 	char *value, *inner_xml;
 
 	if (!(value = (char*)xmlTextReaderGetAttribute(reader, "encoding"))) { /* encoding */
-		tmx_err(E_MISSEL, "missing 'encoding' attribute in the 'data' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'encoding' attribute in the 'data' element");
 		return 0;
 	}
 
 	if (!(inner_xml = (char*)xmlTextReaderReadInnerXml(reader))) {
-		tmx_err(E_XDATA, "missing content in the 'data' element", value);
+		tmx_err(E_XDATA, "xml parser: missing content in the 'data' element", value);
 		tmx_free_func(value);
 		return 0;
 	}
@@ -101,22 +98,22 @@ static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscou
 	if (!strcmp(value, "base64")) {
 		tmx_free_func(value);
 		if (!(value = (char*)xmlTextReaderGetAttribute(reader, "compression"))) { /* compression */
-			tmx_err(E_MISSEL, "missing 'compression' attribute in the 'data' element");
+			tmx_err(E_MISSEL, "xml parser: missing 'compression' attribute in the 'data' element");
 			goto cleanup;
 		}
 		if (strcmp(value, "zlib") && strcmp(value, "gzip")) {
-			tmx_err(E_ENCCMP, "unsupported data compression: '%s'", value); /* unsupported compression */
+			tmx_err(E_ENCCMP, "xml parser: unsupported data compression: '%s'", value); /* unsupported compression */
 			goto cleanup;
 		} 
 		if (!data_decode(str_trim(inner_xml), B64Z, gidscount, gidsadr)) goto cleanup;
 
 	} else if (!strcmp(value, "xml")) {
-		tmx_err(E_ENCCMP, "unimplemented data encoding: XML");
+		tmx_err(E_ENCCMP, "xml parser: unimplemented data encoding: XML");
 		goto cleanup;
 	} else if (!strcmp(value, "csv")) {
 		if (!data_decode(str_trim(inner_xml), CSV, gidscount, gidsadr)) goto cleanup;
 	} else {
-		tmx_err(E_ENCCMP, "unknown data encoding: %s", value);
+		tmx_err(E_ENCCMP, "xml parser: unknown data encoding: %s", value);
 		goto cleanup;
 	}
 	tmx_free_func(value);
@@ -139,14 +136,16 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 
 	if (!(res = alloc_layer())) return 0;
 	res->type = L_LAYER;
-	res->next = *layer_headadr;
+	while(*layer_headadr) {
+		layer_headadr = &((*layer_headadr)->next);
+	}
 	*layer_headadr = res;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
 		res->name = value;
 	} else {
-		tmx_err(E_MISSEL, "missing 'name' attribute in the 'layer' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'layer' element");
 		return 0;
 	}
 
@@ -185,7 +184,7 @@ static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslen
 	int i;
 
 	if (!(value = (char*)xmlTextReaderGetAttribute(reader, "points"))) { /* points */
-		tmx_err(E_MISSEL, "missing 'points' attribute in the 'object' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'points' attribute in the 'object' element");
 		return 0;
 	}
 
@@ -230,7 +229,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 		obj->x = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'x' attribute in the 'object' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'x' attribute in the 'object' element");
 		return 0;
 	}
 
@@ -238,7 +237,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 		obj->y = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'y' attribute in the 'object' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'y' attribute in the 'object' element");
 		return 0;
 	}
 
@@ -271,7 +270,9 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 			
 			if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 				name = (char*)xmlTextReaderConstName(reader);
-				if (!strcmp(name, "polygon")) {
+				if (!strcmp(name, "properties")) {
+					if (!parse_properties(reader, &(obj->properties))) return 0;
+				} else if (!strcmp(name, "polygon")) {
 					obj->shape = S_POLYGON;
 				} else if (!strcmp(name, "polyline")) {
 					obj->shape = S_POLYLINE;
@@ -297,14 +298,16 @@ static int parse_objectgroup(xmlTextReaderPtr reader, tmx_layer *layers_headadr)
 
 	if (!(objgrp = alloc_layer())) return 0;
 	objgrp->type = L_OBJGR;
-	objgrp->next = *layers_headadr;
+	while(*layers_headadr) {
+		layers_headadr = &((*layers_headadr)->next);
+	}
 	*layers_headadr = objgrp;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
 		objgrp->name = value;
 	} else {
-		tmx_err(E_MISSEL, "missing 'name' attribute in the 'objectgroup' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'objectgroup' element");
 		return 0;
 	}
 
@@ -357,7 +360,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "source"))) { /* source */
 		res->source = value;
 	} else {
-		tmx_err(E_MISSEL, "missing 'source' attribute in the 'image' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'source' attribute in the 'image' element");
 		return 0;
 	}
 
@@ -365,7 +368,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 		res->height = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'height' attribute in the 'image' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'height' attribute in the 'image' element");
 		return 0;
 	}
 
@@ -373,7 +376,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
 		res->width = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'width' attribute in the 'image' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'width' attribute in the 'image' element");
 		return 0;
 	}
 
@@ -391,7 +394,7 @@ static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned i
 		*x = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'x' attribute in the 'tileoffset' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'x' attribute in the 'tileoffset' element");
 		return 0;
 	}
 
@@ -399,7 +402,7 @@ static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned i
 		*y = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'y' attribute in the 'tileoffset' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'y' attribute in the 'tileoffset' element");
 		return 0;
 	}
 
@@ -422,7 +425,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
 		res->name = value;
 	} else {
-		tmx_err(E_MISSEL, "missing 'name' attribute in the 'tileset' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'tileset' element");
 		return 0;
 	}
 
@@ -430,7 +433,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		res->firstgid = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'firstgid' attribute in the 'tileset' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'firstgid' attribute in the 'tileset' element");
 		return 0;
 	}
 
@@ -438,7 +441,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		res->tile_width = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'tilewidth' attribute in the 'tileset' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'tilewidth' attribute in the 'tileset' element");
 		return 0;
 	}
 
@@ -446,7 +449,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		res->tile_height = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'tileheight' attribute in the 'tileset' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'tileheight' attribute in the 'tileset' element");
 		return 0;
 	}
 
@@ -500,12 +503,12 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "orientation"))) { /* orientation */
 		if (res->orient = parse_orient(value), res->orient == O_NONE) {
-			tmx_err(E_XDATA, "unsupported 'orientation' '%s'", value);
+			tmx_err(E_XDATA, "xml parser: unsupported 'orientation' '%s'", value);
 			goto cleanup;
 		}
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'orientation' attribute in the 'map' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'orientation' attribute in the 'map' element");
 		goto cleanup;
 	}
 
@@ -513,7 +516,7 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 		res->height = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'height' attribute in the 'map' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'height' attribute in the 'map' element");
 		goto cleanup;
 	}
 
@@ -521,7 +524,7 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 		res->width = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'width' attribute in the 'map' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'width' attribute in the 'map' element");
 		goto cleanup;
 	}
 
@@ -529,7 +532,7 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 		res->tile_height = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'tileheight' attribute in the 'map' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'tileheight' attribute in the 'map' element");
 		goto cleanup;
 	}
 
@@ -537,7 +540,7 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 		res->tile_width = atoi(value);
 		tmx_free_func(value);
 	} else {
-		tmx_err(E_MISSEL, "missing 'tilewidth' attribute in the 'map' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'tilewidth' attribute in the 'map' element");
 		goto cleanup;
 	}
 

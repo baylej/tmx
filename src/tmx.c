@@ -249,10 +249,11 @@ int main(int argc, char *argv[]) {
 
 	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
 	tmx_free_func  = dbg_free;
-
-	m = tmx_load("test.json");
-	if (!m) tmx_perror("parse_json(test.json)");
-	//if (!m) tmx_perror("parse_xml(test.tmx)");
+	
+	//m = tmx_load("test.json");
+	//if (!m) tmx_perror("parse_json(test.json)");
+	m = tmx_load("test.tmx");
+	if (!m) tmx_perror("parse_xml(test.tmx)");
 	dump_map(m);
 	tmx_free(&m);
 

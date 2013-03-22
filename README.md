@@ -8,7 +8,7 @@ Loads **.tmx** [tiled](http://mapeditor.org) maps in you games.
 
 ## Dependencies
 
-This project depends on [Zlib](http://zlib.net/), [yajl](http://lloyd.github.com/yajl/) and [LibXml2](http://xmlsoft.org).
+This project depends on [Zlib](http://zlib.net/), [Jansson](http://www.digip.org/jansson/) and [LibXml2](http://xmlsoft.org).
 Binaries for windows are available :
  * [MSVS 10](http://bayle.jonathan.free.fr/f/deps-msvc10.zip)
  * [MinGW 4.6.2](http://bayle.jonathan.free.fr/f/deps-mingw4_6_2.zip)
