@@ -1,6 +1,3 @@
-/* FIXME let the user choose if he links staticaly */
-#define LIBXML_STATIC
-
 /*
 	XML Parser using the XMLReader API because maps may be huge
 	see http://www.xmlsoft.org/xmlreader.html
@@ -81,106 +78,8 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_property *prop_headadr)
 	return 1;
 }
 
-static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscount) {
-	char *value, *inner_xml;
-
-	if (!(value = (char*)xmlTextReaderGetAttribute(reader, "encoding"))) { /* encoding */
-		tmx_err(E_MISSEL, "xml parser: missing 'encoding' attribute in the 'data' element");
-		return 0;
-	}
-
-	if (!(inner_xml = (char*)xmlTextReaderReadInnerXml(reader))) {
-		tmx_err(E_XDATA, "xml parser: missing content in the 'data' element", value);
-		tmx_free_func(value);
-		return 0;
-	}
-
-	if (!strcmp(value, "base64")) {
-		tmx_free_func(value);
-		if (!(value = (char*)xmlTextReaderGetAttribute(reader, "compression"))) { /* compression */
-			tmx_err(E_MISSEL, "xml parser: missing 'compression' attribute in the 'data' element");
-			goto cleanup;
-		}
-		if (strcmp(value, "zlib") && strcmp(value, "gzip")) {
-			tmx_err(E_ENCCMP, "xml parser: unsupported data compression: '%s'", value); /* unsupported compression */
-			goto cleanup;
-		} 
-		if (!data_decode(str_trim(inner_xml), B64Z, gidscount, gidsadr)) goto cleanup;
-
-	} else if (!strcmp(value, "xml")) {
-		tmx_err(E_ENCCMP, "xml parser: unimplemented data encoding: XML");
-		goto cleanup;
-	} else if (!strcmp(value, "csv")) {
-		if (!data_decode(str_trim(inner_xml), CSV, gidscount, gidsadr)) goto cleanup;
-	} else {
-		tmx_err(E_ENCCMP, "xml parser: unknown data encoding: %s", value);
-		goto cleanup;
-	}
-	tmx_free_func(value);
-	tmx_free_func(inner_xml);
-	return 1;
-
-cleanup:
-	tmx_free_func(value);
-	tmx_free_func(inner_xml);
-	return 0;
-}
-
-static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int map_height, int map_width) {
-	tmx_layer res;
-	int curr_depth;
-	const char *name;
-	char *value;
-
-	curr_depth = xmlTextReaderDepth(reader);
-
-	if (!(res = alloc_layer())) return 0;
-	res->type = L_LAYER;
-	while(*layer_headadr) {
-		layer_headadr = &((*layer_headadr)->next);
-	}
-	*layer_headadr = res;
-
-	/* parses each attribute */
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
-		res->name = value;
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'layer' element");
-		return 0;
-	}
-
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
-		res->visible = value[0]=='t' ? 1: 0; /* if (visible=="true") visible <-- 1 */
-		tmx_free_func(value);
-	}
-	
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "opacity"))) { /* opacity */
-		res->opacity = (float)strtod(value, NULL);
-		tmx_free_func(value);
-	}
-
-	do {
-		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
-		
-		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
-			name = (char*)xmlTextReaderConstName(reader);
-			if (!strcmp(name, "properties")) {
-				if (!parse_properties(reader, &(res->properties))) return 0;
-			} else if (!strcmp(name, "data")) {
-				if (!parse_data(reader, &(res->content.gids), map_height * map_width)) return 0;
-			} else {
-				/* Unknow element, skipping it's tree */
-				if (xmlTextReaderNext(reader) != 1) return 0;
-			}
-		}
-	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
-	         xmlTextReaderDepth(reader) != curr_depth);
-
-	return 1;
-}
-
 static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslenadr) {
-	char *value;
+	char *value, *v;
 	int i;
 
 	if (!(value = (char*)xmlTextReaderGetAttribute(reader, "points"))) { /* points */
@@ -188,7 +87,7 @@ static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslen
 		return 0;
 	}
 
-	*ptslenadr = count_char_occurences(value, ',');
+	*ptslenadr = 1 + count_char_occurences(value, ' ');
 
 	*ptsarrayadr = (int**)tmx_alloc_func(NULL, *ptslenadr * sizeof(int*)); /* points[i][x,y] */
 	if (!(*ptsarrayadr)) {
@@ -207,12 +106,13 @@ static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslen
 		(*ptsarrayadr)[i] = (*ptsarrayadr)[0]+(i*2);
 	}
 
+	v = value;
 	for (i=0; i<*ptslenadr; i++) {
-		if (sscanf(value, "%d,%d", (*ptsarrayadr)[i], (*ptsarrayadr)[i]+1) != 2) {
-			tmx_free_func((*ptsarrayadr)[0]);
-			tmx_free_func(*ptsarrayadr);
+		if (sscanf(v, "%d,%d", (*ptsarrayadr)[i], (*ptsarrayadr)[i]+1) != 2) {
+			tmx_err(E_XDATA, "xml parser: corrupted point list");
 			return 0;
 		}
+		v = 1 + strchr(v, ' ');
 	}
 
 	tmx_free_func(value);
@@ -287,60 +187,109 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 	return 1;
 }
 
-static int parse_objectgroup(xmlTextReaderPtr reader, tmx_layer *layers_headadr) {
-	tmx_layer objgrp;
-	tmx_object res;
+static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscount) {
+	char *value, *inner_xml;
+
+	if (!(value = (char*)xmlTextReaderGetAttribute(reader, "encoding"))) { /* encoding */
+		tmx_err(E_MISSEL, "xml parser: missing 'encoding' attribute in the 'data' element");
+		return 0;
+	}
+
+	if (!(inner_xml = (char*)xmlTextReaderReadInnerXml(reader))) {
+		tmx_err(E_XDATA, "xml parser: missing content in the 'data' element", value);
+		tmx_free_func(value);
+		return 0;
+	}
+
+	if (!strcmp(value, "base64")) {
+		tmx_free_func(value);
+		if (!(value = (char*)xmlTextReaderGetAttribute(reader, "compression"))) { /* compression */
+			tmx_err(E_MISSEL, "xml parser: missing 'compression' attribute in the 'data' element");
+			goto cleanup;
+		}
+		if (strcmp(value, "zlib") && strcmp(value, "gzip")) {
+			tmx_err(E_ENCCMP, "xml parser: unsupported data compression: '%s'", value); /* unsupported compression */
+			goto cleanup;
+		} 
+		if (!data_decode(str_trim(inner_xml), B64Z, gidscount, gidsadr)) goto cleanup;
+
+	} else if (!strcmp(value, "xml")) {
+		tmx_err(E_ENCCMP, "xml parser: unimplemented data encoding: XML");
+		goto cleanup;
+	} else if (!strcmp(value, "csv")) {
+		if (!data_decode(str_trim(inner_xml), CSV, gidscount, gidsadr)) goto cleanup;
+	} else {
+		tmx_err(E_ENCCMP, "xml parser: unknown data encoding: %s", value);
+		goto cleanup;
+	}
+	tmx_free_func(value);
+	tmx_free_func(inner_xml);
+	return 1;
+
+cleanup:
+	tmx_free_func(value);
+	tmx_free_func(inner_xml);
+	return 0;
+}
+
+/* parse layers and objectgroups */
+static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int map_h, int map_w, enum tmx_layer_type type) {
+	tmx_layer res;
+	tmx_object obj;
 	int curr_depth;
 	const char *name;
 	char *value;
 
 	curr_depth = xmlTextReaderDepth(reader);
 
-	if (!(objgrp = alloc_layer())) return 0;
-	objgrp->type = L_OBJGR;
-	while(*layers_headadr) {
-		layers_headadr = &((*layers_headadr)->next);
+	if (!(res = alloc_layer())) return 0;
+	res->type = type;
+	while(*layer_headadr) {
+		layer_headadr = &((*layer_headadr)->next);
 	}
-	*layers_headadr = objgrp;
+	*layer_headadr = res;
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "name"))) { /* name */
-		objgrp->name = value;
+		res->name = value;
 	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'objectgroup' element");
+		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'layer' element");
 		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
-		objgrp->visible = value[0]=='t' ? 1: 0; /* if (visible=="true") visible <-- 1 */
+		res->visible = value[0]=='t' ? 1: 0; /* if (visible=="true") visible <-- 1 */
+		tmx_free_func(value);
+	}
+	
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "opacity"))) { /* opacity */
+		res->opacity = (float)strtod(value, NULL);
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "color"))) { /* color */
-		objgrp->color = get_color_rgb(value);
+		res->color = get_color_rgb(value);
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "opacity"))) { /* opacity */
-		objgrp->opacity = (float)strtod(value, NULL);
-		tmx_free_func(value);
-	}
-
-	/* Parse each child */
 	do {
-		if (xmlTextReaderRead(reader) != 1) return 0;
-
+		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+		
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
-			if (!strcmp(name, "object")) {
-				if (!(res = alloc_object())) return 0;
+			if (!strcmp(name, "properties")) {
+				if (!parse_properties(reader, &(res->properties))) return 0;
+			} else if (!strcmp(name, "data")) {
+				if (!parse_data(reader, &(res->content.gids), map_h * map_w)) return 0;
+			} else if (!strcmp(name, "object")) {
+				if (!(obj = alloc_object())) return 0;
 				
-				res->next = objgrp->content.head;
-				objgrp->content.head = res;
+				obj->next = res->content.head;
+				res->content.head = obj;
 
-				if (!parse_object(reader, res)) return 0;
-
-			} else { /* Unknow element, skipping it's tree */
+				if (!parse_object(reader, obj)) return 0;
+			} else {
+				/* Unknow element, skipping it's tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
@@ -553,9 +502,9 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 			if (!strcmp(name, "tileset")) {
 				if (!parse_tileset(reader, &(res->ts_head))) goto cleanup;
 			} else if (!strcmp(name, "layer")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width)) goto cleanup;
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER)) goto cleanup;
 			} else if (!strcmp(name, "objectgroup")) {
-				if (!parse_objectgroup(reader, &(res->ly_head))) goto cleanup;
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_OBJGR)) goto cleanup;
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) goto cleanup;
 			} else {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="28" height="18" tilewidth="32" tileheight="32">
+ <properties>
+  <property name="json" value="cjson"/>
+  <property name="xml" value="libxml2"/>
+ </properties>
+ <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1">
+  <image source="numbers_p.gif" width="100" height="100"/>
+ </tileset>
+ <tileset firstgid="10" name="sup" tilewidth="32" tileheight="32" spacing="1">
+  <image source="numbers_g.gif" width="100" height="100"/>
+ </tileset>
+ <layer name="Layer 1" width="28" height="18">
+  <data encoding="base64" compression="zlib">
+   eJy9ldsKgCAMhl2mHS56/8cNYYGMnaMufoydvjkNWyml/qBGNGwdNccBI8kOJPdCje8T133yd4Ep8TUfIAuQleVlBYTXP+ZVgZetc0zy8qR8rRb1SXELc35Wn9Rm9WDxrHlYs9KYHt6G8vRDY2l/2jytGhzzDc+am9fP8Tyzz959Ly+yT+1/ifAi+4jcz0iuhyvFLhOzJbiauFzu/Xu0JmX1Ozg3w2UIVw==
+  </data>
+ </layer>
+ <objectgroup color="#aa0000" name="Objects 1" width="28" height="18">
+  <object name="square1" x="128" y="128" width="192" height="192"/>
+  <object x="492" y="325">
+   <polygon points="20,-5 -44,-197 180,-229"/>
+  </object>
+  <object x="174" y="477">
+   <polyline points="-14,3 50,-61 114,3 178,-61 242,3 306,-61 370,3"/>
+  </object>
+  <object x="706" y="324">
+   <polygon points="-2,-36 -130,92 126,92 126,-36"/>
+  </object>
+ </objectgroup>
+</map>

@@ -15,9 +15,6 @@
 #include "tmx.h"
 #include "tmx_utils.h"
 
-/* 4kB buffer */
-#define BUFFER_LEN 4096
-
 /*
 	Memory functions
 */
