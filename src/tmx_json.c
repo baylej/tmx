@@ -90,10 +90,10 @@ static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
 	o->next = *obj_headaddr;
 	*obj_headaddr = o;
 
-	if (json_unpack_ex(obj_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s}", 
-	                "height", &(o->height), "width", &(o->width),
-	                "x",      &(o->x),      "y",     &(o->y),
-	                "name",   &name)) {
+	if (json_unpack_ex(obj_el, &err, 0, "{s:i, s:i, s:i, s:i, s:b, s:s}", 
+	                "height",  &(o->height),  "width", &(o->width),
+	                "x",       &(o->x),       "y",     &(o->y),
+					"visible", &(o->visible), "name",   &name)) {
 		tmx_err(E_MISSEL, "json parser: (tileset) %s", err.text);
 		return 0;
 	}
@@ -105,6 +105,11 @@ static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
 	} else if ((tmp = json_object_get(obj_el, "polygon")) && json_is_array(tmp)) {
 		o->shape = S_POLYGON;
 		if (!(pjson_points(tmp, &(o->points), &(o->points_len)))) return 0;
+	} else if ((tmp = json_object_get(obj_el, "ellipse")) && json_is_boolean(tmp))  {
+		o->shape = S_ELLIPSE;
+	} else if ((tmp = json_object_get(obj_el, "gid")) && json_is_number(tmp)) {
+		o->shape = S_TILE;
+		o->gid = json_integer_value(tmp);
 	} else {
 		o->shape = S_SQUARE;
 	}
@@ -173,6 +178,7 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
 
 static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr) {
 	json_error_t err;
+	json_t *tmp;
 	tmx_tileset ts;
 	char *img, *name;
 
@@ -192,6 +198,10 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr) {
 	}
 	if (!(ts->name = tmx_strdup(name)))         return 0;
 	if (!(ts->image->source = tmx_strdup(img))) return 0;
+
+	if ((tmp = json_object_get(tls_el, "properties")) && json_is_object(tmp)) {
+		if (!pjson_properties(tmp, &(ts->properties))) return 0;
+	}
 
 	return 1;
 }

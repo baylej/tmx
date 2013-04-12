@@ -2,6 +2,17 @@
 #include <stdio.h>
 #include <tmx.h>
 
+void print_shape(enum tmx_shape shape) {
+	switch(shape) {
+		case S_NONE:     printf("none");     break;
+		case S_SQUARE:   printf("square");   break;
+		case S_ELLIPSE:  printf("ellipse");  break;
+		case S_POLYGON:  printf("polygon");  break;
+		case S_POLYLINE: printf("polyline"); break;
+		default: printf("unknown");
+	}
+}
+
 void dump_points(int **p, int pl) {
 	int i;
 	printf("\n\tpoints=");
@@ -16,6 +27,7 @@ void dump_objects(tmx_object o) {
 		fputs("\n(NULL)", stdout);
 	} else {
 		printf("\n\tname='%s'", o->name);
+		printf("\n\tshape=");  print_shape(o->shape);
 		printf("\n\t x ='%d'", o->x);
 		printf("\n\t y ='%d'", o->y);
 		printf("\n\tnumber of points='%d'", o->points_len);
@@ -70,6 +82,7 @@ void dump_tileset(tmx_tileset t) {
 	if (t) {
 		if (t->image) dump_image(t->image);
 		if (t->next) dump_tileset(t->next);
+		if (t->properties) dump_prop(t->properties);
 	}
 }
 

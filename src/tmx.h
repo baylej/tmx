@@ -32,9 +32,9 @@ void  (*tmx_free_func ) (void *address);             /* free */
 	Data Structures
 */
 
-enum tmx_map_orient {O_NONE, O_ORT, O_ISO}; /* T_STA : stagging (0.9) */
-enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR}; /* L_LIM */
-enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE}; /* ellipse(0.9) */
+enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA};
+enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
+enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
 
 typedef struct _tmx_prop { /* <properties> and <property> */
 	char *name;
@@ -46,8 +46,8 @@ typedef struct _tmx_img { /* <image> */
 	char *source;
 	int trans; /* bytes : RGB */
 	unsigned long width, height;
-	//char *format; /* (0.9) */
-	//char *data; /* (0.9) */
+	char *format;
+	char *data;
 } * tmx_image;
 
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
@@ -59,7 +59,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int x_offset, y_offset; /* tileoffset */
 	/* TODO: can contain: terraintypes(0.9), tile(0.9) */
 	tmx_image image;
-	//tmx_property properties; /* FIXME No way to set props in "QT Tiled" */
+	tmx_property properties;
 	struct _tmx_ts *next;
 } * tmx_tileset;
 
@@ -73,7 +73,7 @@ typedef struct _tmx_obj { /* <object> */
 	int gid;
 	int **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
-	//char visible; /* 0 == false (0.9) */
+	char visible; /* 0 == false */
 	tmx_property properties;
 	struct _tmx_obj *next;
 } * tmx_object;

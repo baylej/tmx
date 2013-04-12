@@ -108,6 +108,7 @@ static void free_ts(tmx_tileset ts) {
 		tmx_free_func(ts->name);
 		if (ts->image) tmx_free_func(ts->image->source);
 		tmx_free_func(ts->image);
+		free_props(ts->properties);
 		tmx_free_func(ts);
 	}
 }

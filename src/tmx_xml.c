@@ -145,12 +145,19 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 		obj->name = value;
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
+		obj->visible = atoi(value);
+		tmx_free_func(value);
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "gid"))) { /* gid */
+		obj->shape = S_TILE;
 		obj->gid = atoi(value);
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "height"))) { /* height */
+		obj->shape = S_SQUARE;
 		obj->height = atoi(value);
 		tmx_free_func(value);
 	}
@@ -160,11 +167,9 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 		tmx_free_func(value);
 	}
 
-	/* If it has a child, then it's a polygon or a polyline */
-	if (xmlTextReaderIsEmptyElement(reader)) {
-		obj->shape = S_SQUARE;
-	} else {
-		curr_depth = xmlTextReaderDepth(reader);
+	/* If it has a child, then it's a polygon or a polyline or an ellipse */
+	curr_depth = xmlTextReaderDepth(reader);
+	if (!xmlTextReaderIsEmptyElement(reader)) {
 		do {
 			if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 			
@@ -172,14 +177,18 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 				name = (char*)xmlTextReaderConstName(reader);
 				if (!strcmp(name, "properties")) {
 					if (!parse_properties(reader, &(obj->properties))) return 0;
-				} else if (!strcmp(name, "polygon")) {
-					obj->shape = S_POLYGON;
-				} else if (!strcmp(name, "polyline")) {
-					obj->shape = S_POLYLINE;
-				} else { /* Unknow element, skipping it's tree */
-					if (xmlTextReaderNext(reader) != 1) return 0;
+				} else if (!strcmp(name, "ellipse")) {
+					obj->shape = S_ELLIPSE;
+				} else {
+					if (!strcmp(name, "polygon")) {
+						obj->shape = S_POLYGON;
+					} else if (!strcmp(name, "polyline")) {
+						obj->shape = S_POLYLINE;
+					}
+					/* Unknow element, skipping it's tree */
+					else if (xmlTextReaderNext(reader) != 1) return 0;
+					if (!parse_points(reader, &(obj->points), &(obj->points_len))) return 0;
 				}
-				if (!parse_points(reader, &(obj->points), &(obj->points_len))) return 0;
 			}
 		} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 		         xmlTextReaderDepth(reader) != curr_depth);
@@ -258,7 +267,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
-		res->visible = value[0]=='t' ? 1: 0; /* if (visible=="true") visible <-- 1 */
+		res->visible = atoi(value);
 		tmx_free_func(value);
 	}
 	
@@ -422,6 +431,8 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 				if (!parse_image(reader, &(res->image))) return 0;
 			} else if (!strcmp(name, "tileoffset")) {
 				if (!parse_tileoffset(reader, &(res->x_offset), &(res->y_offset))) return 0;
+			} else if (!strcmp(name, "properties")) {
+				if (!parse_properties(reader, &(res->properties))) return 0;
 			} else {
 				/* Unknow element, skipping it's tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
