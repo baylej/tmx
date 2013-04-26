@@ -63,8 +63,6 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	struct _tmx_ts *next;
 } * tmx_tileset;
 
-/* TODO: terrains(0.9) */
-
 typedef struct _tmx_obj { /* <object> */
 	char *name;
 	enum tmx_shape shape;
@@ -88,6 +86,7 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	union layer_content {
 		int32_t *gids;
 		tmx_object head;
+		tmx_image image;
 	}content;
 
 	tmx_property properties;
@@ -139,12 +138,12 @@ enum _tmx_error_codes {
 	E_NOENT  = 11,    /* File not found */
 	E_FORMAT = 12,    /* Unsupproted/Unknown file format */
 	E_ENCCMP = 13,    /* Unsupproted/Unknown data encoding/compression */
-	E_FONCT  = 16,    /* Fonctionnality not enbled */
+	E_FONCT  = 16,    /* Fonctionnality not enabled */
 	E_BDATA  = 20,    /* B64 bad data */
 	E_ZDATA  = 21,    /* Zlib corrupted data */
 	E_XDATA  = 22,    /* XML corrupted data */
 	E_JDATA  = 23,    /* JSON corrupted data */
-	E_CDATA  = 24,    /* CVS corrupted data */
+	E_CDATA  = 24,    /* CSV corrupted data */
 	E_MISSEL = 30     /* Missing element, incomplete source */
 };
 

@@ -143,6 +143,8 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
 		lay->type = L_LAYER;
 	} else if (!strcmp(type, "objectgroup")) {
 		lay->type = L_OBJGR;
+	} else if (!strcmp(type, "imagelayer")) {
+		lay->type = L_IMAGE;
 	} else {
 		tmx_err(E_JDATA, "json parser: unknown layer type: %s", type);
 		return 0;
@@ -161,6 +163,11 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
 				lay->content.gids[i] = json_integer_value(json_array_get(tmp, i));
 			}
 		}
+	} else if (lay->type == L_IMAGE) {
+		lay->content.image = alloc_image();
+		if (lay->content.image && !json_unpack(lay_el, "{s:s}", "image", &name)) {
+			lay->content.image->source = tmx_strdup(name);
+		} else return 0;
 	} else {
 		if ((tmp = json_object_get(lay_el, "objects")) && json_is_array(tmp)) {
 			for (i=0; i<(int)json_array_size(tmp); i++) {

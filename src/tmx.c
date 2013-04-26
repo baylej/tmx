@@ -97,6 +97,11 @@ static void free_layers(tmx_layer l) {
 			tmx_free_func(l->content.gids);
 		else if (l->type == L_OBJGR)
 			free_obj(l->content.head);
+		else if (l->type == L_IMAGE) {
+			if (l->content.image)
+				tmx_free_func(l->content.image->source);
+			tmx_free_func(l->content.image);
+		}
 		free_props(l->properties);
 		tmx_free_func(l);
 	}

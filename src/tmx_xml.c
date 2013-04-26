@@ -241,6 +241,44 @@ cleanup:
 	return 0;
 }
 
+static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict) {
+	tmx_image res;
+	char *value;
+
+	if (!(res = alloc_image())) return 0;
+	*img_adr = res;
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "source"))) { /* source */
+		res->source = value;
+	} else {
+		tmx_err(E_MISSEL, "xml parser: missing 'source' attribute in the 'image' element");
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "height"))) { /* height */
+		res->height = atoi(value);
+		tmx_free_func(value);
+	} else if (strict) {
+		tmx_err(E_MISSEL, "xml parser: missing 'height' attribute in the 'image' element");
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "width"))) { /* width */
+		res->width = atoi(value);
+		tmx_free_func(value);
+	} else if (strict) {
+		tmx_err(E_MISSEL, "xml parser: missing 'width' attribute in the 'image' element");
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "trans"))) { /* trans */
+		res->trans = get_color_rgb(value);
+		tmx_free_func(value);
+	}
+
+	return 1;
+}
+
 /* parse layers and objectgroups */
 static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int map_h, int map_w, enum tmx_layer_type type) {
 	tmx_layer res;
@@ -290,6 +328,8 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 				if (!parse_properties(reader, &(res->properties))) return 0;
 			} else if (!strcmp(name, "data")) {
 				if (!parse_data(reader, &(res->content.gids), map_h * map_w)) return 0;
+			} else if (!strcmp(name, "image")) {
+				if (!parse_image(reader, &(res->content.image), 0)) return 0;
 			} else if (!strcmp(name, "object")) {
 				if (!(obj = alloc_object())) return 0;
 				
@@ -304,44 +344,6 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
-
-	return 1;
-}
-
-static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr) {
-	tmx_image res;
-	char *value;
-
-	if (!(res = alloc_image())) return 0;
-	*img_adr = res;
-
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "source"))) { /* source */
-		res->source = value;
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'source' attribute in the 'image' element");
-		return 0;
-	}
-
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "height"))) { /* height */
-		res->height = atoi(value);
-		tmx_free_func(value);
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'height' attribute in the 'image' element");
-		return 0;
-	}
-
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "width"))) { /* width */
-		res->width = atoi(value);
-		tmx_free_func(value);
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'width' attribute in the 'image' element");
-		return 0;
-	}
-
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, "trans"))) { /* trans */
-		res->trans = get_color_rgb(value);
-		tmx_free_func(value);
-	}
 
 	return 1;
 }
@@ -428,7 +430,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->image))) return 0;
+				if (!parse_image(reader, &(res->image), 1)) return 0;
 			} else if (!strcmp(name, "tileoffset")) {
 				if (!parse_tileoffset(reader, &(res->x_offset), &(res->y_offset))) return 0;
 			} else if (!strcmp(name, "properties")) {
@@ -516,6 +518,8 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER)) goto cleanup;
 			} else if (!strcmp(name, "objectgroup")) {
 				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_OBJGR)) goto cleanup;
+			} else if (!strcmp(name, "imagelayer")) {
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_IMAGE)) goto cleanup;
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) goto cleanup;
 			} else {
