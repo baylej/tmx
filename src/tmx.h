@@ -97,7 +97,7 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_map_orient orient;
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
-	//int backgroundcolor; /* (0.9) bytes : RGB */
+	int backgroundcolor; /* bytes : RGB */
 	
 	tmx_property properties;
 	tmx_tileset ts_head;

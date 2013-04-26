@@ -506,6 +506,11 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 		goto cleanup;
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, "backgroundcolor"))) { /* backgroundcolor */
+		res->backgroundcolor = get_color_rgb(value);
+		tmx_free_func(value);
+	}
+
 	/* Parse each child */
 	do {
 		if (xmlTextReaderRead(reader) != 1) goto cleanup; /* error_handler has been called */

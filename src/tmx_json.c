@@ -218,6 +218,7 @@ static tmx_map pjson_map(json_t *map_el) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_map res;
+	char *col;
 	int i;
 	
 	if (!(res = alloc_map())) return NULL;
@@ -228,6 +229,8 @@ static tmx_map pjson_map(json_t *map_el) {
 		tmx_err(E_MISSEL, "json parser: %s", err.text);
 		goto cleanup;
 	}
+
+	if (!json_unpack(map_el, "{s:s}", "backgroundcolor", &col)) res->backgroundcolor = get_color_rgb(col);
 
 	if ((tmp = json_object_get(map_el, "tilesets")) && json_is_array(tmp)) {
 		for (i=0; i<(int)json_array_size(tmp); i++) {
