@@ -46,8 +46,8 @@ typedef struct _tmx_img { /* <image> */
 	char *source;
 	int trans; /* bytes : RGB */
 	unsigned long width, height;
-	char *format;
-	char *data;
+	/*char *format; Not currently implemented in QtTiled
+	char *data;*/
 } * tmx_image;
 
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
