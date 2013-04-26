@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" width="28" height="18" tilewidth="32" tileheight="32">
  <properties>
-  <property name="json" value="cjson"/>
+  <property name="json" value="jansson"/>
   <property name="xml" value="libxml2"/>
  </properties>
  <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1">
@@ -10,6 +10,9 @@
  <tileset firstgid="10" name="sup" tilewidth="32" tileheight="32" spacing="1">
   <image source="numbers_g.gif" width="100" height="100"/>
  </tileset>
+ <imagelayer name="Image 1" width="28" height="18">
+  <image source="bg.jpg"/>
+ </imagelayer>
  <layer name="Layer 1" width="28" height="18">
   <data encoding="base64" compression="zlib">
    eJy9ldsKgCAMhl2mHS56/8cNYYGMnaMufoydvjkNWyml/qBGNGwdNccBI8kOJPdCje8T133yd4Ep8TUfIAuQleVlBYTXP+ZVgZetc0zy8qR8rRb1SXELc35Wn9Rm9WDxrHlYs9KYHt6G8vRDY2l/2jytGhzzDc+am9fP8Tyzz959Ly+yT+1/ifAi+4jcz0iuhyvFLhOzJbiauFzu/Xu0JmX1Ozg3w2UIVw==

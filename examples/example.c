@@ -101,6 +101,9 @@ void dump_layer(tmx_layer l, unsigned int tc) {
 				printf("%d,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
 		} else if (l->type == L_OBJGR) {
 			printf("\n\ttype=ObjectGroup");
+		} else if (l->type == L_IMAGE) {
+			printf("\n\ttype=ImageLayer");
+			printf("\n\tsource='%s'", l->content.image->source);
 		}
 	}
 	puts("\n}");
