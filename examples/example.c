@@ -123,6 +123,7 @@ void dump_map(tmx_map m) {
 		printf("\n\twidth=%d", m->width);
 		printf("\n\ttheight=%d", m->tile_height);
 		printf("\n\ttwidth=%d", m->tile_width);
+		printf("\n\tbgcol=%d", m->backgroundcolor);
 	} else {
 		fputs("\n(NULL)", stdout);
 	}

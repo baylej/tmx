@@ -185,5 +185,6 @@
         }],
  "tilewidth":32,
  "version":1,
- "width":28
+ "width":28,
+ "backgroundcolor":"#FFFF7F"
 }

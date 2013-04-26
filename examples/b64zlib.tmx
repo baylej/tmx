@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="28" height="18" tilewidth="32" tileheight="32">
+<map version="1.0" orientation="orthogonal" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f">
  <properties>
   <property name="json" value="jansson"/>
   <property name="xml" value="libxml2"/>
