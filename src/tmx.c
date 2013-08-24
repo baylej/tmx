@@ -12,7 +12,7 @@
 */
 void* (*tmx_alloc_func) (void *address, size_t len) = NULL;
 void  (*tmx_free_func ) (void *address) = NULL;
-
+void  (*rsc_img_free_func) (void *address) = NULL;
 /*
 	Public functions
 */
@@ -89,6 +89,16 @@ static void free_obj(tmx_object o) {
 	}
 }
 
+static void free_image(tmx_image i) {
+	if (i) {
+		tmx_free_func(i->source);
+		if (rsc_img_free_func) {
+			rsc_img_free_func(i->resource_image);
+		}
+		tmx_free_func(i);
+	}
+}
+
 static void free_layers(tmx_layer l) {
 	if (l) {
 		free_layers(l->next);
@@ -98,9 +108,7 @@ static void free_layers(tmx_layer l) {
 		else if (l->type == L_OBJGR)
 			free_obj(l->content.head);
 		else if (l->type == L_IMAGE) {
-			if (l->content.image)
-				tmx_free_func(l->content.image->source);
-			tmx_free_func(l->content.image);
+			free_image(l->content.image);
 		}
 		free_props(l->properties);
 		tmx_free_func(l);
@@ -111,8 +119,7 @@ static void free_ts(tmx_tileset ts) {
 	if (ts) {
 		free_ts(ts->next);
 		tmx_free_func(ts->name);
-		if (ts->image) tmx_free_func(ts->image->source);
-		tmx_free_func(ts->image);
+		free_image(ts->image);
 		free_props(ts->properties);
 		tmx_free_func(ts);
 	}

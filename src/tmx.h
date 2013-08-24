@@ -15,6 +15,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TMX_FLIPPED_HORIZONTALLY 0x80000000
 #define TMX_FLIPPED_VERTICALLY   0x40000000
 #define TMX_FLIPPED_DIAGONALLY   0x20000000
@@ -27,6 +31,10 @@
    Please modify these values if once before you use tmx_load */
 void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
 void  (*tmx_free_func ) (void *address);             /* free */
+
+/* free tmx_image->resource_image, you should set this if you want
+   the library to free the allocated image */
+void  (*rsc_img_free_func) (void *address);
 
 /*
 	Data Structures
@@ -48,6 +56,7 @@ typedef struct _tmx_img { /* <image> */
 	unsigned long width, height;
 	/*char *format; Not currently implemented in QtTiled
 	char *data;*/
+	void *resource_image;
 } * tmx_image;
 
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
@@ -146,5 +155,9 @@ enum _tmx_error_codes {
 	E_CDATA  = 24,    /* CSV corrupted data */
 	E_MISSEL = 30     /* Missing element, incomplete source */
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TMX_H */
