@@ -5,10 +5,6 @@
 #ifndef TMXUTILS_H
 #define TMXUTILS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* From tmx_utils.c */
 enum enccmp_t {CSV, B64Z};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
@@ -47,9 +43,5 @@ char* tmx_strdup(const char *str);
 
 char custom_msg[256];
 #define tmx_err(code, ...) tmx_errno = code; snprintf(custom_msg, 256, __VA_ARGS__)
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* TMXUTILS_H */
