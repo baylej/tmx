@@ -309,6 +309,7 @@ tmx_object alloc_object(void) {
 	tmx_object res = (tmx_object)tmx_alloc_func(NULL, sizeof(struct _tmx_obj));
 	if (res) {
 		memset(res, 0, sizeof(struct _tmx_obj));
+		res->visible = 1;
 	} else {
 		tmx_errno = E_ALLOC;
 	}
