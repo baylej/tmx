@@ -10,24 +10,24 @@
  <tileset firstgid="10" name="sup" tilewidth="32" tileheight="32" spacing="1">
   <image source="numbers_g.gif" width="100" height="100"/>
  </tileset>
- <imagelayer name="Image 1" width="28" height="18">
+ <imagelayer name="Image" width="28" height="18">
   <image source="bg.jpg"/>
  </imagelayer>
- <layer name="Layer 1" width="28" height="18">
+ <layer name="Layer" width="28" height="18">
   <data encoding="base64" compression="zlib">
-   eJy9ldsKgCAMhl2mHS56/8cNYYGMnaMufoydvjkNWyml/qBGNGwdNccBI8kOJPdCje8T133yd4Ep8TUfIAuQleVlBYTXP+ZVgZetc0zy8qR8rRb1SXELc35Wn9Rm9WDxrHlYs9KYHt6G8vRDY2l/2jytGhzzDc+am9fP8Tyzz959Ly+yT+1/ifAi+4jcz0iuhyvFLhOzJbiauFzu/Xu0JmX1Ozg3w2UIVw==
+   eJy9lWsLwyAMRc063eND9/j/P3YIEeSS3KSO7cOhJWpOiNXWUsr2ByrQY02Z54mBFxdYuyv9/a7P6zTeHKfnZ2OiLlHXqm8VAV/7sW9zfKt5bhNZn7ee5cIxb97J2L+oToxFNUS+qB9Rr5gz47somXpwLtbH+hnlsJzf+DDfTmB9t3yZ3j8I0R5mfOh8Eth5OeKbnS/C0e8zw5vgeazzN5w16fXunOgOGg78/w3Oi0T1ds8HzEoJ6A==
   </data>
  </layer>
- <objectgroup color="#aa0000" name="Objects 1" width="28" height="18">
-  <object name="square1" x="128" y="128" width="192" height="192"/>
-  <object x="492" y="325">
+ <objectgroup color="#aa0000" name="Objects" width="28" height="18">
+  <object name="square" x="128" y="128" width="192" height="192"/>
+  <object name="polygon" x="492" y="325">
    <polygon points="20,-5 -44,-197 180,-229"/>
   </object>
-  <object x="174" y="477">
+  <object name="polyline" x="174" y="477">
    <polyline points="-14,3 50,-61 114,3 178,-61 242,3 306,-61 370,3"/>
   </object>
-  <object x="706" y="324">
-   <polygon points="-2,-36 -130,92 126,92 126,-36"/>
+  <object name="ellipse" x="672" y="352" width="160" height="160">
+   <ellipse/>
   </object>
  </objectgroup>
 </map>
