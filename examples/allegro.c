@@ -8,9 +8,9 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 
-#define LINE_THICKNESS 1.5f
+#define LINE_THICKNESS 2.5
 
-#define fatal_error(str) { fputs(str, stderr); goto errquit; }
+#define fatal_error(str)  { fputs(str, stderr); goto errquit; }
 #define fatal_error2(str) { fputs(str, stderr); return NULL; }
 
 tmx_map load_map_and_images(const char *file) {
@@ -90,7 +90,7 @@ void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
 			} else if (head->shape == S_POLYLINE) {
 				/* TODO al_draw_polygon */
 			} else if (head->shape == S_ELLIPSE) {
-				al_draw_ellipse(head->x, head->y, head->width, head->height, color, LINE_THICKNESS);
+				al_draw_ellipse(head->x, head->y, head->width/2.0, head->height/2.0, color, LINE_THICKNESS);
 			}
 		}
 		head = head->next;
@@ -115,9 +115,11 @@ ALLEGRO_BITMAP* render_map(tmx_map map) {
 	while (layers) {
 		if (layers->visible) {
 			if (layers->type == L_OBJGR) {
-
+				draw_objects(layers->content.head, int_to_al_color(layers->color));
+			} else if (layers->type == L_IMAGE) {
+				al_draw_bitmap((ALLEGRO_BITMAP*)layers->content.image->resource_image, 0, 0, 0);
 			} else if (layers->type == L_LAYER) {
-
+				/* TODO */
 			}
 		}
 		layers = layers->next;
@@ -146,11 +148,16 @@ int main(int argc, char **argv) {
 
 	display = al_create_display(640, 480);
 	if (!display) fatal_error("failed to create display!");
+	al_set_window_title(display, "Allegro Game");
 	
 	if (!al_init_image_addon()) fatal_error("failed to initialise ImageIO!");
+	if (!al_init_primitives_addon()) fatal_error("failed to initialise Primitives!");
 	if (!al_install_keyboard()) fatal_error("failed to install keyboard!");
 
+	/* Load and render the map */
 	if (!(map = load_map_and_images(argv[1]))) return -1;
+	if (!(bmp_map = render_map(map))) return -1;
+	al_resize_display(display, map->width  * map->tile_width, map->height * map->tile_height); /* DELME */
 
 	equeue = al_create_event_queue();
 	if (!equeue) fatal_error("failed to create event queue!");
@@ -167,7 +174,9 @@ int main(int argc, char **argv) {
 	while(al_wait_for_event(equeue, &ev), 1) {
 		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) break;
 		if (ev.type == ALLEGRO_EVENT_TIMER) {
-			/* TODO */
+			if (bmp_map) { /* TODO */
+				al_draw_bitmap(bmp_map, 0, 0, 0);
+			}
 			al_flip_display();
 		} else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
 			if (ev.keyboard.keycode == ALLEGRO_KEY_Q) break;
