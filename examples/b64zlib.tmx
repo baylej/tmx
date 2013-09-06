@@ -5,17 +5,14 @@
   <property name="xml" value="libxml2"/>
  </properties>
  <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1">
-  <image source="numbers_p.gif" width="100" height="100"/>
- </tileset>
- <tileset firstgid="10" name="sup" tilewidth="32" tileheight="32" spacing="1">
-  <image source="numbers_g.gif" width="100" height="100"/>
+  <image source="numbers.png" width="100" height="100"/>
  </tileset>
  <imagelayer name="Image" width="28" height="18">
   <image source="bg.jpg"/>
  </imagelayer>
  <layer name="Layer" width="28" height="18">
   <data encoding="base64" compression="zlib">
-   eJy9lWsLwyAMRc063eND9/j/P3YIEeSS3KSO7cOhJWpOiNXWUsr2ByrQY02Z54mBFxdYuyv9/a7P6zTeHKfnZ2OiLlHXqm8VAV/7sW9zfKt5bhNZn7ee5cIxb97J2L+oToxFNUS+qB9Rr5gz47somXpwLtbH+hnlsJzf+DDfTmB9t3yZ3j8I0R5mfOh8Eth5OeKbnS/C0e8zw5vgeazzN5w16fXunOgOGg78/w3Oi0T1ds8HzEoJ6A==
+   eJy9lN0OgCAIRjX/6v1fuLXZxr7BB9bq4twochioLaVUfqAB11qfyLisYK1nOFsnReztYr8bTsvP9vJ0Yfyq7yno6x/7iuF7mucQRH3WeZYL96y4TZmfVyeueTV4Pq8fXq+YM+Ibk0g9GIv1sX56OTTnGx/mqwTWd80X6T3+ffgPRubNfOjEv0DC3suKTzoHYfV+RtgJlkd7f7fTm4OWi6GdZXNn93H1rqLzBIoiCFE=
   </data>
  </layer>
  <objectgroup color="#aa0000" name="Objects" width="28" height="18">
