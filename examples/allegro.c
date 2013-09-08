@@ -1,7 +1,7 @@
-/**
- * TMX usage example with Allegro 5
- * uses image and primitives addons
- */
+/*
+	TMX usage example with Allegro 5
+	uses image and primitives addons
+*/
 #include <stdio.h>
 #include <tmx/tmx.h>
 #include <allegro5/allegro.h>
@@ -13,6 +13,9 @@
 #define fatal_error(str)  { fputs(str, stderr); goto errquit; }
 #define fatal_error2(str) { fputs(str, stderr); return NULL; }
 
+/*
+	Loading from disc (map(.tmx/.json) and images)
+*/
 tmx_map load_map_and_images(const char *file) {
 	tmx_map res = NULL;
 	tmx_tileset tilesets = NULL;
@@ -39,7 +42,7 @@ tmx_map load_map_and_images(const char *file) {
 			fputs("it seems the tileset image path is invalid!", stderr);
 		} else {
 			tilesets->image->resource_image = (void*) al_load_bitmap(al_path_cstr(tail, ALLEGRO_NATIVE_PATH_SEP));
-			if (!(tilesets->image->resource_image)) fatal_error("failed to load image!");
+			if (!(tilesets->image->resource_image)) fatal_error("failed to load tileset image!");
 		}
 		tilesets = tilesets->next;
 	}
@@ -54,7 +57,7 @@ tmx_map load_map_and_images(const char *file) {
 				fputs("it seems the tileset image path is invalid!", stderr);
 			} else {
 				layers->content.image->resource_image = (void*) al_load_bitmap(al_path_cstr(tail, ALLEGRO_NATIVE_PATH_SEP));
-				if (!(layers->content.image->resource_image)) fatal_error("failed to load image!");
+				if (!(layers->content.image->resource_image)) fatal_error("failed to load layer image!");
 			}
 		}
 		layers = layers->next;
@@ -80,15 +83,32 @@ ALLEGRO_COLOR int_to_al_color(int color) {
 	return al_map_rgb(r, g, b);
 }
 
+/*
+	Draw objects
+*/
+void draw_polyline(int **points, int x, int y, int pointsc, ALLEGRO_COLOR color) {
+	int i;
+	for (i=1; i<pointsc; i++) {
+		al_draw_line(x+points[i-1][0], y+points[i-1][1], x+points[i][0], y+points[i][1], color, LINE_THICKNESS);
+	}
+}
+
+void draw_polygone(int **points, int x, int y, int pointsc, ALLEGRO_COLOR color) {
+	draw_polyline(points, x, y, pointsc, color);
+	if (pointsc > 2) {
+		al_draw_line(x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1], color, LINE_THICKNESS);
+	}
+}
+
 void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
 	while (head) {
 		if (head->visible) {
 			if (head->shape == S_SQUARE) {
 				al_draw_rectangle(head->x, head->y, head->x+head->width, head->y+head->height, color, LINE_THICKNESS);
 			} else if (head->shape  == S_POLYGON) {
-				/* TODO al_draw_polyline */
+				draw_polygone(head->points, head->x, head->y, head->points_len, color);
 			} else if (head->shape == S_POLYLINE) {
-				/* TODO al_draw_polygon */
+				draw_polyline(head->points, head->x, head->y, head->points_len, color);
 			} else if (head->shape == S_ELLIPSE) {
 				al_draw_ellipse(head->x, head->y, head->width/2.0, head->height/2.0, color, LINE_THICKNESS);
 			}
@@ -97,6 +117,9 @@ void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
 	}
 }
 
+/*
+	Render map
+*/
 ALLEGRO_BITMAP* render_map(tmx_map map) {
 	ALLEGRO_BITMAP *res = NULL;
 	tmx_layer layers = map->ly_head;
@@ -104,7 +127,7 @@ ALLEGRO_BITMAP* render_map(tmx_map map) {
 	
 	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
 	
-	w = map->width  * map->tile_width;  /* Map's width and height */
+	w = map->width  * map->tile_width;  /* Bitmap's width and height */
 	h = map->height * map->tile_height;
 	if (!(res = al_create_bitmap(w, h))) fatal_error("failed to create bitmap!");
 	
@@ -134,6 +157,12 @@ errquit:
 	return NULL;
 }
 
+/*
+	MAIN
+	Creates a display
+	Loads the map and map's resources
+	Renders the map
+*/
 int main(int argc, char **argv) {
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_TIMER *timer = NULL;
