@@ -110,10 +110,77 @@ void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
 			} else if (head->shape == S_POLYLINE) {
 				draw_polyline(head->points, head->x, head->y, head->points_len, color);
 			} else if (head->shape == S_ELLIPSE) {
-				al_draw_ellipse(head->x, head->y, head->width/2.0, head->height/2.0, color, LINE_THICKNESS);
+				al_draw_ellipse(head->x + head->width/2.0, head->y + head->height/2.0, head->width/2.0, head->height/2.0, color, LINE_THICKNESS);
 			}
 		}
 		head = head->next;
+	}
+}
+
+/*
+	Draw tiled layers
+*/
+/* return -1 if tile not found */
+int gid_extract_flags(int gid) {
+	int res = 0;
+	
+	if (gid & TMX_FLIPPED_HORIZONTALLY) res |= ALLEGRO_FLIP_HORIZONTAL;
+	if (gid & TMX_FLIPPED_VERTICALLY)   res |= ALLEGRO_FLIP_VERTICAL;
+	/* FIXME allegro has no diagonal flip */
+	return res;
+}
+
+int gid_clear_flags(int gid) {
+	return gid & TMX_FLIP_BITS_REMOVAL;
+}
+
+/* returns the bitmap and the region associated with this gid */
+short get_bitmap_region(int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, int *x, int *y, int *w, int *h) {
+	int tiles_x_count, tiles_y_count;
+	int ts_w, ts_h, id, tx, ty;
+	gid = gid_clear_flags(gid);
+	
+	while (ts) {
+		if (ts->firstgid <= gid) {
+			if (!ts->next || (ts->next->firstgid > gid)) {
+				id = gid - ts->firstgid; /* local id (for this image) */
+				
+				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
+				ts_h = ts->image->height - 2 * (ts->margin) + ts->spacing;
+				
+				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
+				tiles_y_count = ts_h / (ts->tile_height + ts->spacing);
+				
+				*ts_bmp = (ALLEGRO_BITMAP*)ts->image->resource_image;
+				
+				*w = ts->tile_width;  /* set bitmap's region width  */
+				*h = ts->tile_height; /* set bitmap's region height */
+				
+				tx = id % tiles_x_count;
+				ty = id / tiles_y_count;
+				
+				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
+				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
+				return 0;
+			}
+		}
+		ts = ts->next;
+	}
+	
+	return -1;
+}
+
+void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
+	int i, j, x, y, w, h, flags;
+	ALLEGRO_BITMAP *tileset;
+	
+	for (i=0; i<height; i++) {
+		for (j=0; j<width; j++) {
+			if (!get_bitmap_region(layer->content.gids[(i*width)+j], ts, &tileset, &x, &y, &w, &h)) {
+				flags = gid_extract_flags(layer->content.gids[(i*width)+j]);
+				al_draw_bitmap_region(tileset, x, y, w, h, j*tile_width, i*tile_height, flags);
+			}
+		}
 	}
 }
 
@@ -142,7 +209,7 @@ ALLEGRO_BITMAP* render_map(tmx_map map) {
 			} else if (layers->type == L_IMAGE) {
 				al_draw_bitmap((ALLEGRO_BITMAP*)layers->content.image->resource_image, 0, 0, 0);
 			} else if (layers->type == L_LAYER) {
-				/* TODO */
+				draw_layer(layers, map->ts_head, map->width, map->height, map->tile_width, map->tile_height);
 			}
 		}
 		layers = layers->next;
