@@ -10,7 +10,6 @@ option(WANT_ZLIB "use zlib (ability to decompress layers data) ?" on)
 option(WANT_XML "use libXml2 (ability to read .tmx maps) ?" on)
 option(WANT_JSON "use JSON (ability to read .json maps) ?" on)
 option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" off)
-set(DEPENDENCIES_DIR "" CACHE PATH "Dependencies root directory, contains include and lib subdirectories")
 
 #-----------#
 #    Env
@@ -21,11 +20,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 # variable containing sources to compile
 set(SOURCES "src/tmx.c" "src/tmx_utils.c" "src/tmx_err.c")
-
-if(DEPENDENCIES_DIR)
-    message(STATUS "Adding ${DEPENDENCIES_DIR} to CMAKE_FIND_ROOT_PATH")
-    list(APPEND CMAKE_FIND_ROOT_PATH "${DEPENDENCIES_DIR}")
-endif(DEPENDENCIES_DIR)
 
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES("stdint.h" STDINT_H)
