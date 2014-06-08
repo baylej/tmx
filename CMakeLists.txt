@@ -16,7 +16,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" off)
 #-----------#
 
 # Search in the `cmake' directory for additional CMake modules.
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # variable containing sources to compile
 set(SOURCES "src/tmx.c" "src/tmx_utils.c" "src/tmx_err.c")
@@ -78,7 +78,6 @@ add_library(${PROJECT_NAME} ${SOURCES})
 #-----------#
 
 install(TARGETS ${PROJECT_NAME} 
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ DESTINATION include/${PROJECT_NAME} FILES_MATCHING PATTERN "tmx.h")
-
+        LIBRARY DESTINATION "lib"
+        ARCHIVE DESTINATION "lib")
+install(FILES "src/tmx.h" DESTINATION "include")
