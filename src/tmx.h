@@ -1,8 +1,8 @@
 /*
 	TMH.H - TMX C LOADER
-	Copyright (c) 2013, Bayle Jonathan <baylej@github>
+	Copyright (c) 2013-2041, Bayle Jonathan <baylej@github>
 
-	Stuctures storing the map and functions prototypes
+	Data Stuctures storing the map and functions prototypes
 	
 	See : (I'm using names from this documentation)
 	https://github.com/bjorn/tiled/wiki/TMX-Map-Format

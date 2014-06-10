@@ -4,7 +4,7 @@
 
 ## About
 
-Loads **.tmx** [tiled](http://mapeditor.org) maps in you games.
+Loads **.tmx** [tiled](http://mapeditor.org) maps in your games.
 
 ## Dependencies
 
