@@ -218,15 +218,21 @@ static tmx_map pjson_map(json_t *map_el) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_map res;
-	char *col;
+	char *col, *orient;
 	int i;
 	
 	if (!(res = alloc_map())) return NULL;
 
-	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i}", 
-	                "height",     &(res->height),      "width",     &(res->width),
-	                "tileheight", &(res->tile_height), "tilewidth", &(res->tile_width))) {
+	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s}", 
+	                "height",      &(res->height),      "width",     &(res->width),
+	                "tileheight",  &(res->tile_height), "tilewidth", &(res->tile_width),
+		            "orientation", &orient)) {
 		tmx_err(E_MISSEL, "json parser: %s", err.text);
+		goto cleanup;
+	}
+	
+	if ((res->orient = parse_orient(orient)) == O_NONE) {
+		tmx_err(E_JDATA, "json parser: unsupported 'orientation' '%s'", orient);
 		goto cleanup;
 	}
 
