@@ -10,22 +10,6 @@
 	Utility functions
 */
 
-/*
-	Endianness
-	If the Host is BigEndian, we have to convert layers data from LittleEndian
-*/
-
-#define T_BIG_ENDIAN 'B'
-#define T_LIT_ENDIAN 'L'
-static char find_endianness() {
-	int num=1;
-	if(*(char*)&num==1)
-		return T_LIT_ENDIAN;
-	return T_BIG_ENDIAN;
-}
-
-/* TODO : function that do LE --> BE */
-
 /* BASE 64 */
 
 static const char b64enc[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz" "0123456789" "+/";
