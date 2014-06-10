@@ -146,7 +146,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
-		obj->visible = atoi(value);
+		obj->visible = (char)atoi(value);
 		tmx_free_func(value);
 	}
 
@@ -305,7 +305,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, "visible"))) { /* visible */
-		res->visible = atoi(value);
+		res->visible = (char)atoi(value);
 		tmx_free_func(value);
 	}
 	
@@ -542,7 +542,7 @@ cleanup:
 
 static void error_handler(void *arg, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
 	if (severity == XML_PARSER_SEVERITY_ERROR) { /* FIXME : use msg ? free msg ? */
-		tmx_err(E_XDATA, "xml parser: error at line #%d", xmlTextReaderLocatorLineNumber(locator));
+		tmx_err(E_XDATA, "xml parser: error at line %d: %s", xmlTextReaderLocatorLineNumber(locator), msg);
 	}
 }
 

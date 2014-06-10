@@ -47,7 +47,7 @@ char* b64_encode(const char* source, unsigned int length) {
 		. 1B red => 2chars + "=="
 		*/
 		for (j=0; j<dif+1; j++) {
-			out[j] = (frame & 0xFC0000) >> 18; /* first 6 bits */
+			out[j] = (char)((frame & 0xFC0000) >> 18); /* first 6 bits */
 			out[j] = b64enc[(int)out[j]];
 			frame = frame << 6; /* next 6b word */
 		}
