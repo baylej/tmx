@@ -26,7 +26,7 @@ You can disable XML support by setting `WANT_XML` to *off*, the same way with `W
 ## Usage
 
 ```c
-#include <tmx/tmx.h>
+#include <tmx.h>
 
 int main(void) {
   tmx_map map = tmx_load("path/map.tmx");
