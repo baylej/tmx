@@ -13,6 +13,16 @@
 #define fatal_error(str)  { fputs(str, stderr); goto errquit; }
 #define fatal_error2(str) { fputs(str, stderr); return NULL; }
 
+ALLEGRO_COLOR int_to_al_color(int color) {
+	unsigned char r, g, b;
+
+	r = (color >> 16) & 0xFF;
+	g = (color >>  8) & 0xFF;
+	b = (color)       & 0xFF;
+
+	return al_map_rgb(r, g, b);
+}
+
 /*
 	Loading from disc (map(.tmx/.json) and images)
 */
@@ -21,6 +31,7 @@ tmx_map load_map_and_images(const char *file) {
 	tmx_tileset tilesets = NULL;
 	tmx_layer layers = NULL;
 	ALLEGRO_PATH *head, *tail = NULL;
+	ALLEGRO_BITMAP *bmp = NULL;
 	
 	rsc_img_free_func = (void(*)(void*))al_destroy_bitmap; /* set TMX resource image free function */
 	
@@ -41,8 +52,11 @@ tmx_map load_map_and_images(const char *file) {
 		if (!(al_rebase_path(head, tail))) {
 			fputs("it seems the tileset image path is invalid!", stderr);
 		} else {
-			tilesets->image->resource_image = (void*) al_load_bitmap(al_path_cstr(tail, ALLEGRO_NATIVE_PATH_SEP));
-			if (!(tilesets->image->resource_image)) fatal_error("failed to load tileset image!");
+			al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ANY_WITH_ALPHA);
+			bmp = al_load_bitmap(al_path_cstr(tail, ALLEGRO_NATIVE_PATH_SEP));
+			if (!bmp) fatal_error("failed to load tileset image!");
+			if (tilesets->image->trans) al_convert_mask_to_alpha(bmp, int_to_al_color(tilesets->image->trans));
+			tilesets->image->resource_image = (void*) bmp;
 		}
 		tilesets = tilesets->next;
 	}
@@ -71,16 +85,6 @@ errquit:
 	al_destroy_path(head);
 	tmx_free(&res);
 	return NULL;
-}
-
-ALLEGRO_COLOR int_to_al_color(int color) {
-	unsigned char r, g, b;
-
-	r = (color >> 16) & 0xFF;
-	g = (color >>  8) & 0xFF;
-	b = (color)       & 0xFF;
-
-	return al_map_rgb(r, g, b);
 }
 
 /*
@@ -135,7 +139,7 @@ int gid_clear_flags(unsigned int gid) {
 }
 
 /* returns the bitmap and the region associated with this gid */
-short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, int *x, int *y, int *w, int *h) {
+short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
 	unsigned int tiles_x_count, tiles_y_count;
 	unsigned int ts_w, ts_h, id, tx, ty;
 	gid = gid_clear_flags(gid);
@@ -157,7 +161,7 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bm
 				*h = ts->tile_height; /* set bitmap's region height */
 				
 				tx = id % tiles_x_count;
-				ty = id / tiles_y_count;
+				ty = id / tiles_x_count;
 				
 				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
 				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
@@ -172,7 +176,7 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bm
 
 void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
 	unsigned long i, j;
-	int x, y, w, h, flags;
+	unsigned int x, y, w, h, flags;
 	ALLEGRO_BITMAP *tileset;
 	
 	for (i=0; i<height; i++) {

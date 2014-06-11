@@ -91,9 +91,9 @@ static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
 	*obj_headaddr = o;
 
 	if (json_unpack_ex(obj_el, &err, 0, "{s:i, s:i, s:i, s:i, s:b, s:s}", 
-	                "height",  &(o->height),  "width", &(o->width),
-	                "x",       &(o->x),       "y",     &(o->y),
-					"visible", &(o->visible), "name",   &name)) {
+	                   "height",  &(o->height),  "width", &(o->width),
+	                   "x",       &(o->x),       "y",     &(o->y),
+	                   "visible", &(o->visible), "name",   &name)) {
 		tmx_err(E_MISSEL, "json parser: (tileset) %s", err.text);
 		return 0;
 	}
@@ -133,8 +133,8 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
 	*lay_headaddr = lay;
 
 	if (json_unpack_ex(lay_el, &err, 0, "{s:b, s:F, s:s, s:s}", 
-	                "visible", &(lay->visible), "opacity", &(lay->opacity),
-	                "type",    &type,           "name",    &name)) {
+	                   "visible", &(lay->visible), "opacity", &(lay->opacity),
+	                   "type",    &type,           "name",    &name)) {
 		tmx_err(E_MISSEL, "json parser: (layer) %s", err.text);
 		return 0;
 	}
@@ -195,11 +195,11 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr) {
 	*tst_headaddr = ts;
 
 	if (json_unpack_ex(tls_el, &err, 0, "{s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:s, s:s}", 
-	                "spacing",     &(ts->spacing),       "margin",     &(ts->margin),
-	                "tileheight",  &(ts->tile_height),   "tilewidth",  &(ts->tile_width),
-	                "imageheight", &(ts->image->height), "imagewidth", &(ts->image->width),
-	                "firstgid",    &(ts->firstgid),      "image",      &img,
-	                "name",        &name)) {
+	                   "spacing",     &(ts->spacing),       "margin",     &(ts->margin),
+	                   "tileheight",  &(ts->tile_height),   "tilewidth",  &(ts->tile_width),
+	                   "imageheight", &(ts->image->height), "imagewidth", &(ts->image->width),
+	                   "firstgid",    &(ts->firstgid),      "image",      &img,
+	                   "name",        &name)) {
 		tmx_err(E_MISSEL, "json parser: (tileset) %s", err.text);
 		return 0;
 	}
@@ -224,9 +224,9 @@ static tmx_map pjson_map(json_t *map_el) {
 	if (!(res = alloc_map())) return NULL;
 
 	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s}", 
-	                "height",      &(res->height),      "width",     &(res->width),
-	                "tileheight",  &(res->tile_height), "tilewidth", &(res->tile_width),
-		            "orientation", &orient)) {
+	                   "height",      &(res->height),      "width",     &(res->width),
+	                   "tileheight",  &(res->tile_height), "tilewidth", &(res->tile_width),
+	                   "orientation", &orient)) {
 		tmx_err(E_MISSEL, "json parser: %s", err.text);
 		goto cleanup;
 	}
