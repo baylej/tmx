@@ -564,6 +564,6 @@ tmx_map parse_xml(const char *filename) {
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to open %s", filename);
 	}
-	xmlCleanupParser();
+	
 	return res;
 }
