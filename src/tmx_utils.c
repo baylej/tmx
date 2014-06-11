@@ -368,10 +368,10 @@ int count_char_occurences(const char *str, char c) {
 /* trim 'str' to avoid blank characters at its beginning and end */
 char* str_trim(char *str) {
 	int end = strlen(str)-1;
-	while (end>=0 && isspace(str[end])) end--;
+	while (end>=0 && isspace((unsigned char) str[end])) end--;
 	str[end+1] = '\0';
 
-	while(isspace(str[0])) str++;
+	while(isspace((unsigned char) str[0])) str++;
 	return str;
 }
 
