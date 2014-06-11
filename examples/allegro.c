@@ -121,7 +121,7 @@ void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
 	Draw tiled layers
 */
 /* return -1 if tile not found */
-int gid_extract_flags(int gid) {
+int gid_extract_flags(unsigned int gid) {
 	int res = 0;
 	
 	if (gid & TMX_FLIPPED_HORIZONTALLY) res |= ALLEGRO_FLIP_HORIZONTAL;
@@ -130,14 +130,14 @@ int gid_extract_flags(int gid) {
 	return res;
 }
 
-int gid_clear_flags(int gid) {
+int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
 /* returns the bitmap and the region associated with this gid */
-short get_bitmap_region(int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, int *x, int *y, int *w, int *h) {
-	int tiles_x_count, tiles_y_count;
-	int ts_w, ts_h, id, tx, ty;
+short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, int *x, int *y, int *w, int *h) {
+	unsigned int tiles_x_count, tiles_y_count;
+	unsigned int ts_w, ts_h, id, tx, ty;
 	gid = gid_clear_flags(gid);
 	
 	while (ts) {
@@ -171,7 +171,8 @@ short get_bitmap_region(int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, int *x
 }
 
 void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
-	int i, j, x, y, w, h, flags;
+	unsigned long i, j;
+	int x, y, w, h, flags;
 	ALLEGRO_BITMAP *tileset;
 	
 	for (i=0; i<height; i++) {
@@ -190,7 +191,7 @@ void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned in
 ALLEGRO_BITMAP* render_map(tmx_map map) {
 	ALLEGRO_BITMAP *res = NULL;
 	tmx_layer layers = map->ly_head;
-	int w, h;
+	unsigned long w, h;
 	
 	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
 	

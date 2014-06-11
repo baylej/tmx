@@ -28,8 +28,8 @@ void dump_objects(tmx_object o) {
 	} else {
 		printf("\n\tname='%s'", o->name);
 		printf("\n\tshape=");  print_shape(o->shape);
-		printf("\n\t x ='%d'", o->x);
-		printf("\n\t y ='%d'", o->y);
+		printf("\n\t x ='%lu'", o->x);
+		printf("\n\t y ='%lu'", o->y);
 		printf("\n\tnumber of points='%d'", o->points_len);
 		if (o->points_len) dump_points(o->points, o->points_len);
 	}
@@ -57,8 +57,8 @@ void dump_image(tmx_image i) {
 	printf("image={");
 	if (i) {
 		printf("\n\tsource='%s'", i->source);
-		printf("\n\theight=%d", i->height);
-		printf("\n\twidth=%d", i->width);
+		printf("\n\theight=%lu", i->height);
+		printf("\n\twidth=%lu", i->width);
 	} else {
 		fputs("\n(NULL)", stdout);
 	}
