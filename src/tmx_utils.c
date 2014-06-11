@@ -155,9 +155,9 @@ void z_free(void *opaque, void *address) {
 }*/
 
 /* in in in out */
-char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength) {
+char* zlib_decompress(const char *source, unsigned int slength, unsigned int rlength) {
 	int ret;
-	char *res = NULL, *tmp;
+	char *res = NULL;
 	z_stream strm;
 
 	if (!source) {
@@ -169,21 +169,16 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 	strm.zfree = z_free;
 	strm.opaque = Z_NULL;
 	strm.next_in = (Bytef*)source;
-	strm.avail_in = strlen(source);
+	strm.avail_in = slength;
 	
-	if (initial_capacity) {
-		*rlength = initial_capacity;
-	} else {
-		*rlength = slength * 2;
-	}
-	res = (char*) tmx_alloc_func(NULL, *rlength);
+	res = (char*) tmx_alloc_func(NULL, rlength);
 	if (!res) {
 		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 
 	strm.next_out = (Bytef*)res;
-	strm.avail_out = *rlength;
+	strm.avail_out = rlength;
 	
 	/* 15+32 to enable zlib and gzip decoding with automatic header detection */
 	if ((ret=inflateInit2(&strm, 15 + 32)) != Z_OK) {
@@ -191,29 +186,21 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 		goto cleanup;
 	}
 
-	do {
-		ret = inflate(&strm, Z_SYNC_FLUSH);
-		if (ret == Z_BUF_ERROR) { /* too tiny buffer */
-			strm.avail_out = *rlength;
-			*rlength *= 2;
-			if (!(tmp = (char*)tmx_alloc_func(res, *rlength))) {
-				tmx_errno = E_ALLOC;
-				inflateEnd(&strm);
-				goto cleanup;
-			}
-			res = tmp;
-		} else if (ret != Z_STREAM_END && ret != Z_OK) {
-			tmx_err(E_ZDATA, "zlib_decompress: inflate returned %d\n", ret);
-			inflateEnd(&strm);
-			goto cleanup;
-		}
-	} while (ret != Z_STREAM_END);
+	ret = inflate(&strm, Z_FINISH);
+	inflateEnd(&strm);
 
+	if (ret != Z_OK && ret != Z_STREAM_END) {
+		tmx_err(E_ZDATA, "zlib_decompress: inflate returned %d\n", ret);
+		goto cleanup;
+	}
+
+	if (strm.avail_out != 0) {
+		tmx_err(E_ZDATA, "layer contains not enough tiles");
+		goto cleanup;
+	}
 	if (strm.avail_in != 0) {
 		/* FIXME There is remains in the source */
 	}
-	*rlength -= strm.avail_out;
-	inflateEnd(&strm);
 
 	return res;
 cleanup:
@@ -233,7 +220,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int ini
 
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids) {
 	char *b64dec;
-	unsigned int b64_len, zdec_len, i;
+	unsigned int b64_len, i;
 
 	if (type==CSV) {
 		if (!(*gids = (int32_t*)tmx_alloc_func(NULL, gids_count * sizeof(int32_t)))) {
@@ -254,12 +241,9 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 	}
 	else if (type==B64Z) {
 		if (!(b64dec = b64_decode(source, &b64_len))) return 0;
-		*gids = (int32_t*)zlib_decompress(b64dec, b64_len, gids_count*4, &zdec_len);
+		*gids = (int32_t*)zlib_decompress(b64dec, b64_len, gids_count*sizeof(int32_t));
 		tmx_free_func(b64dec);
 		if (!(*gids)) return 0;
-		if (gids_count*4 != zdec_len) {
-			tmx_err(E_ZDATA, "layer contains not enough tiles (%d)", zdec_len/4);
-		}
 	}
 
 	return 1;
