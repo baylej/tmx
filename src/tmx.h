@@ -1,6 +1,6 @@
 /*
-	TMH.H - TMX C LOADER
-	Copyright (c) 2013-2041, Bayle Jonathan <baylej@github>
+	TMX.H - TMX C LOADER
+	Copyright (c) 2013-2014, Bayle Jonathan <baylej@github>
 
 	Data Stuctures storing the map and functions prototypes
 	

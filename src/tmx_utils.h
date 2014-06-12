@@ -5,15 +5,13 @@
 #ifndef TMXUTILS_H
 #define TMXUTILS_H
 
-/* From tmx_utils.c */
+/*
+	Parser implementations
+*/
 enum enccmp_t {CSV, B64Z};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
-
-/* from tmx_xml.c */
-tmx_map parse_xml(const char *filename);
-
-/* from tmx_json.c */
-tmx_map parse_json(const char *filename);
+tmx_map parse_xml (const char *filename); /* tmx_xml.c */
+tmx_map parse_json(const char *filename); /* tmx_json.c */
 
 /*
 	Node allocation
@@ -28,11 +26,18 @@ tmx_map         alloc_map(void);
 /*
 	Misc
 */
+#define MAX(a,b) (a<b) ? b: a;
 enum tmx_map_orient parse_orient(const char* orient_str);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);
 char* tmx_strdup(const char *str);
+
+/*
+	FS
+*/
+size_t dirpath_len(const char *str);
+char* mk_absolute_path(const char *base_path, const char *rel_path);
 
 /*
 	Error handling

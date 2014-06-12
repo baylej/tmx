@@ -365,3 +365,33 @@ char * tmx_strdup(const char *str) {
 	strcpy(res, str);
 	return res;
 }
+
+size_t dirpath_len(const char *str) {
+	const char *lastslash  = strrchr(str, '/' );
+	const char *lastbslash = strrchr(str, '\\');
+
+	const char *last_path_sep = MAX(lastslash, lastbslash);
+	if (last_path_sep == NULL) return 0;
+	last_path_sep++; /* Keeps the trailing path separator */
+	
+	return (size_t) (last_path_sep - str);
+}
+
+char* mk_absolute_path(const char *base_path, const char *rel_path) {
+	/* if base_path is a directory, it MUST have a trailing path separator */
+	size_t dp_len = dirpath_len(base_path);
+	size_t rp_len = strlen(rel_path);
+	size_t ap_len = dp_len + rp_len;
+
+	char* res = (char*)tmx_alloc_func(NULL, ap_len+1);
+	if (!res) {
+		tmx_errno = E_ALLOC;
+		return NULL;
+	}
+
+	memcpy(       res, base_path, dp_len);
+	memcpy(res+dp_len,  rel_path, rp_len);
+	*(res+ap_len) = '\0';
+
+	return res;
+}
