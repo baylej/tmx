@@ -62,11 +62,10 @@ typedef struct _tmx_img { /* <image> */
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
 	char *name;
-	//char *source; /* not supporting this */
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
 	unsigned int x_offset, y_offset; /* tileoffset */
-	/* TODO: can contain: terraintypes(0.9), tile(0.9) */
+	/* terraintypes(0.9), tile(0.9) are for the QtTiled terrain feature */
 	tmx_image image;
 	tmx_property properties;
 	struct _tmx_ts *next;

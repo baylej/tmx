@@ -31,6 +31,28 @@ void * tmx_malloc(size_t len) {
 	On failure tmx_errno is set and and an error message is generated.
 */
 
+static void error_handler(void *arg, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
+	if (severity == XML_PARSER_SEVERITY_ERROR) { /* FIXME : use msg ? free msg ? */
+		tmx_err(E_XDATA, "xml parser: error at line %d: %s", xmlTextReaderLocatorLineNumber(locator), msg);
+	}
+}
+
+static xmlTextReaderPtr create_parser(const char *filename) {
+	xmlTextReaderPtr reader = NULL;
+	if ((reader = xmlReaderForFile(filename, NULL, 0))) {
+
+		xmlTextReaderSetErrorHandler(reader, error_handler, NULL);
+
+		if (xmlTextReaderRead(reader) != 1) {
+			xmlFreeTextReader(reader);
+			reader = NULL;
+		}
+	} else {
+		tmx_err(E_UNKN, "xml parser: unable to open %s", filename);
+	}
+	return reader;
+}
+
 static int parse_property(xmlTextReaderPtr reader, tmx_property prop) {
 	char *value;
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
@@ -369,36 +391,23 @@ static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned i
 	return 1;
 }
 
-static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
-	tmx_tileset res = NULL;
+/* parses a tileset within the tmx file or in a dedicated tsx file */
+static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset ts_addr) {
 	int curr_depth;
 	const char *name;
 	char *value;
 
 	curr_depth = xmlTextReaderDepth(reader);
 
-	if (!(res = alloc_tileset())) return 0;
-	res->next = *ts_headadr;
-	*ts_headadr = res;
-
-	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
-		res->name = value;
+		ts_addr->name = value;
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'tileset' element");
 		return 0;
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"firstgid"))) { /* fisrtgid */
-		res->firstgid = atoi(value);
-		tmx_free_func(value);
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'firstgid' attribute in the 'tileset' element");
-		return 0;
-	}
-
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilewidth"))) { /* tile_width */
-		res->tile_width = atoi(value);
+		ts_addr->tile_width = atoi(value);
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'tilewidth' attribute in the 'tileset' element");
@@ -406,7 +415,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tileheight"))) { /* tile_height */
-		res->tile_height = atoi(value);
+		ts_addr->tile_height = atoi(value);
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'tileheight' attribute in the 'tileset' element");
@@ -414,12 +423,12 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"spacing"))) { /* spacing */
-		res->spacing = atoi(value);
+		ts_addr->spacing = atoi(value);
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"margin"))) { /* margin */
-		res->margin = atoi(value);
+		ts_addr->margin = atoi(value);
 		tmx_free_func(value);
 	}
 
@@ -430,11 +439,11 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->image), 1)) return 0;
+				if (!parse_image(reader, &(ts_addr->image), 1)) return 0;
 			} else if (!strcmp(name, "tileoffset")) {
-				if (!parse_tileoffset(reader, &(res->x_offset), &(res->y_offset))) return 0;
+				if (!parse_tileoffset(reader, &(ts_addr->x_offset), &(ts_addr->y_offset))) return 0;
 			} else if (!strcmp(name, "properties")) {
-				if (!parse_properties(reader, &(res->properties))) return 0;
+				if (!parse_properties(reader, &(ts_addr->properties))) return 0;
 			} else {
 				/* Unknow element, skipping it's tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
@@ -446,7 +455,38 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr) {
 	return 1;
 }
 
-static tmx_map parse_root_map(xmlTextReaderPtr reader) {
+static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr, const char *filename) {
+	tmx_tileset res = NULL;
+	int ret;
+	char *value, *ab_path;
+	xmlTextReaderPtr sub_reader;
+
+	if (!(res = alloc_tileset())) return 0;
+	res->next = *ts_headadr;
+	*ts_headadr = res;
+
+	/* parses each attribute */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"firstgid"))) { /* fisrtgid */
+		res->firstgid = atoi(value);
+		tmx_free_func(value);
+	} else {
+		tmx_err(E_MISSEL, "xml parser: missing 'firstgid' attribute in the 'tileset' element");
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"source"))) { /* source */
+		if (!(ab_path = mk_absolute_path(filename, value))) return 0;
+		tmx_free_func(value);
+		if (!(sub_reader = create_parser(ab_path))) return 0; /* opens */
+		ret = parse_tileset_sub(sub_reader, res); /* and parses the tsx file */
+		xmlFreeTextReader(sub_reader);
+		return ret;
+	}
+
+	return parse_tileset_sub(reader, res);
+}
+
+static tmx_map parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 	tmx_map res = NULL;
 	int curr_depth;
 	const char *name;
@@ -518,7 +558,7 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader) {
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "tileset")) {
-				if (!parse_tileset(reader, &(res->ts_head))) goto cleanup;
+				if (!parse_tileset(reader, &(res->ts_head), filename)) goto cleanup;
 			} else if (!strcmp(name, "layer")) {
 				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER)) goto cleanup;
 			} else if (!strcmp(name, "objectgroup")) {
@@ -540,29 +580,15 @@ cleanup:
 	return NULL;
 }
 
-static void error_handler(void *arg, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
-	if (severity == XML_PARSER_SEVERITY_ERROR) { /* FIXME : use msg ? free msg ? */
-		tmx_err(E_XDATA, "xml parser: error at line %d: %s", xmlTextReaderLocatorLineNumber(locator), msg);
-	}
-}
-
 tmx_map parse_xml(const char *filename) {
 	xmlTextReaderPtr reader;
 	tmx_map res = NULL;
 
 	xmlMemSetup((xmlFreeFunc)tmx_free_func, (xmlMallocFunc)tmx_malloc, (xmlReallocFunc)tmx_alloc_func, (xmlStrdupFunc)tmx_strdup);
 
-	if ((reader = xmlReaderForFile(filename, NULL, 0))) {
-
-		xmlTextReaderSetErrorHandler(reader, error_handler, NULL);
-
-		if (xmlTextReaderRead(reader) == 1) {
-			res = parse_root_map(reader);
-		}
-
+	if ((reader = create_parser(filename))) {
+		res = parse_root_map(reader, filename);
 		xmlFreeTextReader(reader);
-	} else {
-		tmx_err(E_UNKN, "xml parser: unable to open %s", filename);
 	}
 	
 	return res;
