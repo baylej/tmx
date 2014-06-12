@@ -38,6 +38,7 @@ char* tmx_strdup(const char *str);
 */
 size_t dirpath_len(const char *str);
 char* mk_absolute_path(const char *base_path, const char *rel_path);
+int load_image(void **ptr, const char *base_path, const char *rel_path);
 
 /*
 	Error handling

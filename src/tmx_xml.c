@@ -263,7 +263,7 @@ cleanup:
 	return 0;
 }
 
-static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict) {
+static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict, const char *filename) {
 	tmx_image res;
 	char *value;
 
@@ -272,6 +272,10 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"source"))) { /* source */
 		res->source = value;
+		if (!(load_image(&(res->resource_image), filename, value))) {
+			tmx_err(E_UNKN, "xml parser: an error occured in the delegated image loading function");
+			return 0;
+		}
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'source' attribute in the 'image' element");
 		return 0;
@@ -302,7 +306,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict
 }
 
 /* parse layers and objectgroups */
-static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int map_h, int map_w, enum tmx_layer_type type) {
+static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int map_h, int map_w, enum tmx_layer_type type, const char *filename) {
 	tmx_layer res;
 	tmx_object obj;
 	int curr_depth;
@@ -351,7 +355,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int ma
 			} else if (!strcmp(name, "data")) {
 				if (!parse_data(reader, &(res->content.gids), map_h * map_w)) return 0;
 			} else if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->content.image), 0)) return 0;
+				if (!parse_image(reader, &(res->content.image), 0, filename)) return 0;
 			} else if (!strcmp(name, "object")) {
 				if (!(obj = alloc_object())) return 0;
 				
@@ -392,7 +396,7 @@ static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned i
 }
 
 /* parses a tileset within the tmx file or in a dedicated tsx file */
-static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset ts_addr) {
+static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset ts_addr, const char *filename) {
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -439,7 +443,7 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset ts_addr) {
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(ts_addr->image), 1)) return 0;
+				if (!parse_image(reader, &(ts_addr->image), 1, filename)) return 0;
 			} else if (!strcmp(name, "tileoffset")) {
 				if (!parse_tileoffset(reader, &(ts_addr->x_offset), &(ts_addr->y_offset))) return 0;
 			} else if (!strcmp(name, "properties")) {
@@ -478,12 +482,13 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr, const
 		if (!(ab_path = mk_absolute_path(filename, value))) return 0;
 		tmx_free_func(value);
 		if (!(sub_reader = create_parser(ab_path))) return 0; /* opens */
-		ret = parse_tileset_sub(sub_reader, res); /* and parses the tsx file */
+		tmx_free_func(ab_path);
+		ret = parse_tileset_sub(sub_reader, res, filename); /* and parses the tsx file */
 		xmlFreeTextReader(sub_reader);
 		return ret;
 	}
 
-	return parse_tileset_sub(reader, res);
+	return parse_tileset_sub(reader, res, filename);
 }
 
 static tmx_map parse_root_map(xmlTextReaderPtr reader, const char *filename) {
@@ -560,11 +565,11 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 			if (!strcmp(name, "tileset")) {
 				if (!parse_tileset(reader, &(res->ts_head), filename)) goto cleanup;
 			} else if (!strcmp(name, "layer")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER)) goto cleanup;
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER, filename)) goto cleanup;
 			} else if (!strcmp(name, "objectgroup")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_OBJGR)) goto cleanup;
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_OBJGR, filename)) goto cleanup;
 			} else if (!strcmp(name, "imagelayer")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_IMAGE)) goto cleanup;
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_IMAGE, filename)) goto cleanup;
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) goto cleanup;
 			} else {

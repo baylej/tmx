@@ -32,8 +32,9 @@ extern "C" {
 void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
 void  (*tmx_free_func ) (void *address);             /* free */
 
-/* free tmx_image->resource_image, you should set this if you want
-   the library to free the allocated image */
+/* load/free tmx_image->resource_image, you should set this if you want
+   the library to load/free images */
+void* (*rsc_img_load_func) (const char *p);
 void  (*rsc_img_free_func) (void *address);
 
 /*
@@ -118,7 +119,7 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 
 /* Load a map and return the head of the data structure
    returns NULL if an error occured and set tmx_errno */
-tmx_map tmx_load(const char * path);
+tmx_map tmx_load(const char *path);
 /* Free the map data structure */
 void tmx_free(tmx_map *map);
 

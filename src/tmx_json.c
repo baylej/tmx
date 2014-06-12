@@ -109,7 +109,7 @@ static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
 		o->shape = S_ELLIPSE;
 	} else if ((tmp = json_object_get(obj_el, "gid")) && json_is_number(tmp)) {
 		o->shape = S_TILE;
-		o->gid = json_integer_value(tmp);
+		o->gid = (int)json_integer_value(tmp);
 	} else {
 		o->shape = S_SQUARE;
 	}
@@ -121,7 +121,7 @@ static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
 	return 1;
 }
 
-static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
+static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_layer lay;
@@ -160,13 +160,17 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
 				return 0;
 			}
 			for (i=0; i<(int)json_array_size(tmp); i++) {
-				lay->content.gids[i] = json_integer_value(json_array_get(tmp, i));
+				lay->content.gids[i] = (int32_t)json_integer_value(json_array_get(tmp, i));
 			}
 		}
 	} else if (lay->type == L_IMAGE) {
 		lay->content.image = alloc_image();
 		if (lay->content.image && !json_unpack(lay_el, "{s:s}", "image", &name)) {
 			lay->content.image->source = tmx_strdup(name);
+			if (!load_image(&(lay->content.image->resource_image), filename, name)) {
+				tmx_err(E_UNKN, "json parser: an error occured in the delegated image loading function");
+				return 0;
+			}
 		} else return 0;
 	} else {
 		if ((tmp = json_object_get(lay_el, "objects")) && json_is_array(tmp)) {
@@ -183,7 +187,7 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr) {
 	return 1;
 }
 
-static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr) {
+static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_tileset ts;
@@ -205,6 +209,10 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr) {
 	}
 	if (!(ts->name = tmx_strdup(name)))         return 0;
 	if (!(ts->image->source = tmx_strdup(img))) return 0;
+	if (!load_image(&(ts->image->resource_image), filename, img)) {
+		tmx_err(E_UNKN, "json parser: an error occured in the delegated image loading function");
+		return 0;
+	}
 
 	if ((tmp = json_object_get(tls_el, "properties")) && json_is_object(tmp)) {
 		if (!pjson_properties(tmp, &(ts->properties))) return 0;
@@ -214,7 +222,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr) {
 }
 
 /* returns NULL on fail */
-static tmx_map pjson_map(json_t *map_el) {
+static tmx_map pjson_map(json_t *map_el, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_map res;
@@ -240,14 +248,14 @@ static tmx_map pjson_map(json_t *map_el) {
 
 	if ((tmp = json_object_get(map_el, "tilesets")) && json_is_array(tmp)) {
 		for (i=0; i<(int)json_array_size(tmp); i++) {
-			if (!pjson_tileset(json_array_get(tmp, i), &(res->ts_head))) goto cleanup;
+			if (!pjson_tileset(json_array_get(tmp, i), &(res->ts_head), filename)) goto cleanup;
 		}
 	}
 
 	if ((tmp = json_object_get(map_el, "layers")) && json_is_array(tmp)) {
 		i = json_array_size(tmp);
 		for (--i; i>=0 ; i--) { /* tail appending */
-			if (!pjson_layer(json_array_get(tmp, i), &(res->ly_head))) goto cleanup;
+			if (!pjson_layer(json_array_get(tmp, i), &(res->ly_head), filename)) goto cleanup;
 		}
 	}
 
@@ -278,7 +286,7 @@ tmx_map parse_json(const char *filename) {
 		return NULL;
 	}
 
-	res = pjson_map(parsed);
+	res = pjson_map(parsed, filename);
 
 	json_decref(parsed);
 

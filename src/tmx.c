@@ -12,6 +12,7 @@
 */
 void* (*tmx_alloc_func) (void *address, size_t len) = NULL;
 void  (*tmx_free_func ) (void *address) = NULL;
+void* (*rsc_img_load_func) (const char *p) = NULL;
 void  (*rsc_img_free_func) (void *address) = NULL;
 /*
 	Public functions

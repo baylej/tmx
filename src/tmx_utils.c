@@ -395,3 +395,15 @@ char* mk_absolute_path(const char *base_path, const char *rel_path) {
 
 	return res;
 }
+
+int load_image(void **ptr, const char *base_path, const char *rel_path) {
+	char *ap_img;
+	if (rsc_img_load_func) {
+		ap_img = mk_absolute_path(base_path, rel_path);
+		if (!ap_img) return 0;
+		*ptr = rsc_img_load_func(ap_img);
+		tmx_free_func(ap_img);
+		return (!(*ptr));
+	}
+	return 1;
+}
