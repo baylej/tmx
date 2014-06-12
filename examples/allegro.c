@@ -146,7 +146,7 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bm
 	
 	while (ts) {
 		if (ts->firstgid <= gid) {
-			if (!ts->next || (ts->next->firstgid > gid)) {
+			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
 				id = gid - ts->firstgid; /* local id (for this image) */
 				
 				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
@@ -177,13 +177,14 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bm
 void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
 	unsigned long i, j;
 	unsigned int x, y, w, h, flags;
+	float op;
 	ALLEGRO_BITMAP *tileset;
-	
+	op = layer->opacity;
 	for (i=0; i<height; i++) {
 		for (j=0; j<width; j++) {
 			if (!get_bitmap_region(layer->content.gids[(i*width)+j], ts, &tileset, &x, &y, &w, &h)) {
 				flags = gid_extract_flags(layer->content.gids[(i*width)+j]);
-				al_draw_bitmap_region(tileset, x, y, w, h, j*tile_width, i*tile_height, flags);
+				al_draw_tinted_bitmap_region(tileset, al_map_rgba_f(op, op, op, op), x, y, w, h, j*tile_width, i*tile_height, flags);
 			}
 		}
 	}
@@ -212,6 +213,10 @@ ALLEGRO_BITMAP* render_map(tmx_map map) {
 			if (layers->type == L_OBJGR) {
 				draw_objects(layers->content.head, int_to_al_color(layers->color));
 			} else if (layers->type == L_IMAGE) {
+				if (layers->opacity < 1.) {
+					float op = layers->opacity;
+					al_draw_tinted_bitmap((ALLEGRO_BITMAP*)layers->content.image->resource_image, al_map_rgba_f(op, op, op, op), 0, 0, 0);
+				}
 				al_draw_bitmap((ALLEGRO_BITMAP*)layers->content.image->resource_image, 0, 0, 0);
 			} else if (layers->type == L_LAYER) {
 				draw_layer(layers, map->ts_head, map->width, map->height, map->tile_width, map->tile_height);
