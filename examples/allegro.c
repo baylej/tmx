@@ -23,68 +23,18 @@ ALLEGRO_COLOR int_to_al_color(int color) {
 	return al_map_rgb(r, g, b);
 }
 
-/*
-	Loading from disc (map(.tmx/.json) and images)
-*/
-tmx_map load_map_and_images(const char *file) {
-	tmx_map res = NULL;
-	tmx_tileset tilesets = NULL;
-	tmx_layer layers = NULL;
-	ALLEGRO_PATH *head, *tail = NULL;
-	ALLEGRO_BITMAP *bmp = NULL;
+void* al_img_loader(const char *path) {
+	ALLEGRO_BITMAP *res    = NULL;
+	ALLEGRO_PATH   *alpath = NULL;
 	
-	rsc_img_free_func = (void(*)(void*))al_destroy_bitmap; /* set TMX resource image free function */
+	if (!(alpath = al_create_path(path))) return NULL;
 	
-	/* Load the map */
-	if (!(head = al_create_path(file))) fatal_error2("failed to create a path");
-	res = tmx_load(al_path_cstr(head, ALLEGRO_NATIVE_PATH_SEP));
-	if (!res) {
-		tmx_perror("failed to open the map!");
-		return NULL;
-	}
+	al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ANY_WITH_ALPHA);
+	res = al_load_bitmap(al_path_cstr(alpath, ALLEGRO_NATIVE_PATH_SEP));
 	
-	/* Load tilesets images (currently not supporting .tsx files) */
-	al_set_path_filename(head, NULL);
-	tilesets = res->ts_head;
-	while (tilesets) {
-		if (tail) al_destroy_path(tail);
-		if (!(tail = al_create_path(tilesets->image->source))) fatal_error("failed to create a path");
-		if (!(al_rebase_path(head, tail))) {
-			fputs("it seems the tileset image path is invalid!", stderr);
-		} else {
-			al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ANY_WITH_ALPHA);
-			bmp = al_load_bitmap(al_path_cstr(tail, ALLEGRO_NATIVE_PATH_SEP));
-			if (!bmp) fatal_error("failed to load tileset image!");
-			if (tilesets->image->trans) al_convert_mask_to_alpha(bmp, int_to_al_color(tilesets->image->trans));
-			tilesets->image->resource_image = (void*) bmp;
-		}
-		tilesets = tilesets->next;
-	}
-
-	/* Load layers images */
-	layers = res->ly_head;
-	while (layers) {
-		if (layers->type == L_IMAGE) {
-			if (tail) al_destroy_path(tail);
-			if (!(tail = al_create_path(layers->content.image->source))) fatal_error("failed to create a path");
-			if (!(al_rebase_path(head, tail))) {
-				fputs("it seems the tileset image path is invalid!", stderr);
-			} else {
-				layers->content.image->resource_image = (void*) al_load_bitmap(al_path_cstr(tail, ALLEGRO_NATIVE_PATH_SEP));
-				if (!(layers->content.image->resource_image)) fatal_error("failed to load layer image!");
-			}
-		}
-		layers = layers->next;
-	}
+	al_destroy_path(alpath);
 	
-	if (tail) al_destroy_path(tail);
-	al_destroy_path(head);
-	return res;
-errquit:
-	if (tail) al_destroy_path(tail);
-	al_destroy_path(head);
-	tmx_free(&res);
-	return NULL;
+	return (void*)res;
 }
 
 /*
@@ -124,7 +74,6 @@ void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
 /*
 	Draw tiled layers
 */
-/* return -1 if tile not found */
 int gid_extract_flags(unsigned int gid) {
 	int res = 0;
 	
@@ -138,10 +87,10 @@ int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
-/* returns the bitmap and the region associated with this gid */
+/* returns the bitmap and the region associated with this gid, returns -1 if tile not found */
 short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
-	unsigned int tiles_x_count, tiles_y_count;
-	unsigned int ts_w, ts_h, id, tx, ty;
+	unsigned int tiles_x_count;
+	unsigned int ts_w, id, tx, ty;
 	gid = gid_clear_flags(gid);
 	
 	while (ts) {
@@ -150,10 +99,8 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bm
 				id = gid - ts->firstgid; /* local id (for this image) */
 				
 				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
-				ts_h = ts->image->height - 2 * (ts->margin) + ts->spacing;
 				
 				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
-				tiles_y_count = ts_h / (ts->tile_height + ts->spacing);
 				
 				*ts_bmp = (ALLEGRO_BITMAP*)ts->image->resource_image;
 				
@@ -259,9 +206,12 @@ int main(int argc, char **argv) {
 	if (!al_init_image_addon()) fatal_error("failed to initialise ImageIO!");
 	if (!al_init_primitives_addon()) fatal_error("failed to initialise Primitives!");
 	if (!al_install_keyboard()) fatal_error("failed to install keyboard!");
+	
+	rsc_img_load_func = al_img_loader;
+	rsc_img_free_func = (void (*)(void*))al_destroy_bitmap;
 
 	/* Load and render the map */
-	if (!(map = load_map_and_images(argv[1]))) return -1;
+	if (!(map = tmx_load(argv[1]))) fatal_error(tmx_strerr());
 	if (!(bmp_map = render_map(map))) return -1;
 	al_resize_display(display, map->width  * map->tile_width, map->height * map->tile_height); /* DELME */
 

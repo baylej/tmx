@@ -63,7 +63,7 @@ tmx_map tmx_load(const char * path) {
 			} else if (errno == ENOENT) {
 				tmx_errno = E_NOENT;
 			} else {
-				tmx_err(E_UNKN, strerror(errno));
+				tmx_err(E_UNKN, "%s", strerror(errno));
 			}
 		}
 	}

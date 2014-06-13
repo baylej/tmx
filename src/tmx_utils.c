@@ -403,7 +403,7 @@ int load_image(void **ptr, const char *base_path, const char *rel_path) {
 		if (!ap_img) return 0;
 		*ptr = rsc_img_load_func(ap_img);
 		tmx_free_func(ap_img);
-		return (!(*ptr));
+		return (int)(*ptr);
 	}
 	return 1;
 }
