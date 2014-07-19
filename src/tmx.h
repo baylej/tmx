@@ -98,6 +98,7 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 		tmx_image image;
 	}content;
 
+	void *user_data; // not freed by tmx_free !
 	tmx_property properties;
 	struct _tmx_layer *next;
 } * tmx_layer;
