@@ -181,6 +181,9 @@ errquit:
 	return NULL;
 }
 
+#define DISPLAY_H 480
+#define DISPLAY_W 640
+
 /*
 	MAIN
 	Creates a display
@@ -194,12 +197,15 @@ int main(int argc, char **argv) {
 	ALLEGRO_EVENT ev;
 	tmx_map map = NULL;
 	ALLEGRO_BITMAP *bmp_map = NULL;
+	int x_offset = 0, y_offset = 0;
+	int x_delta, y_delta;
+	int key_state[2] = {0, 0};
 
 	if (argc != 2) fatal_error("This program expects 1 argument");
 
 	if (!al_init())	fatal_error("failed to initialize allegro!");
 
-	display = al_create_display(640, 480);
+	display = al_create_display(DISPLAY_W, DISPLAY_H);
 	if (!display) fatal_error("failed to create display!");
 	al_set_window_title(display, "Allegro Game");
 	
@@ -213,7 +219,8 @@ int main(int argc, char **argv) {
 	/* Load and render the map */
 	if (!(map = tmx_load(argv[1]))) fatal_error(tmx_strerr());
 	if (!(bmp_map = render_map(map))) return -1;
-	al_resize_display(display, map->width  * map->tile_width, map->height * map->tile_height); /* DELME */
+	x_delta = DISPLAY_W - al_get_bitmap_width (bmp_map);
+	y_delta = DISPLAY_H - al_get_bitmap_height(bmp_map);
 
 	equeue = al_create_event_queue();
 	if (!equeue) fatal_error("failed to create event queue!");
@@ -228,19 +235,45 @@ int main(int argc, char **argv) {
 	al_start_timer(timer);
 
 	while(al_wait_for_event(equeue, &ev), 1) {
+		
 		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) break;
+		
 		if (ev.type == ALLEGRO_EVENT_TIMER) {
-			if (bmp_map) { /* TODO */
-				al_draw_bitmap(bmp_map, 0, 0, 0);
+
+			x_offset += key_state[0];
+			y_offset += key_state[1];
+			if (x_delta > 0) { // map's width lower than display's width
+				x_offset = x_delta/2;
+			} else {
+				if (x_offset < x_delta) x_offset = x_delta;
+				if (x_offset > 0) x_offset = 0;
 			}
+			if (y_delta > 0) {
+				y_offset = y_delta/2;
+			} else {
+				if (y_offset < y_delta) y_offset = y_delta;
+				if (y_offset > 0) y_offset = 0;
+			}
+			al_draw_bitmap(bmp_map, x_offset, y_offset, 0);
 			al_flip_display();
+			
 		} else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
+			
+			switch (ev.keyboard.keycode) {
+				case ALLEGRO_KEY_LEFT:
+				case ALLEGRO_KEY_RIGHT: key_state[0] = 0; break;
+				case ALLEGRO_KEY_UP:
+				case ALLEGRO_KEY_DOWN:  key_state[1] = 0; break;
+			}
+			
+		} else if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+			
 			if (ev.keyboard.keycode == ALLEGRO_KEY_Q) break;
 			switch (ev.keyboard.keycode) {
-				case ALLEGRO_KEY_LEFT: break; /* FIXME */
-				case ALLEGRO_KEY_RIGHT: break;
-				case ALLEGRO_KEY_UP: break;
-				case ALLEGRO_KEY_DOWN: break;
+				case ALLEGRO_KEY_LEFT:  key_state[0] =  4; break;
+				case ALLEGRO_KEY_RIGHT: key_state[0] = -4; break;
+				case ALLEGRO_KEY_UP:    key_state[1] =  4; break;
+				case ALLEGRO_KEY_DOWN:  key_state[1] = -4; break;
 			}
 		}
 	}
