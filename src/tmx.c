@@ -18,7 +18,7 @@ void  (*rsc_img_free_func) (void *address) = NULL;
 	Public functions
 */
 #ifndef WANT_XML
-static tmx_map parse_xml(const char *path) {
+tmx_map parse_xml(const char *path) {
 	tmx_err(E_FONCT, "This library was not builded with the XML parser");
 	return NULL;
 }
@@ -53,7 +53,7 @@ tmx_map tmx_load(const char * path) {
 			if (fchar == '<') {
 				map = parse_xml(path);
 			} else if (fchar == '{') {
-				/* TODO */
+				map = parse_json(path);
 			} else {
 				tmx_errno = E_FORMAT;
 			}

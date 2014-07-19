@@ -32,7 +32,7 @@ void * tmx_malloc(size_t len) {
 */
 
 static void error_handler(void *arg, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
-	if (severity == XML_PARSER_SEVERITY_ERROR) { /* FIXME : use msg ? free msg ? */
+	if (severity == XML_PARSER_SEVERITY_ERROR) {
 		tmx_err(E_XDATA, "xml parser: error at line %d: %s", xmlTextReaderLocatorLineNumber(locator), msg);
 	}
 }

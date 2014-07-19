@@ -208,7 +208,7 @@ cleanup:
 	return NULL;
 }
 #else
-char* zlib_decompress(const char *source, unsigned int slength, unsigned int initial_capacity, unsigned int *rlength) {
+char* zlib_decompress(const char *source, unsigned int slength, unsigned int rlength) {
 	tmx_err(E_FONCT, "This library was not builded with the zlib/gzip support");
 	return NULL;
 }
