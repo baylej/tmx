@@ -15,11 +15,11 @@
 
 ALLEGRO_COLOR int_to_al_color(int color) {
 	unsigned char r, g, b;
-
+	
 	r = (color >> 16) & 0xFF;
 	g = (color >>  8) & 0xFF;
 	b = (color)       & 0xFF;
-
+	
 	return al_map_rgb(r, g, b);
 }
 
@@ -200,11 +200,11 @@ int main(int argc, char **argv) {
 	int x_offset = 0, y_offset = 0;
 	int x_delta, y_delta;
 	int key_state[2] = {0, 0};
-
+	
 	if (argc != 2) fatal_error("This program expects 1 argument");
-
+	
 	if (!al_init())	fatal_error("failed to initialize allegro!");
-
+	
 	display = al_create_display(DISPLAY_W, DISPLAY_H);
 	if (!display) fatal_error("failed to create display!");
 	al_set_window_title(display, "Allegro Game");
@@ -215,34 +215,34 @@ int main(int argc, char **argv) {
 	
 	rsc_img_load_func = al_img_loader;
 	rsc_img_free_func = (void (*)(void*))al_destroy_bitmap;
-
+	
 	/* Load and render the map */
 	if (!(map = tmx_load(argv[1]))) fatal_error(tmx_strerr());
 	if (!(bmp_map = render_map(map))) return -1;
 	x_delta = DISPLAY_W - al_get_bitmap_width (bmp_map);
 	y_delta = DISPLAY_H - al_get_bitmap_height(bmp_map);
-
+	
 	equeue = al_create_event_queue();
 	if (!equeue) fatal_error("failed to create event queue!");
-
+	
 	timer = al_create_timer(1.0/30.0);
 	if (!timer) fatal_error("failed to create timer!");
-
+	
 	al_register_event_source(equeue, al_get_display_event_source(display));
 	al_register_event_source(equeue, al_get_timer_event_source(timer));
 	al_register_event_source(equeue, al_get_keyboard_event_source());
- 
+	
 	al_start_timer(timer);
-
+	
 	while(al_wait_for_event(equeue, &ev), 1) {
 		
 		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) break;
 		
 		if (ev.type == ALLEGRO_EVENT_TIMER) {
-
+			
 			x_offset += key_state[0];
 			y_offset += key_state[1];
-			if (x_delta > 0) { // map's width lower than display's width
+			if (x_delta > 0) {
 				x_offset = x_delta/2;
 			} else {
 				if (x_offset < x_delta) x_offset = x_delta;
@@ -278,12 +278,15 @@ int main(int argc, char **argv) {
 		}
 	}
 	
+	tmx_free(&map);
+	
 	al_destroy_timer(timer);
 	al_destroy_event_queue(equeue);
 	al_destroy_display(display);
- 
+	
 	return 0;
-
+	
 errquit:
 	return -1;
 }
+
