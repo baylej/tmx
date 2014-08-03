@@ -4,7 +4,7 @@
 #include "tmx.h"
 #include "tmx_utils.h"
 
-int tmx_errno = E_NONE;
+tmx_error_codes tmx_errno = E_NONE;
 
 static char *errmsgs[] = {
 	"No error",

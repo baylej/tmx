@@ -29,8 +29,8 @@ static void* json_malloc(size_t size) {
 	On failure tmx_errno is set and and an error message is generated.
 */
 
-static int pjson_properties(json_t *prp_el, tmx_property *prp_headaddr) {
-	tmx_property p;
+static int pjson_properties(json_t *prp_el, tmx_property **prp_headaddr) {
+	tmx_property *p;
 	const char *key;
 	json_t     *val;
 
@@ -80,10 +80,10 @@ static int pjson_points(json_t *pts_ar, int ***pts_araddr, int *ptslen_addr) {
 	return 1;
 }
 
-static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
+static int pjson_objects(json_t *obj_el, tmx_object **obj_headaddr) {
 	json_error_t err;
 	json_t *tmp;
-	tmx_object o;
+	tmx_object *o;
 	char *name;
 
 	if (!(o = alloc_object())) return 0;
@@ -121,10 +121,10 @@ static int pjson_objects(json_t *obj_el, tmx_object *obj_headaddr) {
 	return 1;
 }
 
-static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr, const char *filename) {
+static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
-	tmx_layer lay;
+	tmx_layer *lay;
 	char *type, *name;
 	int i;
 
@@ -187,10 +187,10 @@ static int pjson_layer(json_t *lay_el, tmx_layer *lay_headaddr, const char *file
 	return 1;
 }
 
-static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr, const char *filename) {
+static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
-	tmx_tileset ts;
+	tmx_tileset *ts;
 	char *img, *name;
 
 	if (!(ts = alloc_tileset()))      return 0;
@@ -222,10 +222,10 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset *tst_headaddr, const char *
 }
 
 /* returns NULL on fail */
-static tmx_map pjson_map(json_t *map_el, const char *filename) {
+static tmx_map *pjson_map(json_t *map_el, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
-	tmx_map res;
+	tmx_map *res;
 	char *col, *orient;
 	int i;
 	
@@ -265,7 +265,7 @@ static tmx_map pjson_map(json_t *map_el, const char *filename) {
 
 	return res;
 cleanup:
-	tmx_free(&res);
+	tmx_map_free(res);
 	return NULL;
 }
 
@@ -273,8 +273,8 @@ cleanup:
 	Public function
 */
 
-tmx_map parse_json(const char *filename) {
-	tmx_map res = NULL;
+tmx_map *parse_json(const char *filename) {
+	tmx_map *res = NULL;
 	json_t *parsed = NULL;
 	json_error_t err;
 	

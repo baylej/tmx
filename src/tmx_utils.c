@@ -253,30 +253,30 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 	Node allocation
 */
 
-tmx_property alloc_prop(void) {
-	tmx_property res = (tmx_property)tmx_alloc_func(NULL, sizeof(struct _tmx_prop));
+tmx_property *alloc_prop(void) {
+	tmx_property *res = (tmx_property*)tmx_alloc_func(NULL, sizeof(tmx_property));
 	if (res) {
-		memset(res, 0, sizeof(struct _tmx_prop));
+		memset(res, 0, sizeof(tmx_property));
 	} else {
 		tmx_errno = E_ALLOC;
 	}
 	return res;
 }
 
-tmx_image alloc_image(void) {
-	tmx_image res = (tmx_image)tmx_alloc_func(NULL, sizeof(struct _tmx_img));
+tmx_image *alloc_image(void) {
+	tmx_image *res = (tmx_image*)tmx_alloc_func(NULL, sizeof(tmx_image));
 	if (res) {
-		memset(res, 0, sizeof(struct _tmx_img));
+		memset(res, 0, sizeof(tmx_image));
 	} else {
 		tmx_errno = E_ALLOC;
 	}
 	return res;
 }
 
-tmx_object alloc_object(void) {
-	tmx_object res = (tmx_object)tmx_alloc_func(NULL, sizeof(struct _tmx_obj));
+tmx_object *alloc_object(void) {
+	tmx_object *res = (tmx_object*)tmx_alloc_func(NULL, sizeof(tmx_object));
 	if (res) {
-		memset(res, 0, sizeof(struct _tmx_obj));
+		memset(res, 0, sizeof(tmx_object));
 		res->visible = 1;
 	} else {
 		tmx_errno = E_ALLOC;
@@ -284,10 +284,10 @@ tmx_object alloc_object(void) {
 	return res;
 }
 
-tmx_layer alloc_layer(void) {
-	tmx_layer res = (tmx_layer)tmx_alloc_func(NULL, sizeof(struct _tmx_layer));
+tmx_layer *alloc_layer(void) {
+	tmx_layer *res = (tmx_layer*)tmx_alloc_func(NULL, sizeof(tmx_layer));
 	if (res) {
-		memset(res, 0, sizeof(struct _tmx_layer));
+		memset(res, 0, sizeof(tmx_layer));
 		res->opacity = 1.0f;
 		res->visible = 1;
 	} else {
@@ -296,20 +296,20 @@ tmx_layer alloc_layer(void) {
 	return res;
 }
 
-tmx_tileset alloc_tileset(void) {
-	tmx_tileset res = (tmx_tileset)tmx_alloc_func(NULL, sizeof(struct _tmx_ts));
+tmx_tileset *alloc_tileset(void) {
+	tmx_tileset *res = (tmx_tileset*)tmx_alloc_func(NULL, sizeof(tmx_tileset));
 	if (res) {
-		memset(res, 0, sizeof(struct _tmx_ts));
+		memset(res, 0, sizeof(tmx_tileset));
 	} else {
 		tmx_errno = E_ALLOC;
 	}
 	return res;
 }
 
-tmx_map alloc_map(void) {
-	tmx_map res = (tmx_map)tmx_alloc_func(NULL, sizeof(struct _tmx_map));
+tmx_map *alloc_map(void) {
+	tmx_map *res = (tmx_map*)tmx_alloc_func(NULL, sizeof(tmx_map));
 	if (res) {
-		memset(res, 0, sizeof(struct _tmx_map));
+		memset(res, 0, sizeof(tmx_map));
 	} else {
 		tmx_errno = E_ALLOC;
 	}
@@ -396,14 +396,14 @@ char* mk_absolute_path(const char *base_path, const char *rel_path) {
 	return res;
 }
 
-int load_image(void **ptr, const char *base_path, const char *rel_path) {
+void* load_image(void **ptr, const char *base_path, const char *rel_path) {
 	char *ap_img;
 	if (rsc_img_load_func) {
 		ap_img = mk_absolute_path(base_path, rel_path);
 		if (!ap_img) return 0;
 		*ptr = rsc_img_load_func(ap_img);
 		tmx_free_func(ap_img);
-		return (int)(*ptr);
+		return(*ptr);
 	}
-	return 1;
+	return (void*)1;
 }

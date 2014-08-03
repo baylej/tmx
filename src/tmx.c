@@ -18,20 +18,20 @@ void  (*rsc_img_free_func) (void *address) = NULL;
 	Public functions
 */
 #ifndef WANT_XML
-tmx_map parse_xml(const char *path) {
+tmx_map *parse_xml(const char *path) {
 	tmx_err(E_FONCT, "This library was not builded with the XML parser");
 	return NULL;
 }
 #endif
 #ifndef WANT_JSON
-tmx_map parse_json(const char *filename) {
+tmx_map *parse_json(const char *filename) {
 	tmx_err(E_FONCT, "This library was not builded with the JSON parser");
 	return NULL;
 }
 #endif
 
-tmx_map tmx_load(const char * path) {
-	tmx_map map = NULL;
+tmx_map *tmx_load(const char * path) {
+	tmx_map *map = NULL;
 	const char *extension;
 	FILE *file;
 	int fchar;
@@ -71,7 +71,7 @@ tmx_map tmx_load(const char * path) {
 	return map;
 }
 
-static void free_props(tmx_property p) {
+static void free_props(tmx_property *p) {
 	if (p) {
 		free_props(p->next);
 		tmx_free_func(p->name);
@@ -80,7 +80,7 @@ static void free_props(tmx_property p) {
 	}
 }
 
-static void free_obj(tmx_object o) {
+static void free_obj(tmx_object *o) {
 	if (o) {
 		free_obj(o->next);
 		tmx_free_func(o->name);
@@ -90,7 +90,7 @@ static void free_obj(tmx_object o) {
 	}
 }
 
-static void free_image(tmx_image i) {
+static void free_image(tmx_image *i) {
 	if (i) {
 		tmx_free_func(i->source);
 		if (rsc_img_free_func) {
@@ -100,7 +100,7 @@ static void free_image(tmx_image i) {
 	}
 }
 
-static void free_layers(tmx_layer l) {
+static void free_layers(tmx_layer *l) {
 	if (l) {
 		free_layers(l->next);
 		tmx_free_func(l->name);
@@ -116,7 +116,7 @@ static void free_layers(tmx_layer l) {
 	}
 }
 
-static void free_ts(tmx_tileset ts) {
+static void free_ts(tmx_tileset *ts) {
 	if (ts) {
 		free_ts(ts->next);
 		tmx_free_func(ts->name);
@@ -126,12 +126,12 @@ static void free_ts(tmx_tileset ts) {
 	}
 }
 
-void tmx_free(tmx_map *map) {
-	if (*map) {
-		free_ts((*map)->ts_head);
-		free_props((*map)->properties);
-		free_layers((*map)->ly_head);
-		tmx_free_func(*map);
-		*map = NULL;
+void tmx_map_free(tmx_map *map) {
+	if (map) {
+		free_ts(map->ts_head);
+		free_props(map->properties);
+		free_layers(map->ly_head);
+		tmx_free_func(map);
+		*map = (tmx_map){0};
 	}
 }

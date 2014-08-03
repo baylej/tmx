@@ -34,7 +34,7 @@ void  (*tmx_free_func ) (void *address);             /* free */
 
 /* load/free tmx_image->resource_image, you should set this if you want
    the library to load/free images */
-void* (*rsc_img_load_func) (const char *p);
+void* (*rsc_img_load_func) (const char *path);
 void  (*rsc_img_free_func) (void *address);
 
 /*
@@ -49,7 +49,7 @@ typedef struct _tmx_prop { /* <properties> and <property> */
 	char *name;
 	char *value;
 	struct _tmx_prop *next;
-} * tmx_property;
+} tmx_property;
 
 typedef struct _tmx_img { /* <image> */
 	char *source;
@@ -58,7 +58,7 @@ typedef struct _tmx_img { /* <image> */
 	/*char *format; Not currently implemented in QtTiled
 	char *data;*/
 	void *resource_image;
-} * tmx_image;
+} tmx_image;
 
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
@@ -67,10 +67,10 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int spacing, margin;
 	unsigned int x_offset, y_offset; /* tileoffset */
 	/* terraintypes(0.9), tile(0.9) are for the QtTiled terrain feature */
-	tmx_image image;
-	tmx_property properties;
+	tmx_image *image;
+	tmx_property *properties;
 	struct _tmx_ts *next;
-} * tmx_tileset;
+} tmx_tileset;
 
 typedef struct _tmx_obj { /* <object> */
 	char *name;
@@ -81,9 +81,9 @@ typedef struct _tmx_obj { /* <object> */
 	int **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
 	char visible; /* 0 == false */
-	tmx_property properties;
+	tmx_property *properties;
 	struct _tmx_obj *next;
-} * tmx_object;
+} tmx_object;
 
 typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	char *name;
@@ -94,14 +94,14 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	enum tmx_layer_type type;
 	union layer_content {
 		int32_t *gids;
-		tmx_object head;
-		tmx_image image;
+		tmx_object *head;
+		tmx_image *image;
 	}content;
 
 	void *user_data; /* not freed by tmx_free ! */
-	tmx_property properties;
+	tmx_property *properties;
 	struct _tmx_layer *next;
-} * tmx_layer;
+} tmx_layer;
 
 typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_map_orient orient;
@@ -109,10 +109,10 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	unsigned int tile_width, tile_height;
 	int backgroundcolor; /* bytes : RGB */
 	
-	tmx_property properties;
-	tmx_tileset ts_head;
-	tmx_layer ly_head;
-} * tmx_map;
+	tmx_property *properties;
+	tmx_tileset *ts_head;
+	tmx_layer *ly_head;
+} tmx_map;
 
 /*
 	Functions
@@ -120,24 +120,17 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 
 /* Load a map and return the head of the data structure
    returns NULL if an error occured and set tmx_errno */
-tmx_map tmx_load(const char *path);
+tmx_map *tmx_load(const char *path);
 /* Free the map data structure */
-void tmx_free(tmx_map *map);
+void tmx_map_free(tmx_map *map);
 
 /*
 	Error handling
 	each time a function fails, tmx_errno is set
 */
 
-int tmx_errno;
-
-/* print the error message prefixed with the parameter */
-void tmx_perror(const char*);
-/* return the error message for the current value of `tmx_errno` */
-const char* tmx_strerr(void); /* FIXME errno parameter ? (as strerror) */
-
 /* possible values for `tmx_errno` */
-enum _tmx_error_codes {
+typedef enum _tmx_error_codes {
 	/* Syst */
 	E_NONE   = 0,     /* No error so far */
 	E_UNKN   = 1,     /* See the message for more details */
@@ -155,7 +148,14 @@ enum _tmx_error_codes {
 	E_JDATA  = 23,    /* JSON corrupted data */
 	E_CDATA  = 24,    /* CSV corrupted data */
 	E_MISSEL = 30     /* Missing element, incomplete source */
-};
+} tmx_error_codes;
+
+tmx_error_codes tmx_errno;
+
+/* print the error message prefixed with the parameter */
+void tmx_perror(const char*);
+/* return the error message for the current value of `tmx_errno` */
+const char* tmx_strerr(void); /* FIXME errno parameter ? (as strerror) */
 
 #ifdef __cplusplus
 }

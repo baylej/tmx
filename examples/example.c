@@ -21,7 +21,7 @@ void dump_points(int **p, int pl) {
 	}
 }
 
-void dump_objects(tmx_object o) {
+void dump_objects(tmx_object *o) {
 	printf("object={");
 	if (!o) {
 		fputs("\n(NULL)", stdout);
@@ -39,7 +39,7 @@ void dump_objects(tmx_object o) {
 		if (o->next) dump_objects(o->next);
 }
 
-void dump_prop(tmx_property p) {
+void dump_prop(tmx_property *p) {
 	printf("properties={");
 	if (!p) {
 		fputs("\n(NULL)", stdout);
@@ -53,7 +53,7 @@ void dump_prop(tmx_property p) {
 	puts("\n}");
 }
 
-void dump_image(tmx_image i) {
+void dump_image(tmx_image *i) {
 	printf("image={");
 	if (i) {
 		printf("\n\tsource='%s'", i->source);
@@ -65,7 +65,7 @@ void dump_image(tmx_image i) {
 	puts("\n}");
 }
 
-void dump_tileset(tmx_tileset t) {
+void dump_tileset(tmx_tileset *t) {
 	printf("tileset={");
 	if (t) {
 		printf("\n\tname=%s", t->name);
@@ -86,7 +86,7 @@ void dump_tileset(tmx_tileset t) {
 	}
 }
 
-void dump_layer(tmx_layer l, unsigned int tc) {
+void dump_layer(tmx_layer *l, unsigned int tc) {
 	unsigned int i;
 	printf("layer={");
 	if (!l) {
@@ -115,7 +115,7 @@ void dump_layer(tmx_layer l, unsigned int tc) {
 	}
 }
 
-void dump_map(tmx_map m) {
+void dump_map(tmx_map *m) {
 	fputs("map={", stdout);
 	if (m) {
 		printf("\n\torient=%d", m->orient);
@@ -149,7 +149,7 @@ void dbg_free(void *address) {
 }
 
 int main(int argc, char *argv[]) {
-	tmx_map m;
+	tmx_map *m;
 
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s <map.(tmx|xml|json)>\n", argv[0]);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 	if (!m) tmx_perror("error");
 
 	dump_map(m);
-	tmx_free(&m);
+	tmx_map_free(m);
 
 	printf("%d mem alloc not freed\n", mal_vs_free_count);
 
