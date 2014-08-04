@@ -40,7 +40,7 @@ void draw_polygon(SDL_Renderer* ren, int **points, int x, int y, int pointsc) {
 	}
 }
 
-void draw_objects(SDL_Renderer* ren, tmx_object head, int color) {
+void draw_objects(SDL_Renderer* ren, tmx_object *head, int color) {
 	SDL_Rect rect;
 	set_color(ren, color);
 	/* FIXME line thickness */
@@ -67,7 +67,7 @@ int gid_clear_flags(unsigned int gid) {
 }
 
 /* returns the bitmap and the region associated with this gid, returns -1 if tile not found */
-short get_bitmap_region(unsigned int gid, tmx_tileset ts, SDL_Surface **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
+short get_bitmap_region(unsigned int gid, tmx_tileset *ts, SDL_Surface **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
 	unsigned int tiles_x_count;
 	unsigned int ts_w, id, tx, ty;
 	gid = gid_clear_flags(gid);
@@ -100,7 +100,7 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, SDL_Surface **ts_bmp, 
 	return -1;
 }
 
-void draw_layer(SDL_Renderer* ren, tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
+void draw_layer(SDL_Renderer* ren, tmx_layer *layer, tmx_tileset *ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
 	unsigned long i, j;
 	unsigned int x, y, w, h;
 	float op;
@@ -122,7 +122,7 @@ void draw_layer(SDL_Renderer* ren, tmx_layer layer, tmx_tileset ts, unsigned int
 	}
 }
 
-void draw_image_layer(SDL_Renderer* ren, tmx_image img) {
+void draw_image_layer(SDL_Renderer* ren, tmx_image *img) {
 	SDL_Surface *bmp; 
 	SDL_Texture *tex;
 	SDL_Rect dim;
@@ -140,9 +140,9 @@ void draw_image_layer(SDL_Renderer* ren, tmx_image img) {
 	
 }
 
-SDL_Texture* render_map(SDL_Renderer* ren, tmx_map map) {
+SDL_Texture* render_map(SDL_Renderer* ren, tmx_map *map) {
 	SDL_Texture *res;
-	tmx_layer layers = map->ly_head;
+	tmx_layer *layers = map->ly_head;
 	int w, h;
 	
 	w = map->width  * map->tile_width;  /* Bitmap's width and height */
@@ -189,7 +189,7 @@ Uint32 timer_func(Uint32 interval, void *param) {
 }
 
 int main(int argc, char **argv) {
-	tmx_map map = NULL;
+	tmx_map *map = NULL;
 	SDL_Window *win;
 	SDL_Renderer *ren;
 	SDL_Event e;
@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-	tmx_free(&map);
+	tmx_map_free(map);
 	
 	SDL_RemoveTimer(timer_id);
 	SDL_DestroyTexture(map_bmp);

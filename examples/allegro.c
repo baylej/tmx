@@ -54,7 +54,7 @@ void draw_polygone(int **points, int x, int y, int pointsc, ALLEGRO_COLOR color)
 	}
 }
 
-void draw_objects(tmx_object head, ALLEGRO_COLOR color) {
+void draw_objects(tmx_object *head, ALLEGRO_COLOR color) {
 	while (head) {
 		if (head->visible) {
 			if (head->shape == S_SQUARE) {
@@ -88,7 +88,7 @@ int gid_clear_flags(unsigned int gid) {
 }
 
 /* returns the bitmap and the region associated with this gid, returns -1 if tile not found */
-short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
+short get_bitmap_region(unsigned int gid, tmx_tileset *ts, ALLEGRO_BITMAP **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
 	unsigned int tiles_x_count;
 	unsigned int ts_w, id, tx, ty;
 	gid = gid_clear_flags(gid);
@@ -121,7 +121,7 @@ short get_bitmap_region(unsigned int gid, tmx_tileset ts, ALLEGRO_BITMAP **ts_bm
 	return -1;
 }
 
-void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
+void draw_layer(tmx_layer *layer, tmx_tileset *ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
 	unsigned long i, j;
 	unsigned int x, y, w, h, flags;
 	float op;
@@ -140,9 +140,9 @@ void draw_layer(tmx_layer layer, tmx_tileset ts, unsigned int width, unsigned in
 /*
 	Render map
 */
-ALLEGRO_BITMAP* render_map(tmx_map map) {
+ALLEGRO_BITMAP* render_map(tmx_map *map) {
 	ALLEGRO_BITMAP *res = NULL;
-	tmx_layer layers = map->ly_head;
+	tmx_layer *layers = map->ly_head;
 	unsigned long w, h;
 	
 	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
 	ALLEGRO_TIMER *timer = NULL;
 	ALLEGRO_EVENT_QUEUE *equeue = NULL;
 	ALLEGRO_EVENT ev;
-	tmx_map map = NULL;
+	tmx_map *map = NULL;
 	ALLEGRO_BITMAP *bmp_map = NULL;
 	int x_offset = 0, y_offset = 0;
 	int x_delta, y_delta;
@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-	tmx_free(&map);
+	tmx_map_free(map);
 	
 	al_destroy_timer(timer);
 	al_destroy_event_queue(equeue);

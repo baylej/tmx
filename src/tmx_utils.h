@@ -10,18 +10,18 @@
 */
 enum enccmp_t {CSV, B64Z};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
-tmx_map parse_xml (const char *filename); /* tmx_xml.c */
-tmx_map parse_json(const char *filename); /* tmx_json.c */
+tmx_map *parse_xml (const char *filename); /* tmx_xml.c */
+tmx_map *parse_json(const char *filename); /* tmx_json.c */
 
 /*
 	Node allocation
 */
-tmx_property    alloc_prop(void);
-tmx_image       alloc_image(void);
-tmx_object      alloc_object(void);
-tmx_layer       alloc_layer(void);
-tmx_tileset     alloc_tileset(void);
-tmx_map         alloc_map(void);
+tmx_property    *alloc_prop(void);
+tmx_image       *alloc_image(void);
+tmx_object      *alloc_object(void);
+tmx_layer       *alloc_layer(void);
+tmx_tileset     *alloc_tileset(void);
+tmx_map         *alloc_map(void);
 
 /*
 	Misc
@@ -38,7 +38,7 @@ char* tmx_strdup(const char *str);
 */
 size_t dirpath_len(const char *str);
 char* mk_absolute_path(const char *base_path, const char *rel_path);
-int load_image(void **ptr, const char *base_path, const char *rel_path);
+void *load_image(void **ptr, const char *base_path, const char *rel_path);
 
 /*
 	Error handling

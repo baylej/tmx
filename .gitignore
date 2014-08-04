@@ -15,3 +15,7 @@
 # executables
 *.exe
 *.app
+
+# build folder
+/build/
+/build/*

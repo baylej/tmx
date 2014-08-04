@@ -53,7 +53,7 @@ static xmlTextReaderPtr create_parser(const char *filename) {
 	return reader;
 }
 
-static int parse_property(xmlTextReaderPtr reader, tmx_property prop) {
+static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	char *value;
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
 		prop->name = value;
@@ -71,8 +71,8 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property prop) {
 	return 1;
 }
 
-static int parse_properties(xmlTextReaderPtr reader, tmx_property *prop_headadr) {
-	tmx_property res;
+static int parse_properties(xmlTextReaderPtr reader, tmx_property **prop_headadr) {
+	tmx_property *res;
 	int curr_depth;
 	const char *name;
 
@@ -141,7 +141,7 @@ static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslen
 	return 1;
 }
 
-static int parse_object(xmlTextReaderPtr reader, tmx_object obj) {
+static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -263,8 +263,8 @@ cleanup:
 	return 0;
 }
 
-static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict, const char *filename) {
-	tmx_image res;
+static int parse_image(xmlTextReaderPtr reader, tmx_image **img_adr, short strict, const char *filename) {
+	tmx_image *res;
 	char *value;
 
 	if (!(res = alloc_image())) return 0;
@@ -306,9 +306,9 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image *img_adr, short strict
 }
 
 /* parse layers and objectgroups */
-static int parse_layer(xmlTextReaderPtr reader, tmx_layer *layer_headadr, int map_h, int map_w, enum tmx_layer_type type, const char *filename) {
-	tmx_layer res;
-	tmx_object obj;
+static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int map_h, int map_w, enum tmx_layer_type type, const char *filename) {
+	tmx_layer *res;
+	tmx_object *obj;
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -396,7 +396,7 @@ static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned i
 }
 
 /* parses a tileset within the tmx file or in a dedicated tsx file */
-static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset ts_addr, const char *filename) {
+static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, const char *filename) {
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -459,8 +459,8 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset ts_addr, const
 	return 1;
 }
 
-static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr, const char *filename) {
-	tmx_tileset res = NULL;
+static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset **ts_headadr, const char *filename) {
+	tmx_tileset *res = NULL;
 	int ret;
 	char *value, *ab_path;
 	xmlTextReaderPtr sub_reader;
@@ -491,8 +491,8 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_headadr, const
 	return parse_tileset_sub(reader, res, filename);
 }
 
-static tmx_map parse_root_map(xmlTextReaderPtr reader, const char *filename) {
-	tmx_map res = NULL;
+static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
+	tmx_map *res = NULL;
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -581,13 +581,13 @@ static tmx_map parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 	         xmlTextReaderDepth(reader) != curr_depth);
 	return res;
 cleanup:
-	tmx_free(&res);
+	tmx_map_free(res);
 	return NULL;
 }
 
-tmx_map parse_xml(const char *filename) {
+tmx_map *parse_xml(const char *filename) {
 	xmlTextReaderPtr reader;
-	tmx_map res = NULL;
+	tmx_map *res = NULL;
 
 	xmlMemSetup((xmlFreeFunc)tmx_free_func, (xmlMallocFunc)tmx_malloc, (xmlReallocFunc)tmx_alloc_func, (xmlStrdupFunc)tmx_strdup);
 
