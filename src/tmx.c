@@ -132,6 +132,5 @@ void tmx_map_free(tmx_map *map) {
 		free_props(map->properties);
 		free_layers(map->ly_head);
 		tmx_free_func(map);
-		*map = (tmx_map){0};
 	}
 }
