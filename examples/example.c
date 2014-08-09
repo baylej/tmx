@@ -34,7 +34,7 @@ void dump_objects(tmx_object *o) {
 		if (o->points_len) dump_points(o->points, o->points_len);
 	}
 	puts("\n}");
-
+	
 	if (o)
 		if (o->next) dump_objects(o->next);
 }
@@ -78,7 +78,7 @@ void dump_tileset(tmx_tileset *t) {
 		fputs("\n(NULL)", stdout);
 	}
 	puts("\n}");
-
+	
 	if (t) {
 		if (t->image) dump_image(t->image);
 		if (t->next) dump_tileset(t->next);
@@ -107,7 +107,7 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 		}
 	}
 	puts("\n}");
-
+	
 	if (l) {
 		if (l->type == L_OBJGR && l->content.head) dump_objects(l->content.head);
 		if (l->properties) dump_prop(l->properties);
@@ -128,7 +128,7 @@ void dump_map(tmx_map *m) {
 		fputs("\n(NULL)", stdout);
 	}
 	puts("\n}");
-
+	
 	if (m) {
 		dump_tileset(m->ts_head);
 		dump_prop(m->properties);
@@ -150,23 +150,23 @@ void dbg_free(void *address) {
 
 int main(int argc, char *argv[]) {
 	tmx_map *m;
-
+	
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s <map.(tmx|xml|json)>\n", argv[0]);
 		return EXIT_FAILURE;
 	}
-
+	
 	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
 	tmx_free_func  = dbg_free;
 	
 	m = tmx_load(argv[1]);
 	if (!m) tmx_perror("error");
-
+	
 	dump_map(m);
 	tmx_map_free(m);
-
+	
 	printf("%d mem alloc not freed\n", mal_vs_free_count);
-
+	
 	puts("press <Enter> to quit\n");
 	getchar();
 	return EXIT_SUCCESS;

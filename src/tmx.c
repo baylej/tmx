@@ -8,37 +8,27 @@
 #include "tmx_utils.h"
 
 /*
-	Globals
+	Public globals
 */
+
 void* (*tmx_alloc_func) (void *address, size_t len) = NULL;
 void  (*tmx_free_func ) (void *address) = NULL;
 void* (*rsc_img_load_func) (const char *p) = NULL;
 void  (*rsc_img_free_func) (void *address) = NULL;
+
 /*
 	Public functions
 */
-#ifndef WANT_XML
-tmx_map *parse_xml(const char *path) {
-	tmx_err(E_FONCT, "This library was not builded with the XML parser");
-	return NULL;
-}
-#endif
-#ifndef WANT_JSON
-tmx_map *parse_json(const char *filename) {
-	tmx_err(E_FONCT, "This library was not builded with the JSON parser");
-	return NULL;
-}
-#endif
 
-tmx_map *tmx_load(const char * path) {
+tmx_map* tmx_load(const char *path) {
 	tmx_map *map = NULL;
 	const char *extension;
 	FILE *file;
 	int fchar;
-
+	
 	if (!tmx_alloc_func) tmx_alloc_func = realloc;
 	if (!tmx_free_func) tmx_free_func = free;
-
+	
 	/* is 'path' a JSON or a XML file ? */
 	extension = strrchr(path, '.'); /* First using the file extension */
 	if (!strcmp(extension, ".tmx") || !strcmp(extension, ".xml")) {
@@ -67,7 +57,7 @@ tmx_map *tmx_load(const char * path) {
 			}
 		}
 	}
-
+	
 	return map;
 }
 

@@ -16,31 +16,31 @@
 #define DISPLAY_H 480
 #define DISPLAY_W 640
 
-void set_color(SDL_Renderer* ren, int color) {
+void set_color(SDL_Renderer *ren, int color) {
 	unsigned char r, g, b;
-
+	
 	r = (color >> 16) & 0xFF;
 	g = (color >>  8) & 0xFF;
 	b = (color)       & 0xFF;
-
+	
 	SDL_SetRenderDrawColor(ren, r, g, b, SDL_ALPHA_OPAQUE);
 }
 
-void draw_polyline(SDL_Renderer* ren, int **points, int x, int y, int pointsc) {
+void draw_polyline(SDL_Renderer *ren, int **points, int x, int y, int pointsc) {
 	int i;
 	for (i=1; i<pointsc; i++) {
 		SDL_RenderDrawLine(ren, x+points[i-1][0], y+points[i-1][1], x+points[i][0], y+points[i][1]);
 	}
 }
 
-void draw_polygon(SDL_Renderer* ren, int **points, int x, int y, int pointsc) {
+void draw_polygon(SDL_Renderer *ren, int **points, int x, int y, int pointsc) {
 	draw_polyline(ren, points, x, y, pointsc);
 	if (pointsc > 2) {
 		SDL_RenderDrawLine(ren, x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1]);
 	}
 }
 
-void draw_objects(SDL_Renderer* ren, tmx_object *head, int color) {
+void draw_objects(SDL_Renderer *ren, tmx_object *head, int color) {
 	SDL_Rect rect;
 	set_color(ren, color);
 	/* FIXME line thickness */
@@ -100,7 +100,7 @@ short get_bitmap_region(unsigned int gid, tmx_tileset *ts, SDL_Surface **ts_bmp,
 	return -1;
 }
 
-void draw_layer(SDL_Renderer* ren, tmx_layer *layer, tmx_tileset *ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
+void draw_layer(SDL_Renderer *ren, tmx_layer *layer, tmx_tileset *ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
 	unsigned long i, j;
 	unsigned int x, y, w, h;
 	float op;
@@ -122,7 +122,7 @@ void draw_layer(SDL_Renderer* ren, tmx_layer *layer, tmx_tileset *ts, unsigned i
 	}
 }
 
-void draw_image_layer(SDL_Renderer* ren, tmx_image *img) {
+void draw_image_layer(SDL_Renderer *ren, tmx_image *img) {
 	SDL_Surface *bmp; 
 	SDL_Texture *tex;
 	SDL_Rect dim;
@@ -140,7 +140,7 @@ void draw_image_layer(SDL_Renderer* ren, tmx_image *img) {
 	
 }
 
-SDL_Texture* render_map(SDL_Renderer* ren, tmx_map *map) {
+SDL_Texture* render_map(SDL_Renderer *ren, tmx_map *map) {
 	SDL_Texture *res;
 	tmx_layer *layers = map->ly_head;
 	int w, h;

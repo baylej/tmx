@@ -90,14 +90,14 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	int color; /* bytes : RGB */
 	double opacity;
 	char visible; /* 0 == false */
-
+	
 	enum tmx_layer_type type;
 	union layer_content {
 		int32_t *gids;
 		tmx_object *head;
 		tmx_image *image;
 	}content;
-
+	
 	void *user_data; /* not freed by tmx_free ! */
 	tmx_property *properties;
 	struct _tmx_layer *next;

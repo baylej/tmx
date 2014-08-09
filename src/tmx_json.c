@@ -5,6 +5,8 @@
 	and then creates the tmx data structure.
 */
 
+#ifdef WANT_JSON
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,9 +17,6 @@
 #include "tmx.h"
 #include "tmx_utils.h"
 
-/*
-	Memory functions
-*/
 static void* json_malloc(size_t size) {
 	return tmx_alloc_func(NULL, size);
 }
@@ -222,7 +221,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 }
 
 /* returns NULL on fail */
-static tmx_map *pjson_map(json_t *map_el, const char *filename) {
+static tmx_map* pjson_map(json_t *map_el, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_map *res;
@@ -269,11 +268,7 @@ cleanup:
 	return NULL;
 }
 
-/*
-	Public function
-*/
-
-tmx_map *parse_json(const char *filename) {
+tmx_map* parse_json(const char *filename) {
 	tmx_map *res = NULL;
 	json_t *parsed = NULL;
 	json_error_t err;
@@ -292,3 +287,12 @@ tmx_map *parse_json(const char *filename) {
 
 	return res;
 }
+
+#else
+
+tmx_map* parse_json(const char *filename) {
+	tmx_err(E_FONCT, "This library was not built with the JSON parser");
+	return NULL;
+}
+
+#endif /* WANT_JSON */

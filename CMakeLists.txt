@@ -19,7 +19,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" off)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # variable containing sources to compile
-set(SOURCES "src/tmx.c" "src/tmx_utils.c" "src/tmx_err.c")
+set(SOURCES "src/tmx.c" "src/tmx_utils.c" "src/tmx_err.c" "src/tmx_xml.c" "src/tmx_json.c")
 
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES("stdint.h" STDINT_H)
@@ -44,7 +44,6 @@ endif(WANT_ZLIB)
 
 if(WANT_XML)
     add_definitions(-DWANT_XML)
-    set(SOURCES ${SOURCES} "src/tmx_xml.c")
     include(FindLibXml2)
     find_package(LibXml2 REQUIRED)
     include_directories(${LIBXML2_INCLUDE_DIR})
@@ -54,7 +53,6 @@ endif(WANT_XML)
 
 if(WANT_JSON)
     add_definitions(-DWANT_JSON)
-    set(SOURCES ${SOURCES} "src/tmx_json.c")
     include(FindJansson)
     find_package(Jansson REQUIRED)
     include_directories(${JANSSON_INCLUDE_DIR})
