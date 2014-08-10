@@ -124,3 +124,45 @@ void tmx_map_free(tmx_map *map) {
 		tmx_free_func(map);
 	}
 }
+
+tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y) {
+	unsigned int tiles_x_count;
+	unsigned int ts_w, id, tx, ty;
+	tmx_tileset *ts;
+	
+	if (!map) {
+		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");
+		return NULL;
+	}
+	
+	if (!x || !y) {
+		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: x or y is NULL");
+		return NULL;
+	}
+	
+	gid &= TMX_FLIP_BITS_REMOVAL;
+	ts = map->ts_head;
+	
+	while (ts) {
+		if (ts->firstgid <= gid) {
+			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
+				id = gid - ts->firstgid; /* local id (for this image) */
+				
+				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
+				
+				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
+				
+				tx = id % tiles_x_count;
+				ty = id / tiles_x_count;
+				
+				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
+				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
+				return ts;
+			}
+		}
+		ts = ts->next;
+	}
+	
+	return NULL;
+}
+

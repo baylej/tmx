@@ -66,55 +66,23 @@ int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
-/* returns the bitmap and the region associated with this gid, returns -1 if tile not found */
-short get_bitmap_region(unsigned int gid, tmx_tileset *ts, SDL_Surface **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
-	unsigned int tiles_x_count;
-	unsigned int ts_w, id, tx, ty;
-	gid = gid_clear_flags(gid);
-	
-	while (ts) {
-		if (ts->firstgid <= gid) {
-			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
-				id = gid - ts->firstgid; /* local id (for this image) */
-				
-				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
-				
-				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
-				
-				*ts_bmp = (SDL_Surface*)ts->image->resource_image;
-				
-				*w = ts->tile_width;  /* set bitmap's region width  */
-				*h = ts->tile_height; /* set bitmap's region height */
-				
-				tx = id % tiles_x_count;
-				ty = id / tiles_x_count;
-				
-				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
-				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
-				return 0;
-			}
-		}
-		ts = ts->next;
-	}
-	
-	return -1;
-}
-
-void draw_layer(SDL_Renderer *ren, tmx_layer *layer, tmx_tileset *ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
+void draw_layer(SDL_Renderer *ren, tmx_map *map, tmx_layer *layer) {
 	unsigned long i, j;
-	unsigned int x, y, w, h;
+	unsigned int x, y;
 	float op;
-	SDL_Surface *tileset;
+	tmx_tileset *ts;
 	SDL_Texture *tex_ts;
 	SDL_Rect srcrect, dstrect;
 	op = layer->opacity;
-	for (i=0; i<height; i++) {
-		for (j=0; j<width; j++) {
-			if (!get_bitmap_region(layer->content.gids[(i*width)+j], ts, &tileset, &x, &y, &w, &h)) {
+	for (i=0; i<map->height; i++) {
+		for (j=0; j<map->width; j++) {
+			ts = tmx_get_tile(map, layer->content.gids[(i*map->width)+j], &(srcrect.x), &(srcrect.y));
+			if (ts) {
 				/* TODO Opacity and Flips */
-				srcrect.w = w;  srcrect.h = h;  srcrect.x = x;             srcrect.y = y;
-				dstrect.w = w;  dstrect.h = h;  dstrect.x = j*tile_width;  dstrect.y = i*tile_height;
-				tex_ts = SDL_CreateTextureFromSurface(ren, tileset);
+				srcrect.w = dstrect.w = ts->tile_width;
+				srcrect.h = dstrect.h = ts->tile_height;
+				dstrect.x = j*ts->tile_width;  dstrect.y = i*ts->tile_height;
+				tex_ts = SDL_CreateTextureFromSurface(ren, (SDL_Surface*)ts->image->resource_image);
 				SDL_RenderCopy(ren, tex_ts, &srcrect, &dstrect);
 				SDL_DestroyTexture(tex_ts);
 			}
@@ -162,7 +130,7 @@ SDL_Texture* render_map(SDL_Renderer *ren, tmx_map *map) {
 			} else if (layers->type == L_IMAGE) {
 				draw_image_layer(ren, layers->content.image);
 			} else if (layers->type == L_LAYER) {
-				draw_layer(ren, layers, map->ts_head, map->width, map->height, map->tile_width, map->tile_height);
+				draw_layer(ren, map, layers);
 			}
 		}
 		layers = layers->next;

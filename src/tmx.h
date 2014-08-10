@@ -121,8 +121,13 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 /* Load a map and return the head of the data structure
    returns NULL if an error occured and set tmx_errno */
 tmx_map *tmx_load(const char *path);
+
 /* Free the map data structure */
 void tmx_map_free(tmx_map *map);
+
+/* returns the tileset and the upper-left coordinate on the tileset
+   of the tile associated with this gid, returns NULL if it fails */
+tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
 
 /*
 	Error handling

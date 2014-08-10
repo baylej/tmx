@@ -87,51 +87,21 @@ int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
-/* returns the bitmap and the region associated with this gid, returns -1 if tile not found */
-short get_bitmap_region(unsigned int gid, tmx_tileset *ts, ALLEGRO_BITMAP **ts_bmp, unsigned int *x, unsigned int *y, unsigned int *w, unsigned int *h) {
-	unsigned int tiles_x_count;
-	unsigned int ts_w, id, tx, ty;
-	gid = gid_clear_flags(gid);
-	
-	while (ts) {
-		if (ts->firstgid <= gid) {
-			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
-				id = gid - ts->firstgid; /* local id (for this image) */
-				
-				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
-				
-				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
-				
-				*ts_bmp = (ALLEGRO_BITMAP*)ts->image->resource_image;
-				
-				*w = ts->tile_width;  /* set bitmap's region width  */
-				*h = ts->tile_height; /* set bitmap's region height */
-				
-				tx = id % tiles_x_count;
-				ty = id / tiles_x_count;
-				
-				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
-				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
-				return 0;
-			}
-		}
-		ts = ts->next;
-	}
-	
-	return -1;
-}
-
-void draw_layer(tmx_layer *layer, tmx_tileset *ts, unsigned int width, unsigned int height, unsigned int tile_width, unsigned int tile_height) {
+void draw_layer(tmx_map *map, tmx_layer *layer) {
 	unsigned long i, j;
 	unsigned int x, y, w, h, flags;
 	float op;
+	tmx_tileset *ts;
 	ALLEGRO_BITMAP *tileset;
 	op = layer->opacity;
-	for (i=0; i<height; i++) {
-		for (j=0; j<width; j++) {
-			if (!get_bitmap_region(layer->content.gids[(i*width)+j], ts, &tileset, &x, &y, &w, &h)) {
-				flags = gid_extract_flags(layer->content.gids[(i*width)+j]);
-				al_draw_tinted_bitmap_region(tileset, al_map_rgba_f(op, op, op, op), x, y, w, h, j*tile_width, i*tile_height, flags);
+	for (i=0; i<map->height; i++) {
+		for (j=0; j<map->width; j++) {
+			ts = tmx_get_tile(map, layer->content.gids[(i*map->width)+j], &x, &y);
+			if (ts) {
+				w = ts->tile_width; h = ts->tile_height;
+				tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;
+				flags = gid_extract_flags(layer->content.gids[(i*map->width)+j]);
+				al_draw_tinted_bitmap_region(tileset, al_map_rgba_f(op, op, op, op), x, y, w, h, j*ts->tile_width, i*ts->tile_height, flags);
 			}
 		}
 	}
@@ -166,7 +136,7 @@ ALLEGRO_BITMAP* render_map(tmx_map *map) {
 				}
 				al_draw_bitmap((ALLEGRO_BITMAP*)layers->content.image->resource_image, 0, 0, 0);
 			} else if (layers->type == L_LAYER) {
-				draw_layer(layers, map->ts_head, map->width, map->height, map->tile_width, map->tile_height);
+				draw_layer(map, layers);
 			}
 		}
 		layers = layers->next;
