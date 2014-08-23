@@ -602,7 +602,7 @@ tmx_map *parse_xml(const char *filename) {
 
 #include <stdio.h>
 #include "tmx.h"
-#include "tmx_utils.h
+#include "tmx_utils.h"
 
 tmx_map *parse_xml(const char *path) {
 	tmx_err(E_FONCT, "This library was not built with the XML parser");
