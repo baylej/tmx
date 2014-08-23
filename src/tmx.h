@@ -29,13 +29,13 @@ extern "C" {
 */
 /* Custom realloc and free function, for memalloc debugging purposes
    Please modify these values if once before you use tmx_load */
-void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
-void  (*tmx_free_func ) (void *address);             /* free */
+extern void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
+extern void  (*tmx_free_func ) (void *address);             /* free */
 
 /* load/free tmx_image->resource_image, you should set this if you want
    the library to load/free images */
-void* (*tmx_img_load_func) (const char *path);
-void  (*tmx_img_free_func) (void *address);
+extern void* (*tmx_img_load_func) (const char *path);
+extern void  (*tmx_img_free_func) (void *address);
 
 /*
 	Data Structures
@@ -155,7 +155,7 @@ typedef enum _tmx_error_codes {
 	E_MISSEL = 30     /* Missing element, incomplete source */
 } tmx_error_codes;
 
-tmx_error_codes tmx_errno;
+extern tmx_error_codes tmx_errno;
 
 /* print the error message prefixed with the parameter */
 void tmx_perror(const char*);
