@@ -290,6 +290,10 @@ tmx_map* parse_json(const char *filename) {
 
 #else
 
+#include <stdio.h>
+#include "tmx.h"
+#include "tmx_utils.h
+
 tmx_map* parse_json(const char *filename) {
 	tmx_err(E_FONCT, "This library was not built with the JSON parser");
 	return NULL;
