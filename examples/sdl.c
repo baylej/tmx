@@ -182,8 +182,8 @@ int main(int argc, char **argv) {
 	SDL_EventState(SDL_MOUSEMOTION, SDL_DISABLE);
 	
 	/* You probably want to create a fuction that creates a SDL_Texture directly here */
-	rsc_img_load_func = (void* (*)(const char*))IMG_Load;
-	rsc_img_free_func = (void  (*)(void*))      SDL_FreeSurface;
+	tmx_img_load_func = (void* (*)(const char*))IMG_Load;
+	tmx_img_free_func = (void  (*)(void*))      SDL_FreeSurface;
 	
 	if (!(map = tmx_load(argv[1]))) fatal_error(tmx_strerr());
 	

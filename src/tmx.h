@@ -34,8 +34,8 @@ void  (*tmx_free_func ) (void *address);             /* free */
 
 /* load/free tmx_image->resource_image, you should set this if you want
    the library to load/free images */
-void* (*rsc_img_load_func) (const char *path);
-void  (*rsc_img_free_func) (void *address);
+void* (*tmx_img_load_func) (const char *path);
+void  (*tmx_img_free_func) (void *address);
 
 /*
 	Data Structures

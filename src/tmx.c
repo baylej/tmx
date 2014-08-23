@@ -13,8 +13,8 @@
 
 void* (*tmx_alloc_func) (void *address, size_t len) = NULL;
 void  (*tmx_free_func ) (void *address) = NULL;
-void* (*rsc_img_load_func) (const char *p) = NULL;
-void  (*rsc_img_free_func) (void *address) = NULL;
+void* (*tmx_img_load_func) (const char *p) = NULL;
+void  (*tmx_img_free_func) (void *address) = NULL;
 
 /*
 	Public functions
@@ -83,8 +83,8 @@ static void free_obj(tmx_object *o) {
 static void free_image(tmx_image *i) {
 	if (i) {
 		tmx_free_func(i->source);
-		if (rsc_img_free_func) {
-			rsc_img_free_func(i->resource_image);
+		if (tmx_img_free_func) {
+			tmx_img_free_func(i->resource_image);
 		}
 		tmx_free_func(i);
 	}

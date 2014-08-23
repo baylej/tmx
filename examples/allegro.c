@@ -183,8 +183,8 @@ int main(int argc, char **argv) {
 	if (!al_init_primitives_addon()) fatal_error("failed to initialise Primitives!");
 	if (!al_install_keyboard()) fatal_error("failed to install keyboard!");
 	
-	rsc_img_load_func = al_img_loader;
-	rsc_img_free_func = (void (*)(void*))al_destroy_bitmap;
+	tmx_img_load_func = al_img_loader;
+	tmx_img_free_func = (void (*)(void*))al_destroy_bitmap;
 	
 	/* Load and render the map */
 	if (!(map = tmx_load(argv[1]))) fatal_error(tmx_strerr());
