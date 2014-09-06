@@ -31,9 +31,9 @@ tmx_map* tmx_load(const char *path) {
 	
 	/* is 'path' a JSON or a XML file ? */
 	extension = strrchr(path, '.'); /* First using the file extension */
-	if (!strcmp(extension, ".tmx") || !strcmp(extension, ".xml")) {
+	if (extension && (!strcmp(extension, ".tmx") || !strcmp(extension, ".xml"))) {
 		map = parse_xml(path);
-	} else if (!strcmp(extension, ".json")) {
+	} else if (extension && !strcmp(extension, ".json")) {
 		map = parse_json(path);
 	} else {
 		/* open the file and check with the first character */
