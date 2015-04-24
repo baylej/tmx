@@ -25,10 +25,10 @@ tmx_map* tmx_load(const char *path) {
 	const char *extension;
 	FILE *file;
 	int fchar;
-	
+
 	if (!tmx_alloc_func) tmx_alloc_func = realloc;
 	if (!tmx_free_func) tmx_free_func = free;
-	
+
 	/* is 'path' a JSON or a XML file ? */
 	extension = strrchr(path, '.'); /* First using the file extension */
 	if (extension && (!strcmp(extension, ".tmx") || !strcmp(extension, ".xml"))) {
@@ -57,7 +57,7 @@ tmx_map* tmx_load(const char *path) {
 			}
 		}
 	}
-	
+
 	return map;
 }
 
@@ -106,12 +106,21 @@ static void free_layers(tmx_layer *l) {
 	}
 }
 
+static void free_tile_props(tmx_tile_prop *tp) {
+	if (tp) {
+		free_tile_props(tp->next);
+		free_props(tp->properties);
+		tmx_free_func(tp);
+	}
+}
+
 static void free_ts(tmx_tileset *ts) {
 	if (ts) {
 		free_ts(ts->next);
 		tmx_free_func(ts->name);
 		free_image(ts->image);
 		free_props(ts->properties);
+		free_tile_props(ts->tile_props);
 		tmx_free_func(ts);
 	}
 }
@@ -129,32 +138,32 @@ tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsig
 	unsigned int tiles_x_count;
 	unsigned int ts_w, id, tx, ty;
 	tmx_tileset *ts;
-	
+
 	if (!map) {
 		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");
 		return NULL;
 	}
-	
+
 	if (!x || !y) {
 		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: x or y is NULL");
 		return NULL;
 	}
-	
+
 	gid &= TMX_FLIP_BITS_REMOVAL;
 	ts = map->ts_head;
-	
+
 	while (ts) {
 		if (ts->firstgid <= gid) {
 			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
 				id = gid - ts->firstgid; /* local id (for this image) */
-				
+
 				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
-				
+
 				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
-				
+
 				tx = id % tiles_x_count;
 				ty = id / tiles_x_count;
-				
+
 				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
 				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
 				return ts;
@@ -162,7 +171,7 @@ tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsig
 		}
 		ts = ts->next;
 	}
-	
+
 	return NULL;
 }
 
@@ -199,4 +208,3 @@ tmx_tile_prop* tmx_get_tile_props(tmx_map *map, unsigned int gid) {
 
 	return NULL;
 }
-
