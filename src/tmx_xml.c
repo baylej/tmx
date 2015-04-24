@@ -393,6 +393,49 @@ static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned i
 	return 1;
 }
 
+static int parse_tile_props(xmlTextReaderPtr reader, tmx_tile_prop **t_prop_headadr) {
+	tmx_tile_prop *res = NULL;
+	int curr_depth;
+	const char *name;
+	char *value;
+
+	curr_depth = xmlTextReaderDepth(reader);
+
+	if (!(res = alloc_tile_prop())) return 0;
+
+	while (*t_prop_headadr) {
+		t_prop_headadr = &((*t_prop_headadr)->next);
+	}
+	*t_prop_headadr = res;
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
+		res->id = atoi(value);
+		tmx_free_func(value);
+	}
+	else {
+		tmx_err(E_MISSEL, "xml parser: missing 'id' attribute in the 'tile' element");
+		return 0;
+	}
+
+	do {
+		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+
+		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
+			name = (char*)xmlTextReaderConstName(reader);
+			if (!strcmp(name, "properties")) {
+				if (!parse_properties(reader, &(res->properties))) return 0;
+			}
+			else {
+				/* Unknow element, skipping it's tree */
+				if (xmlTextReaderNext(reader) != 1) return 0;
+			}
+		}
+	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+		xmlTextReaderDepth(reader) != curr_depth);
+
+	return 1;
+}
+
 /* parses a tileset within the tmx file or in a dedicated tsx file */
 static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, const char *filename) {
 	int curr_depth;
@@ -447,9 +490,12 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 				if (!parse_tileoffset(reader, &(ts_addr->x_offset), &(ts_addr->y_offset))) return 0;
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(ts_addr->properties))) return 0;
+			} else if (!strcmp(name, "tile")) {
+				if (!parse_tile_props(reader, &(ts_addr->tile_props))) return 0;
 			} else {
 				/* Unknow element, skipping it's tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
+				printf("skipped %s\n", name);
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||

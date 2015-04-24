@@ -22,6 +22,7 @@ tmx_object*   alloc_object(void);
 tmx_layer*    alloc_layer(void);
 tmx_tileset*  alloc_tileset(void);
 tmx_map*      alloc_map(void);
+tmx_tile_prop* alloc_tile_prop(void);
 
 /*
 	Misc

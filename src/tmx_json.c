@@ -185,6 +185,25 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 
 	return 1;
 }
+static int pjson_tile_props(json_t *tile_prop_el, tmx_tile_prop **t_prop_headaddr) {
+	tmx_tile_prop *t_prop;
+	const char *key;
+	json_t *val;
+
+	json_object_foreach(tile_prop_el, key, val) {
+		if (!(t_prop = alloc_tile_prop())) return 0;
+		t_prop->next = *t_prop_headaddr;
+		*t_prop_headaddr = t_prop;
+
+		t_prop->id = atoi(key);
+
+		if (json_is_object(val)) {
+			if (!pjson_properties(val, &(t_prop->properties))) return 0;
+		}
+	}
+
+	return 1;
+}
 
 static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char *filename) {
 	json_error_t err;
@@ -215,6 +234,10 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 
 	if ((tmp = json_object_get(tls_el, "properties")) && json_is_object(tmp)) {
 		if (!pjson_properties(tmp, &(ts->properties))) return 0;
+	}
+
+	if ((tmp = json_object_get(tls_el, "tileproperties")) && json_is_object(tmp)) {
+		if (!pjson_tile_props(tmp, &(ts->tile_props))) return 0;
 	}
 
 	return 1;

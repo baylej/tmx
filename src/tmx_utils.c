@@ -295,6 +295,17 @@ tmx_layer* alloc_layer(void) {
 	return res;
 }
 
+tmx_tile_prop* alloc_tile_prop(void) {
+	tmx_tile_prop *res = (tmx_tile_prop*)tmx_alloc_func(NULL, sizeof(tmx_tile_prop));
+	if (res) {
+		memset(res, 0, sizeof(tmx_tile_prop));
+	}
+	else {
+		tmx_errno = E_ALLOC;
+	}
+	return res;
+}
+
 tmx_tileset* alloc_tileset(void) {
 	tmx_tileset *res = (tmx_tileset*)tmx_alloc_func(NULL, sizeof(tmx_tileset));
 	if (res) {

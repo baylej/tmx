@@ -60,6 +60,12 @@ typedef struct _tmx_img { /* <image> */
 	void *resource_image;
 } tmx_image;
 
+typedef struct _tmx_tile_prop { /* <tile> */
+	unsigned int id;
+	tmx_property *properties;
+	struct _tmx_tile_prop *next;
+} tmx_tile_prop;
+
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
 	char *name;
@@ -69,6 +75,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	/* terraintypes(0.9), tile(0.9) are for the QtTiled terrain feature */
 	tmx_image *image;
 	tmx_property *properties;
+	tmx_tile_prop *tile_props;
 	struct _tmx_ts *next;
 } tmx_tileset;
 
@@ -128,6 +135,8 @@ void tmx_map_free(tmx_map *map);
 /* returns the tileset and the upper-left coordinate on the tileset
    of the tile associated with this gid, returns NULL if it fails */
 tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
+
+tmx_tile_prop* tmx_get_tile_props(tmx_map *map, unsigned int gid);
 
 /*
 	Error handling

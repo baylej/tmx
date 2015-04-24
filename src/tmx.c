@@ -166,3 +166,37 @@ tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsig
 	return NULL;
 }
 
+tmx_tile_prop* tmx_get_tile_props(tmx_map *map, unsigned int gid) {
+	int id;
+	tmx_tileset *ts;
+	tmx_tile_prop* t;
+
+	if (!map) {
+		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");
+		return NULL;
+	}
+
+	gid &= TMX_FLIP_BITS_REMOVAL;
+	ts = map->ts_head;
+
+	while (ts) {
+		if (ts->firstgid <= gid) {
+			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
+				id = gid - ts->firstgid; /* local id (for this image) */
+
+				t = ts->tile_props;
+
+				while (t) {
+					if (t->id == id) {
+						return t;
+					}
+					t = t->next;
+				}
+			}
+		}
+		ts = ts->next;
+	}
+
+	return NULL;
+}
+
