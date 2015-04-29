@@ -89,7 +89,7 @@ static int pjson_objects(json_t *obj_el, tmx_object **obj_headaddr) {
 	o->next = *obj_headaddr;
 	*obj_headaddr = o;
 
-	if (json_unpack_ex(obj_el, &err, 0, "{s:i, s:i, s:i, s:i, s:b, s:s}", 
+	if (json_unpack_ex(obj_el, &err, 0, "{s:i, s:i, s:i, s:i, s:b, s:s}",
 	                   "height",  &(o->height),  "width", &(o->width),
 	                   "x",       &(o->x),       "y",     &(o->y),
 	                   "visible", &(o->visible), "name",   &name)) {
@@ -131,7 +131,7 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 	lay->next = *lay_headaddr;
 	*lay_headaddr = lay;
 
-	if (json_unpack_ex(lay_el, &err, 0, "{s:b, s:F, s:s, s:s}", 
+	if (json_unpack_ex(lay_el, &err, 0, "{s:b, s:F, s:s, s:s}",
 	                   "visible", &(lay->visible), "opacity", &(lay->opacity),
 	                   "type",    &type,           "name",    &name)) {
 		tmx_err(E_MISSEL, "json parser: (layer) %s", err.text);
@@ -185,20 +185,20 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 
 	return 1;
 }
-static int pjson_tile_props(json_t *tile_prop_el, tmx_tile_prop **t_prop_headaddr) {
-	tmx_tile_prop *t_prop;
+static int pjson_tile(json_t *tile_el, tmx_tile **tile_headaddr) {
+	tmx_tile *tile;
 	const char *key;
 	json_t *val;
 
-	json_object_foreach(tile_prop_el, key, val) {
-		if (!(t_prop = alloc_tile_prop())) return 0;
-		t_prop->next = *t_prop_headaddr;
-		*t_prop_headaddr = t_prop;
+	json_object_foreach(tile_el, key, val) {
+		if (!(tile = alloc_tile())) return 0;
+		tile->next = *tile_headaddr;
+		*tile_headaddr = tile;
 
-		t_prop->id = atoi(key);
+		tile->id = atoi(key);
 
 		if (json_is_object(val)) {
-			if (!pjson_properties(val, &(t_prop->properties))) return 0;
+			if (!pjson_properties(val, &(tile->properties))) return 0;
 		}
 	}
 
@@ -216,7 +216,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 	ts->next = *tst_headaddr;
 	*tst_headaddr = ts;
 
-	if (json_unpack_ex(tls_el, &err, 0, "{s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:s, s:s}", 
+	if (json_unpack_ex(tls_el, &err, 0, "{s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:s, s:s}",
 	                   "spacing",     &(ts->spacing),       "margin",     &(ts->margin),
 	                   "tileheight",  &(ts->tile_height),   "tilewidth",  &(ts->tile_width),
 	                   "imageheight", &(ts->image->height), "imagewidth", &(ts->image->width),
@@ -237,7 +237,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 	}
 
 	if ((tmp = json_object_get(tls_el, "tileproperties")) && json_is_object(tmp)) {
-		if (!pjson_tile_props(tmp, &(ts->tile_props))) return 0;
+		if (!pjson_tile(tmp, &(ts->tiles))) return 0;
 	}
 
 	return 1;
@@ -250,17 +250,17 @@ static tmx_map* pjson_map(json_t *map_el, const char *filename) {
 	tmx_map *res;
 	char *col, *orient;
 	int i;
-	
+
 	if (!(res = alloc_map())) return NULL;
 
-	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s}", 
+	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s}",
 	                   "height",      &(res->height),      "width",     &(res->width),
 	                   "tileheight",  &(res->tile_height), "tilewidth", &(res->tile_width),
 	                   "orientation", &orient)) {
 		tmx_err(E_MISSEL, "json parser: %s", err.text);
 		goto cleanup;
 	}
-	
+
 	if ((res->orient = parse_orient(orient)) == O_NONE) {
 		tmx_err(E_JDATA, "json parser: unsupported 'orientation' '%s'", orient);
 		goto cleanup;
@@ -295,7 +295,7 @@ tmx_map* parse_json(const char *filename) {
 	tmx_map *res = NULL;
 	json_t *parsed = NULL;
 	json_error_t err;
-	
+
 	/* set memory alloc/free functions pointers */
 	json_set_alloc_funcs(json_malloc, tmx_free_func);
 

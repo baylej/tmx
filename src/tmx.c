@@ -106,11 +106,11 @@ static void free_layers(tmx_layer *l) {
 	}
 }
 
-static void free_tile_props(tmx_tile_prop *tp) {
-	if (tp) {
-		free_tile_props(tp->next);
-		free_props(tp->properties);
-		tmx_free_func(tp);
+static void free_tiles(tmx_tile *t) {
+	if (t) {
+		free_tiles(t->next);
+		free_props(t->properties);
+		tmx_free_func(t);
 	}
 }
 
@@ -120,7 +120,7 @@ static void free_ts(tmx_tileset *ts) {
 		tmx_free_func(ts->name);
 		free_image(ts->image);
 		free_props(ts->properties);
-		free_tile_props(ts->tile_props);
+		free_tiles(ts->tiles);
 		tmx_free_func(ts);
 	}
 }
@@ -134,7 +134,7 @@ void tmx_map_free(tmx_map *map) {
 	}
 }
 
-tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y) {
+tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y) {
 	unsigned int tiles_x_count;
 	unsigned int ts_w, id, tx, ty;
 	tmx_tileset *ts;
@@ -175,10 +175,10 @@ tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsig
 	return NULL;
 }
 
-tmx_tile_prop* tmx_get_tile_props(tmx_map *map, unsigned int gid) {
+tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
 	int id;
 	tmx_tileset *ts;
-	tmx_tile_prop* t;
+	tmx_tile* t;
 
 	if (!map) {
 		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");
@@ -191,9 +191,9 @@ tmx_tile_prop* tmx_get_tile_props(tmx_map *map, unsigned int gid) {
 	while (ts) {
 		if (ts->firstgid <= gid) {
 			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
-				id = gid - ts->firstgid; /* local id (for this image) */
+				id = gid - ts->firstgid; /* local id (for this tile) */
 
-				t = ts->tile_props;
+				t = ts->tiles;
 
 				while (t) {
 					if (t->id == id) {

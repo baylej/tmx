@@ -3,7 +3,7 @@
 	Copyright (c) 2013-2014, Bayle Jonathan <baylej@github>
 
 	Data Stuctures storing the map and functions prototypes
-	
+
 	See : (I'm using names from this documentation)
 	https://github.com/bjorn/tiled/wiki/TMX-Map-Format
 */
@@ -60,11 +60,11 @@ typedef struct _tmx_img { /* <image> */
 	void *resource_image;
 } tmx_image;
 
-typedef struct _tmx_tile_prop { /* <tile> */
+typedef struct _tmx_tile { /* <tile> */
 	unsigned int id;
 	tmx_property *properties;
-	struct _tmx_tile_prop *next;
-} tmx_tile_prop;
+	struct _tmx_tile *next;
+} tmx_tile;
 
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
@@ -75,7 +75,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	/* terraintypes(0.9), tile(0.9) are for the QtTiled terrain feature */
 	tmx_image *image;
 	tmx_property *properties;
-	tmx_tile_prop *tile_props;
+	tmx_tile *tiles;
 	struct _tmx_ts *next;
 } tmx_tileset;
 
@@ -97,14 +97,14 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	int color; /* bytes : RGB */
 	double opacity;
 	char visible; /* 0 == false */
-	
+
 	enum tmx_layer_type type;
 	union layer_content {
 		int32_t *gids;
 		tmx_object *head;
 		tmx_image *image;
 	}content;
-	
+
 	void *user_data; /* not freed by tmx_free ! */
 	tmx_property *properties;
 	struct _tmx_layer *next;
@@ -115,7 +115,7 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
 	int backgroundcolor; /* bytes : RGB */
-	
+
 	tmx_property *properties;
 	tmx_tileset *ts_head;
 	tmx_layer *ly_head;
@@ -134,9 +134,10 @@ void tmx_map_free(tmx_map *map);
 
 /* returns the tileset and the upper-left coordinate on the tileset
    of the tile associated with this gid, returns NULL if it fails */
-tmx_tileset* tmx_get_tile(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
+tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
 
-tmx_tile_prop* tmx_get_tile_props(tmx_map *map, unsigned int gid);
+/* returns the tile associated with this gid, returns NULL if it fails */
+tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
 
 /*
 	Error handling
