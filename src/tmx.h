@@ -13,6 +13,7 @@
 #ifndef TMX_H
 #define TMX_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
