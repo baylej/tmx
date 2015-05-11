@@ -61,6 +61,7 @@ typedef struct _tmx_img { /* <image> */
 } tmx_image;
 
 typedef struct _tmx_tile { /* <tile> */
+	tmx_image* image;
 	unsigned int id;
 	tmx_property *properties;
 	struct _tmx_tile *next;
@@ -71,7 +72,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	char *name;
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
-	unsigned int x_offset, y_offset; /* tileoffset */
+	int x_offset, y_offset; /* tileoffset */
 	/* terraintypes(0.9), tile(0.9) are for the QtTiled terrain feature */
 	tmx_image *image;
 	tmx_property *properties;
@@ -97,6 +98,7 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	int color; /* bytes : RGB */
 	double opacity;
 	char visible; /* 0 == false */
+	int x_offset, y_offset; /* For image layers */
 
 	enum tmx_layer_type type;
 	union layer_content {

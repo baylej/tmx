@@ -86,7 +86,7 @@ char* b64_decode(const char *source, unsigned int *rlength) { /* NULL terminated
 	short j;
 	unsigned int i;
 	unsigned int in = 0;
-	unsigned int src_len = strlen(source);
+	unsigned int src_len = (unsigned int)(strlen(source));
 
 	if (!source) {
 		tmx_err(E_INVAL, "Base64: invalid argument: source is NULL");
@@ -240,7 +240,7 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 	}
 	else if (type==B64Z) {
 		if (!(b64dec = b64_decode(source, &b64_len))) return 0;
-		*gids = (int32_t*)zlib_decompress(b64dec, b64_len, gids_count*sizeof(int32_t));
+		*gids = (int32_t*)zlib_decompress(b64dec, b64_len, (unsigned int)(gids_count*sizeof(int32_t)));
 		tmx_free_func(b64dec);
 		if (!(*gids)) return 0;
 	}
@@ -289,6 +289,8 @@ tmx_layer* alloc_layer(void) {
 		memset(res, 0, sizeof(tmx_layer));
 		res->opacity = 1.0f;
 		res->visible = 1;
+		res->x_offset = 0;
+		res->y_offset = 0;
 	} else {
 		tmx_errno = E_ALLOC;
 	}
@@ -361,7 +363,7 @@ int count_char_occurences(const char *str, char c) {
 
 /* trim 'str' to avoid blank characters at its beginning and end */
 char* str_trim(char *str) {
-	int end = strlen(str)-1;
+	int end = (int)(strlen(str)-1);
 	while (end>=0 && isspace((unsigned char) str[end])) end--;
 	str[end+1] = '\0';
 
