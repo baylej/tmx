@@ -54,6 +54,7 @@ typedef struct _tmx_prop { /* <properties> and <property> */
 typedef struct _tmx_img { /* <image> */
 	char *source;
 	int trans; /* bytes : RGB */
+	int uses_trans;
 	unsigned long width, height;
 	/*char *format; Not currently implemented in QtTiled
 	char *data;*/

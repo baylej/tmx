@@ -297,6 +297,7 @@ static int parse_image(xmlTextReaderPtr reader, tmx_image **img_adr, short stric
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"trans"))) { /* trans */
 		res->trans = get_color_rgb(value);
+		res->uses_trans = 1;
 		tmx_free_func(value);
 	}
 

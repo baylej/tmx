@@ -321,6 +321,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 
 		if (!(json_unpack_ex(tls_el, &err, 0, "{s:s}", "transparentcolor", &trans_string))) {
 			if (trans_string != NULL) {
+				ts->image->uses_trans = 1;
 				if (trans_string[0] == '#') {
 					ts->image->trans = (int)(strtoul(&(trans_string[1]), NULL, 16));
 				}
