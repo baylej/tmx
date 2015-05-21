@@ -345,12 +345,12 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x_offset */
-		res->x_offset = (int)strtod(value, NULL);
+		res->x_offset = (int)atoi(value);
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"y"))) { /* y_offset */
-		res->y_offset = (int)strtod(value, NULL);
+		res->y_offset = (int)atoi(value);
 		tmx_free_func(value);
 	}
 
@@ -383,7 +383,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	return 1;
 }
 
-static int parse_tileoffset(xmlTextReaderPtr reader, unsigned int *x, unsigned int *y) {
+static int parse_tileoffset(xmlTextReaderPtr reader, int *x, int *y) {
 	char *value;
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x offset */
 		*x = atoi(value);
