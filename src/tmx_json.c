@@ -132,9 +132,9 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 	*lay_headaddr = lay;
 
 	if (json_unpack_ex(lay_el, &err, 0, "{s:b, s:F, s:i, s:i, s:s, s:s}",
-	                   "visible", &(lay->visible),  "opacity", &(lay->opacity), // Something changed on this line
-	                   "x",       &(lay->x_offset), "y",       &(lay->y_offset), // Something changed on this line
-	                   "type",    &type,            "name",    &name)) { // Something changed on this line
+	                   "visible", &(lay->visible),  "opacity", &(lay->opacity),
+	                   "x",       &(lay->x_offset), "y",       &(lay->y_offset),
+	                   "type",    &type,            "name",    &name)) {
 		tmx_err(E_MISSEL, "json parser: (layer) %s", err.text);
 		return 0;
 	}
