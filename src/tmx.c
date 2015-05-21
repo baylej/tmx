@@ -110,6 +110,7 @@ static void free_tiles(tmx_tile *t) {
 	if (t) {
 		free_tiles(t->next);
 		free_props(t->properties);
+		free_image(t->image);
 		tmx_free_func(t);
 	}
 }
