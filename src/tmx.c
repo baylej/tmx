@@ -177,7 +177,7 @@ tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, un
 }
 
 tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
-	int id;
+	unsigned int id;
 	tmx_tileset *ts;
 	tmx_tile* t;
 

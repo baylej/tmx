@@ -289,8 +289,6 @@ tmx_layer* alloc_layer(void) {
 		memset(res, 0, sizeof(tmx_layer));
 		res->opacity = 1.0f;
 		res->visible = 1;
-		res->x_offset = 0;
-		res->y_offset = 0;
 	} else {
 		tmx_errno = E_ALLOC;
 	}
