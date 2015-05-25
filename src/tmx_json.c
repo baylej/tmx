@@ -207,9 +207,7 @@ static int pjson_tile(json_t *tile_el, tmx_tile **tile_headaddr) {
 	return 1;
 }
 
-
-/* This is a rather slow solution - anyone with more spare time, feel free to rework the whole structure of
-   the tiles list to make this faster */
+/* This is a rather slow solution, see https://github.com/baylej/tmx/issues/8 */
 static tmx_tile* pjson_tiles_find_or_alloc(tmx_tile **tile_headaddr, unsigned int id) {
 	tmx_tile *tile = *tile_headaddr;
 
@@ -286,7 +284,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 	if (!(json_unpack_ex(tls_el, &err, 0, "{s:i, s:i, s:i, s:i, s:i, s:i, s:i, s:s, s:s}",
 	                   "spacing",     &(ts->spacing),       "margin",     &(ts->margin),
 	                   "tileheight",  &(ts->tile_height),   "tilewidth",  &(ts->tile_width),
-					   "imageheight", &(image_height),		"imagewidth", &(image_width),
+	                   "imageheight", &(image_height),      "imagewidth", &(image_width),
 	                   "firstgid",    &(ts->firstgid),      "image",      &img,
 	                   "name",        &name))) {
 		if (!(ts->image = alloc_image())) return 0;
@@ -331,10 +329,9 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 		}
 	}
 	else if (!(json_unpack_ex(tls_el, &err, 0, "{s:i, s:i, s:i, s:i, s:i, s:s}",
-							"spacing", &(ts->spacing), "margin", &(ts->margin),
-							"tileheight", &(ts->tile_height), "tilewidth", &(ts->tile_width),
-							"firstgid", &(ts->firstgid),
-							"name", &name))) {
+		                "spacing",    &(ts->spacing),       "margin",    &(ts->margin),
+		                "tileheight", &(ts->tile_height),   "tilewidth", &(ts->tile_width),
+		                "firstgid",   &(ts->firstgid),      "name",      &name))) {
 		ts->image = NULL;
 
 		if (!(ts->name = tmx_strdup(name)))         return 0;
@@ -362,7 +359,6 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 		}
 	}
 	else {
-
 		tmx_err(E_MISSEL, "json parser: (tileset) %s", err.text);
 		return 0;
 	}

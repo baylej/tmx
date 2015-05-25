@@ -89,7 +89,7 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_property **prop_headadr
 
 				if (!parse_property(reader, res)) return 0;
 
-			} else { /* Unknow element, skipping it's tree */
+			} else { /* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
@@ -205,7 +205,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 					} else if (!strcmp(name, "polyline")) {
 						obj->shape = S_POLYLINE;
 					}
-					/* Unknow element, skipping it's tree */
+					/* Unknow element, skip its tree */
 					else if (xmlTextReaderNext(reader) != 1) return 0;
 					if (!parse_points(reader, &(obj->points), &(obj->points_len))) return 0;
 				}
@@ -373,7 +373,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 
 				if (!parse_object(reader, obj)) return 0;
 			} else {
-				/* Unknow element, skipping it's tree */
+				/* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
@@ -440,7 +440,7 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const ch
 				if (!parse_image(reader, &(res->image), 0, filename)) return 0;
 			}
 			else {
-				/* Unknow element, skipping it's tree */
+				/* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
@@ -507,7 +507,7 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 			} else if (!strcmp(name, "tile")) {
 				if (!parse_tile(reader, &(ts_addr->tiles), filename)) return 0;
 			} else {
-				/* Unknown element, skipping it's tree */
+				/* Unknown element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
@@ -631,7 +631,7 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) goto cleanup;
 			} else {
-				/* Unknow element, skipping it's tree */
+				/* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) goto cleanup;
 			}
 		}

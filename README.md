@@ -4,19 +4,20 @@
 
 ## About
 
-Loads **.tmx** [tiled](http://mapeditor.org) maps in your games.
+A portable C library to load [tiled](http://mapeditor.org) maps in your games.
 
 ## Dependencies
 
 This project depends on [Zlib](http://zlib.net/), [Jansson](http://www.digip.org/jansson/) and [LibXml2](http://xmlsoft.org).
 
 ## Compiling
+
 This project uses [cmake](http://cmake.org) as a *build system* builder.
-You can either use cmake or cmake-gui.
+You can either use cmake, ccmake or cmake-gui.
 
 You can disable XML support by setting `WANT_XML` to *off*, the same way with `WANT_JSON` you can disable JSON support.
 
-### Exemple for make on linux :
+### Example :
 
     mkdir build
     cd build

@@ -5,7 +5,7 @@
 	Data Stuctures storing the map and functions prototypes
 
 	See : (I'm using names from this documentation)
-	https://github.com/bjorn/tiled/wiki/TMX-Map-Format
+	http://doc.mapeditor.org/reference/tmx-map-format/
 */
 
 #pragma once
@@ -13,6 +13,7 @@
 #ifndef TMX_H
 #define TMX_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -62,8 +63,8 @@ typedef struct _tmx_img { /* <image> */
 } tmx_image;
 
 typedef struct _tmx_tile { /* <tile> */
-	tmx_image* image;
 	unsigned int id;
+	tmx_image* image;
 	tmx_property *properties;
 	struct _tmx_tile *next;
 } tmx_tile;
@@ -89,7 +90,7 @@ typedef struct _tmx_obj { /* <object> */
 	int gid;
 	int **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
-	char visible; /* 0 == false */
+	int visible; /* 0 == false */
 	tmx_property *properties;
 	struct _tmx_obj *next;
 } tmx_object;
@@ -98,7 +99,7 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	char *name;
 	int color; /* bytes : RGB */
 	double opacity;
-	char visible; /* 0 == false */
+	int visible; /* 0 == false */
 	int x_offset, y_offset; /* For image layers */
 
 	enum tmx_layer_type type;
