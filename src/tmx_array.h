@@ -37,13 +37,19 @@ void tmx_sa_free(tmx_sorted_array *array_struct);
 void *tmx_sa_get(tmx_sorted_array *array_struct, unsigned int index);
 
 /* Uses binary insertion to sort a new element into array
-   Uses array_struct.compare_func to determine order */
-void tmx_sa_insert(tmx_sorted_array *array_struct, void *element);
+   Uses array_struct.compare_func to determine order
+   Returns pointer to new element on success or NULL on failure */
+void *tmx_sa_insert(tmx_sorted_array *array_struct, void *element);
 
 /* Uses binary search to return element on 
    which array_struct.compare_func returns 0
    Returns NULL if not found */
 void *tmx_sa_find(tmx_sorted_array *array_struct, void *element);
+
+/* Uses binary search to find an element in the array
+   or, if not found, inserts a new element at its location
+   Returns NULL if element could neither be found, nor inserted */
+void *tmx_sa_find_or_insert(tmx_sorted_array *array_struct, void *element);
 
 /* Resizes an array, new_size must be >= array_struct.num_elements */
 void tmx_sa_resize(tmx_sorted_array *array_struct, unsigned int new_size);

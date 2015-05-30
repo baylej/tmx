@@ -5,13 +5,15 @@
 #ifndef TMXUTILS_H
 #define TMXUTILS_H
 
+#include "tmx_array.h"
+
 /*
 	Parser implementations
 */
 enum enccmp_t {CSV, B64Z};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
-tmx_map* parse_xml (const char *filename); /* tmx_xml.c */
-tmx_map* parse_json(const char *filename); /* tmx_json.c */
+tmx_map* parse_xml(tmx_sorted_array *tiles_array, const char *filename); /* tmx_xml.c */
+tmx_map* parse_json(tmx_sorted_array *tiles_array, const char *filename); /* tmx_json.c */
 
 /*
 	Node allocation
@@ -22,6 +24,7 @@ tmx_object*   alloc_object(void);
 tmx_layer*    alloc_layer(void);
 tmx_tileset*  alloc_tileset(void);
 tmx_map*      alloc_map(void);
+tmx_frame*    alloc_frame(void);
 tmx_tile*     alloc_tile(void);
 
 /*
@@ -40,6 +43,11 @@ char* tmx_strdup(const char *str);
 size_t dirpath_len(const char *str);
 char* mk_absolute_path(const char *base_path, const char *rel_path);
 void* load_image(void **ptr, const char *base_path, const char *rel_path);
+
+/*
+	Sorted array helper functions
+*/
+int tmx_compare_tiles(void *first_elem, void *second_elem);
 
 /*
 	Error handling
