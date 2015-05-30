@@ -307,17 +307,6 @@ tmx_frame* alloc_frame(void) {
 	return res;
 }
 
-tmx_tile* alloc_tile(void) {
-	tmx_tile *res = (tmx_tile*)tmx_alloc_func(NULL, sizeof(tmx_tile));
-	if (res) {
-		memset(res, 0, sizeof(tmx_tile));
-	}
-	else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
-}
-
 tmx_tileset* alloc_tileset(void) {
 	tmx_tileset *res = (tmx_tileset*)tmx_alloc_func(NULL, sizeof(tmx_tileset));
 	if (res) {

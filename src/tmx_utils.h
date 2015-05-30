@@ -25,7 +25,6 @@ tmx_layer*    alloc_layer(void);
 tmx_tileset*  alloc_tileset(void);
 tmx_map*      alloc_map(void);
 tmx_frame*    alloc_frame(void);
-tmx_tile*     alloc_tile(void);
 
 /*
 	Misc
