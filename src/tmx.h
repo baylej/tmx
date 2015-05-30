@@ -62,11 +62,17 @@ typedef struct _tmx_img { /* <image> */
 	void *resource_image;
 } tmx_image;
 
+typedef struct _tmx_frame { /* <frame> */
+	unsigned int gid;
+	unsigned int duration;
+	struct _tmx_frame *next_frame;
+} tmx_frame;
+
 typedef struct _tmx_tile { /* <tile> */
-	unsigned int id;
+	unsigned int gid;
 	tmx_image* image;
 	tmx_property *properties;
-	struct _tmx_tile *next;
+	tmx_frame *animation;
 } tmx_tile;
 
 typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
@@ -79,6 +85,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	tmx_image *image;
 	tmx_property *properties;
 	tmx_tile *tiles;
+	unsigned int num_tiles;
 	struct _tmx_ts *next;
 } tmx_tileset;
 
@@ -119,6 +126,8 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
 	int backgroundcolor; /* bytes : RGB */
+	tmx_tile *tiles; /* Array with all tiles on whole map (tilesets point to sections of this array) */
+	unsigned int num_tiles;
 
 	tmx_property *properties;
 	tmx_tileset *ts_head;

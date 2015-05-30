@@ -15,6 +15,7 @@
 
 #include "tmx.h"
 #include "tmx_utils.h"
+#include "tmx_array.h"
 
 static void* tmx_malloc(size_t len) {
 	return tmx_alloc_func(NULL, len);
@@ -95,6 +96,57 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_property **prop_headadr
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
+	return 1;
+}
+
+static int parse_frame(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_frame *frame) {
+	char *value;
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tileid"))) { /* tileid */
+		frame->gid = atoi(value) + tileset->firstgid;
+		tmx_free_func(value);
+	}
+	else {
+		tmx_err(E_MISSEL, "xml parser: missing 'tileid' attribute in the 'frame' element");
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"duration"))) { /* duration */
+		frame->duration = atoi(value);
+		tmx_free_func(value);
+	}
+	else {
+		tmx_err(E_MISSEL, "xml parser: missing 'duration' attribute in the 'frame' element");
+		return 0;
+	}
+	return 1;
+}
+
+static int parse_animation(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_frame **anim_headadr) {
+	tmx_frame **res = anim_headadr;
+	int curr_depth;
+	const char *name;
+
+	curr_depth = xmlTextReaderDepth(reader);
+
+	/* Parse each child */
+	do {
+		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+
+		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
+			name = (char*)xmlTextReaderConstName(reader);
+			if (!strcmp(name, "frame")) {
+				if (!(*res = alloc_frame())) return 0;
+
+				if (!parse_frame(reader, tileset, *res)) return 0;
+
+				res = &((*res)->next_frame);
+			}
+			else { /* Unknow element, skip its tree */
+				if (xmlTextReaderNext(reader) != 1) return 0;
+			}
+		}
+	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+		xmlTextReaderDepth(reader) != curr_depth);
 	return 1;
 }
 
@@ -404,23 +456,17 @@ static int parse_tileoffset(xmlTextReaderPtr reader, int *x, int *y) {
 	return 1;
 }
 
-static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const char *filename) {
-	tmx_tile *res = NULL;
+static int parse_tile(tmx_tileset *tileset, xmlTextReaderPtr reader, tmx_sorted_array *tiles_array, const char *filename) {
+	tmx_tile res;
+	memset(&res, 0, sizeof(res));
 	int curr_depth;
 	const char *name;
 	char *value;
 
 	curr_depth = xmlTextReaderDepth(reader);
 
-	if (!(res = alloc_tile())) return 0;
-
-	while (*tile_headadr) {
-		tile_headadr = &((*tile_headadr)->next);
-	}
-	*tile_headadr = res;
-
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
-		res->id = atoi(value);
+		res.gid = atoi(value) + tileset->firstgid;
 		tmx_free_func(value);
 	}
 	else {
@@ -428,16 +474,26 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const ch
 		return 0;
 	}
 
+	tmx_tile *new_tile = NULL;
+	if (!(new_tile = tmx_sa_insert(tiles_array, &res))) return 0;
+
+	tileset->num_tiles++;	
+	if (tileset->tiles == NULL || res.gid < (unsigned int)(tileset->tiles))
+		tileset->tiles = (void*)(res.gid); /* Write tile gid into tiles pointer - we will use this to get the actual pointer later */
+
 	do {
 		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "properties")) {
-				if (!parse_properties(reader, &(res->properties))) return 0;
+				if (!parse_properties(reader, &(new_tile->properties))) return 0;
 			}
 			else if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->image), 0, filename)) return 0;
+				if (!parse_image(reader, &(new_tile->image), 0, filename)) return 0;
+			}
+			else if (!strcmp(name, "animation")) {
+				if (!parse_animation(reader, tileset, &(new_tile->animation))) return 0;
 			}
 			else {
 				/* Unknow element, skip its tree */
@@ -451,7 +507,7 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const ch
 }
 
 /* parses a tileset within the tmx file or in a dedicated tsx file */
-static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, const char *filename) {
+static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_sorted_array *tiles_array, const char *filename) {
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -505,7 +561,7 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(ts_addr->properties))) return 0;
 			} else if (!strcmp(name, "tile")) {
-				if (!parse_tile(reader, &(ts_addr->tiles), filename)) return 0;
+				if (!parse_tile(ts_addr, reader, tiles_array, filename)) return 0;
 			} else {
 				/* Unknown element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
@@ -517,7 +573,7 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 	return 1;
 }
 
-static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset **ts_headadr, const char *filename) {
+static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset **ts_headadr, tmx_sorted_array *tiles_array, const char *filename) {
 	tmx_tileset *res = NULL;
 	int ret;
 	char *value, *ab_path;
@@ -540,16 +596,17 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset **ts_headadr, cons
 		if (!(ab_path = mk_absolute_path(filename, value))) return 0;
 		tmx_free_func(value);
 		if (!(sub_reader = create_parser(ab_path))) return 0; /* opens */
-		ret = parse_tileset_sub(sub_reader, res, ab_path); /* and parses the tsx file */
+		ret = parse_tileset_sub(sub_reader, res, tiles_array, ab_path); /* and parses the tsx file */
 		xmlFreeTextReader(sub_reader);
 		tmx_free_func(ab_path);
 		return ret;
 	}
 
-	return parse_tileset_sub(reader, res, filename);
+	ret = parse_tileset_sub(reader, res, tiles_array, filename);
+	return ret;
 }
 
-static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
+static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_sorted_array *tiles_array, const char *filename) {
 	tmx_map *res = NULL;
 	int curr_depth;
 	const char *name;
@@ -621,7 +678,7 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "tileset")) {
-				if (!parse_tileset(reader, &(res->ts_head), filename)) goto cleanup;
+				if (!parse_tileset(reader, &(res->ts_head), tiles_array, filename)) goto cleanup;
 			} else if (!strcmp(name, "layer")) {
 				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER, filename)) goto cleanup;
 			} else if (!strcmp(name, "objectgroup")) {
@@ -643,14 +700,14 @@ cleanup:
 	return NULL;
 }
 
-tmx_map *parse_xml(const char *filename) {
+tmx_map *parse_xml(tmx_sorted_array *tiles_array, const char *filename) {
 	xmlTextReaderPtr reader;
 	tmx_map *res = NULL;
 
 	xmlMemSetup((xmlFreeFunc)tmx_free_func, (xmlMallocFunc)tmx_malloc, (xmlReallocFunc)tmx_alloc_func, (xmlStrdupFunc)tmx_strdup);
 
 	if ((reader = create_parser(filename))) {
-		res = parse_root_map(reader, filename);
+		res = parse_root_map(reader, tiles_array, filename);
 		xmlFreeTextReader(reader);
 	}
 

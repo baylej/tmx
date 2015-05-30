@@ -19,7 +19,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" off)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # variable containing sources to compile
-set(SOURCES "src/tmx.c" "src/tmx_utils.c" "src/tmx_err.c" "src/tmx_xml.c" "src/tmx_json.c")
+set(SOURCES "src/tmx.c" "src/tmx_array.c" "src/tmx_utils.c" "src/tmx_err.c" "src/tmx_xml.c" "src/tmx_json.c")
 
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES("stdint.h" STDINT_H)

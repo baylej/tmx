@@ -295,10 +295,11 @@ tmx_layer* alloc_layer(void) {
 	return res;
 }
 
-tmx_tile* alloc_tile(void) {
-	tmx_tile *res = (tmx_tile*)tmx_alloc_func(NULL, sizeof(tmx_tile));
+
+tmx_frame* alloc_frame(void) {
+	tmx_frame *res = (tmx_frame*)tmx_alloc_func(NULL, sizeof(tmx_frame));
 	if (res) {
-		memset(res, 0, sizeof(tmx_tile));
+		memset(res, 0, sizeof(tmx_frame));
 	}
 	else {
 		tmx_errno = E_ALLOC;
@@ -324,6 +325,19 @@ tmx_map* alloc_map(void) {
 		tmx_errno = E_ALLOC;
 	}
 	return res;
+}
+
+/*
+Sorted array helper functions
+*/
+int tmx_compare_tiles(void *first_elem, void *second_elem)
+{
+	if (((tmx_tile*)first_elem)->gid < ((tmx_tile*)second_elem)->gid)
+		return -1;
+	if (((tmx_tile*)first_elem)->gid > ((tmx_tile*)second_elem)->gid)
+		return 1;
+
+	return 0;
 }
 
 /*

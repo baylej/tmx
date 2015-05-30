@@ -16,6 +16,7 @@
 
 #include "tmx.h"
 #include "tmx_utils.h"
+#include "tmx_array.h"
 
 static void* json_malloc(size_t size) {
 	return tmx_alloc_func(NULL, size);
@@ -187,52 +188,31 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 	return 1;
 }
 
-static int pjson_tile(json_t *tile_el, tmx_tile **tile_headaddr) {
-	tmx_tile *tile;
+static int pjson_tile(tmx_tileset *tileset, json_t *tile_el, tmx_sorted_array *tiles_array) {
+	tmx_tile tile;
+	memset(&tile, 0, sizeof(tile));
 	const char *key;
 	json_t *val;
 
 	json_object_foreach(tile_el, key, val) {
-		if (!(tile = alloc_tile())) return 0;
-		tile->next = *tile_headaddr;
-		*tile_headaddr = tile;
+		tile.gid = atoi(key) + tileset->firstgid;
 
-		tile->id = atoi(key);
+		tmx_tile *new_tile = NULL;
+		if (!(new_tile = tmx_sa_insert(tiles_array, &tile))) return 0;
+
+		tileset->num_tiles++;
+		if (tileset->tiles == NULL || tile.gid < (unsigned int)(tileset->tiles))
+			tileset->tiles = (void*)(tile.gid); /* Write tile gid into tiles pointer - we will use this to get the actual pointer later */
 
 		if (json_is_object(val)) {
-			if (!pjson_properties(val, &(tile->properties))) return 0;
+			if (!pjson_properties(val, &(new_tile->properties))) return 0;
 		}
 	}
 
 	return 1;
 }
 
-/* This is a rather slow solution, see https://github.com/baylej/tmx/issues/8 */
-static tmx_tile* pjson_tiles_find_or_alloc(tmx_tile **tile_headaddr, unsigned int id) {
-	tmx_tile *tile = *tile_headaddr;
-
-	if (tile == NULL) {
-		if (!(*tile_headaddr = alloc_tile())) return NULL;
-		(*tile_headaddr)->id = id;
-		return *tile_headaddr;
-	}
-	else {
-		while (tile != NULL) {
-			if (tile->id == id) return tile;
-			if (tile->next != NULL)
-				tile = tile->next;
-			else {
-				if (!(tile->next = alloc_tile())) return NULL;
-				tile->next->id = id;
-				return tile->next;
-			}
-		}
-	}
-
-	return NULL;
-}
-
-static int pjson_tiles_images(json_t *tile_el, tmx_tile **tile_headaddr, const char *filename) {
+static int pjson_tiles_images(tmx_tileset *tileset, json_t *tile_el, tmx_sorted_array *tiles_array, const char *filename) {
 	tmx_tile *tile = NULL;
 	const char *key;
 	json_t *val;
@@ -241,7 +221,20 @@ static int pjson_tiles_images(json_t *tile_el, tmx_tile **tile_headaddr, const c
 
 	json_object_foreach(tile_el, key, val) {
 		unsigned int key_value = atoi(key);
-		tile = pjson_tiles_find_or_alloc(tile_headaddr, key_value);
+		tmx_tile find_tile;
+		memset(&find_tile, 0, sizeof(find_tile));
+		find_tile.gid = key_value + tileset->firstgid;
+
+		unsigned int num_tiles = tiles_array->num_elements;
+
+		tile = tmx_sa_find_or_insert(tiles_array, &find_tile);
+
+		if (tile != NULL) {
+			if (tiles_array->num_elements > num_tiles) tileset->num_tiles++;
+			if (tileset->tiles == NULL || tile->gid < (unsigned int)(tileset->tiles))
+				tileset->tiles = (void*)(tile->gid); /* Write tile gid into tiles pointer - we will use this to get the actual pointer later */
+		}
+
 		if (json_is_object(val) && tile != NULL) {
 			if (!(tile->image = alloc_image())) return 0;
 			if (json_unpack_ex(val, &err, 0, "{s:i, s:i, s:s}", "imageheight", &(tile->image->height), "imagewidth", &(tile->image->width), "image", &img))
@@ -258,8 +251,6 @@ static int pjson_tiles_images(json_t *tile_el, tmx_tile **tile_headaddr, const c
 				tmx_err(E_MISSEL, "json parser: couldn't read image source file string for tmx_tile");
 				return 0;
 			}
-
-			tile = tile->next;
 		}
 		else {
 			tmx_err(E_ALLOC, "json parser: couldn't allocate or find tmx_tile for image collection tileset");
@@ -270,14 +261,68 @@ static int pjson_tiles_images(json_t *tile_el, tmx_tile **tile_headaddr, const c
 	return 1;
 }
 
-static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char *filename) {
+static int pjson_tiles_animation(tmx_tileset *tileset, json_t *tile_el, tmx_sorted_array *tiles_array) {
+	tmx_tile *tile = NULL;
+	const char *key;
+	json_t *val;
+	json_t *anim_array;
+	unsigned int array_index;
+	json_t *array_val;
+	tmx_frame **anim_frame;
+	json_error_t err;
+
+	json_object_foreach(tile_el, key, val) {
+		unsigned int key_value = atoi(key);
+		tmx_tile find_tile;
+		memset(&find_tile, 0, sizeof(find_tile));
+		find_tile.gid = key_value + tileset->firstgid;
+
+		unsigned int num_tiles = tiles_array->num_elements;
+
+		tile = tmx_sa_find_or_insert(tiles_array, &find_tile);
+
+		if (tile != NULL) {
+			if (tiles_array->num_elements > num_tiles) tileset->num_tiles++;
+			if (tileset->tiles == NULL || tile->gid < (unsigned int)(tileset->tiles))
+				tileset->tiles = (void*)(tile->gid); /* Write tile gid into tiles pointer - we will use this to get the actual pointer later */
+		}
+
+		if (json_is_object(val) && tile != NULL) {
+			if ((anim_array = json_object_get(val, "animation")) && json_is_array(anim_array)) {
+				anim_frame = &(tile->animation);
+
+				json_array_foreach(anim_array, array_index, array_val) {
+					if (!(*anim_frame = alloc_frame())) return 0;
+
+					if (json_unpack_ex(array_val, &err, 0, "{s:i, s:i}", "duration", &((*anim_frame)->duration), "tileid", &((*anim_frame)->gid))) {
+						tmx_err(E_UNKN, "json parser: couldn't unpack animation frame data");
+						return 0;
+					}
+					(*anim_frame)->gid += tileset->firstgid;
+
+					anim_frame = &((*anim_frame)->next_frame);
+				}
+
+			}
+		}
+		else {
+			tmx_err(E_ALLOC, "json parser: couldn't allocate or find tmx_tile for tile animation tileset");
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, tmx_sorted_array *tiles_array, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_tileset *ts;
 	char *img, *name;
 	unsigned int image_width, image_height;
 
-	if (!(ts = alloc_tileset()))      return 0;
+	if (!(ts = alloc_tileset())) return 0;
+
 	ts->next = *tst_headaddr;
 	*tst_headaddr = ts;
 
@@ -302,7 +347,15 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 		}
 
 		if ((tmp = json_object_get(tls_el, "tileproperties")) && json_is_object(tmp)) {
-			if (!pjson_tile(tmp, &(ts->tiles))) return 0;
+			if (!pjson_tile(ts, tmp, tiles_array)) {
+				return 0;
+			}
+		}
+
+		if ((tmp = json_object_get(tls_el, "tiles")) && json_is_object(tmp)) {
+			if (!pjson_tiles_animation(ts, tmp, tiles_array)) {
+				return 0;
+			}
 		}
 
 		if ((tmp = json_object_get(tls_el, "tileoffset")) && json_is_object(tmp)) {
@@ -341,11 +394,21 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 		}
 
 		if ((tmp = json_object_get(tls_el, "tileproperties")) && json_is_object(tmp)) {
-			if (!pjson_tile(tmp, &(ts->tiles))) return 0;
+			if (!pjson_tile(ts, tmp, tiles_array)) {
+				return 0;
+			}
 		}
 
 		if ((tmp = json_object_get(tls_el, "tiles")) && json_is_object(tmp)) {
-			if (!pjson_tiles_images(tmp, &(ts->tiles), filename)) return 0;
+			if (!pjson_tiles_images(ts, tmp, tiles_array, filename)) {
+				return 0;
+			}
+		}
+
+		if ((tmp = json_object_get(tls_el, "tiles")) && json_is_object(tmp)) {
+			if (!pjson_tiles_animation(ts, tmp, tiles_array)) {
+				return 0;
+			}
 		}
 
 		if ((tmp = json_object_get(tls_el, "tileoffset")) && json_is_object(tmp)) {
@@ -367,7 +430,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 }
 
 /* returns NULL on fail */
-static tmx_map* pjson_map(json_t *map_el, const char *filename) {
+static tmx_map* pjson_map(json_t *map_el, tmx_sorted_array *tiles_array, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_map *res;
@@ -393,7 +456,7 @@ static tmx_map* pjson_map(json_t *map_el, const char *filename) {
 
 	if ((tmp = json_object_get(map_el, "tilesets")) && json_is_array(tmp)) {
 		for (i=0; i<(int)json_array_size(tmp); i++) {
-			if (!pjson_tileset(json_array_get(tmp, i), &(res->ts_head), filename)) goto cleanup;
+			if (!pjson_tileset(json_array_get(tmp, i), &(res->ts_head), tiles_array, filename)) goto cleanup;
 		}
 	}
 
@@ -414,7 +477,7 @@ cleanup:
 	return NULL;
 }
 
-tmx_map* parse_json(const char *filename) {
+tmx_map* parse_json(tmx_sorted_array *tiles_array, const char *filename) {
 	tmx_map *res = NULL;
 	json_t *parsed = NULL;
 	json_error_t err;
@@ -427,7 +490,7 @@ tmx_map* parse_json(const char *filename) {
 		return NULL;
 	}
 
-	res = pjson_map(parsed, filename);
+	res = pjson_map(parsed, tiles_array, filename);
 
 	json_decref(parsed);
 
