@@ -274,7 +274,7 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 	json_error_t err;
 	json_t *tmp;
 	tmx_tileset *ts;
-	char *img, *name;
+	char *img, *name, *trans_col;
 	unsigned int image_width, image_height;
 
 	if (!(ts = alloc_tileset()))      return 0;
@@ -305,45 +305,6 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 			if (!pjson_tile(tmp, &(ts->tiles))) return 0;
 		}
 
-		if ((tmp = json_object_get(tls_el, "tileoffset")) && json_is_object(tmp)) {
-			const char *key;
-			json_t *val;
-			json_object_foreach(tmp, key, val) {
-				// TODO: Add some error handling here
-				if (!strcmp(key, "x")) ts->x_offset = (int)json_integer_value(val);
-				if (!strcmp(key, "y")) ts->y_offset = (int)json_integer_value(val);
-			}
-		}
-
-		char* trans_string;
-
-		if (!(json_unpack_ex(tls_el, &err, 0, "{s:s}", "transparentcolor", &trans_string))) {
-			if (trans_string != NULL) {
-				ts->image->uses_trans = 1;
-				if (trans_string[0] == '#') {
-					ts->image->trans = (int)(strtoul(&(trans_string[1]), NULL, 16));
-				}
-				else
-					ts->image->trans = (int)(strtoul(&(trans_string[0]), NULL, 16));
-			}
-		}
-	}
-	else if (!(json_unpack_ex(tls_el, &err, 0, "{s:i, s:i, s:i, s:i, s:i, s:s}",
-		                "spacing",    &(ts->spacing),       "margin",    &(ts->margin),
-		                "tileheight", &(ts->tile_height),   "tilewidth", &(ts->tile_width),
-		                "firstgid",   &(ts->firstgid),      "name",      &name))) {
-		ts->image = NULL;
-
-		if (!(ts->name = tmx_strdup(name)))         return 0;
-
-		if ((tmp = json_object_get(tls_el, "properties")) && json_is_object(tmp)) {
-			if (!pjson_properties(tmp, &(ts->properties))) return 0;
-		}
-
-		if ((tmp = json_object_get(tls_el, "tileproperties")) && json_is_object(tmp)) {
-			if (!pjson_tile(tmp, &(ts->tiles))) return 0;
-		}
-
 		if ((tmp = json_object_get(tls_el, "tiles")) && json_is_object(tmp)) {
 			if (!pjson_tiles_images(tmp, &(ts->tiles), filename)) return 0;
 		}
@@ -355,6 +316,13 @@ static int pjson_tileset(json_t *tls_el, tmx_tileset **tst_headaddr, const char 
 				// TODO: Add some error handling here
 				if (!strcmp(key, "x")) ts->x_offset = (int)json_integer_value(val);
 				if (!strcmp(key, "y")) ts->y_offset = (int)json_integer_value(val);
+			}
+		}
+
+		if (!(json_unpack_ex(tls_el, &err, 0, "{s:s}", "transparentcolor", &trans_col))) {
+			if (trans_col != NULL) {
+				ts->image->uses_trans = 1;
+				ts->image->trans = get_color_rgb(trans_col);
 			}
 		}
 	}
