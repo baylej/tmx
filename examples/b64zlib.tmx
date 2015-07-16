@@ -1,29 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f" nextobjectid="5">
  <properties>
   <property name="json" value="jansson"/>
   <property name="xml" value="libxml2"/>
  </properties>
  <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1">
   <image source="numbers.png" width="100" height="100"/>
+  <tile id="0">
+   <properties>
+    <property name="number" value="1"/>
+   </properties>
+  </tile>
+  <tile id="1">
+   <properties>
+    <property name="number" value="2"/>
+   </properties>
+  </tile>
+  <tile id="2">
+   <properties>
+    <property name="number" value="3"/>
+   </properties>
+  </tile>
  </tileset>
- <imagelayer name="Image" width="28" height="18">
+ <imagelayer name="Image">
   <image source="bg.jpg"/>
+  <properties>
+   <property name="alt" value="rainbow"/>
+  </properties>
  </imagelayer>
  <layer name="Layer" width="28" height="18">
   <data encoding="base64" compression="zlib">
    eJy9lN0OgCAIRjX/6v1fuLXZxr7BB9bq4twochioLaVUfqAB11qfyLisYK1nOFsnReztYr8bTsvP9vJ0Yfyq7yno6x/7iuF7mucQRH3WeZYL96y4TZmfVyeueTV4Pq8fXq+YM+Ibk0g9GIv1sX56OTTnGx/mqwTWd80X6T3+ffgPRubNfOjEv0DC3suKTzoHYfV+RtgJlkd7f7fTm4OWi6GdZXNn93H1rqLzBIoiCFE=
   </data>
  </layer>
- <objectgroup color="#aa0000" name="Objects" width="28" height="18">
-  <object name="square" x="128" y="128" width="192" height="192"/>
-  <object name="polygon" x="492" y="325">
+ <objectgroup color="#aa0000" name="Objects">
+  <object id="1" name="square" x="128" y="128" width="192" height="192"/>
+  <object id="2" name="polygon" x="492" y="325">
    <polygon points="20,-5 -44,-197 180,-229"/>
   </object>
-  <object name="polyline" x="174" y="477">
+  <object id="3" name="polyline" x="174" y="477">
    <polyline points="-14,3 50,-61 114,3 178,-61 242,3 306,-61 370,3"/>
   </object>
-  <object name="ellipse" x="672" y="352" width="160" height="160">
+  <object id="4" name="ellipse" x="672" y="352" width="160" height="160">
    <ellipse/>
   </object>
  </objectgroup>

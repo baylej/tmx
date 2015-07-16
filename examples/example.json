@@ -6,6 +6,10 @@
          "image":"bg.jpg",
          "name":"Image",
          "opacity":1,
+         "properties":
+            {
+             "alt":"rainbow"
+            },
          "type":"imagelayer",
          "visible":true,
          "width":28,
@@ -25,16 +29,19 @@
         }, 
         {
          "color":"#aa0000",
+         "draworder":"topdown",
          "height":18,
          "name":"Objects",
          "objects":[
                 {
                  "height":192,
+                 "id":1,
                  "name":"square",
                  "properties":
                     {
 
                     },
+                 "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":192,
@@ -43,6 +50,7 @@
                 }, 
                 {
                  "height":0,
+                 "id":2,
                  "name":"polygon",
                  "polygon":[
                         {
@@ -61,6 +69,7 @@
                     {
 
                     },
+                 "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
@@ -69,6 +78,7 @@
                 }, 
                 {
                  "height":0,
+                 "id":3,
                  "name":"polyline",
                  "polyline":[
                         {
@@ -103,6 +113,7 @@
                     {
 
                     },
+                 "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
@@ -112,11 +123,13 @@
                 {
                  "ellipse":true,
                  "height":160,
+                 "id":4,
                  "name":"ellipse",
                  "properties":
                     {
 
                     },
+                 "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":160,
@@ -130,12 +143,14 @@
          "x":0,
          "y":0
         }],
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "properties":
     {
      "json":"jansson",
      "xml":"libxml2"
     },
+ "renderorder":"right-down",
  "tileheight":32,
  "tilesets":[
         {
@@ -151,6 +166,21 @@
             },
          "spacing":1,
          "tileheight":32,
+         "tileproperties":
+            {
+             "0":
+                {
+                 "number":"1"
+                },
+             "1":
+                {
+                 "number":"2"
+                },
+             "2":
+                {
+                 "number":"3"
+                }
+            },
          "tilewidth":32
         }],
  "tilewidth":32,
