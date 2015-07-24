@@ -155,6 +155,7 @@ void dump_map(tmx_map *m) {
 	fputs("map={", stdout);
 	if (m) {
 		printf("\n\torient=%d", m->orient);
+		printf("\n\trenderorder=%d", m->renderorder);
 		printf("\n\theight=%d", m->height);
 		printf("\n\twidth=%d", m->width);
 		printf("\n\ttheight=%d", m->tile_height);

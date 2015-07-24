@@ -30,6 +30,7 @@ tmx_tile*     alloc_tile(void);
 */
 #define MAX(a,b) (a<b) ? b: a;
 enum tmx_map_orient parse_orient(const char *orient_str);
+enum tmx_map_renderorder parse_renderorder(const char *renderorder);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);

@@ -43,6 +43,7 @@ extern void  (*tmx_img_free_func) (void *address);
 */
 
 enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA};
+enum tmx_map_renderorder {R_NONE, R_RIGHTDOWN, R_RIGHTUP, R_LEFTDOWN, R_LEFTUP};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
 
@@ -119,6 +120,7 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
 	int backgroundcolor; /* bytes : RGB */
+	enum tmx_map_renderorder renderorder;
 
 	tmx_property *properties;
 	tmx_tileset *ts_head;

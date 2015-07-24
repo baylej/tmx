@@ -577,6 +577,13 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 		goto cleanup;
 	}
 
+	value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"renderorder"); /* renderorder */
+	if (res->renderorder = parse_renderorder(value), res->renderorder == R_NONE) {
+		tmx_err(E_XDATA, "xml parser: unsupported 'renderorder' '%s'", value);
+		goto cleanup;
+	}
+	tmx_free_func(value);
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"height"))) { /* height */
 		res->height = atoi(value);
 		tmx_free_func(value);

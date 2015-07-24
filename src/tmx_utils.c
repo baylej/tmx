@@ -331,7 +331,7 @@ tmx_map* alloc_map(void) {
 */
 
 /* "orthogonal" -> ORT */
-enum tmx_map_orient parse_orient(const char* orient_str) {
+enum tmx_map_orient parse_orient(const char *orient_str) {
 	if (!strcmp(orient_str, "orthogonal")) {
 		return O_ORT;
 	}
@@ -342,6 +342,23 @@ enum tmx_map_orient parse_orient(const char* orient_str) {
 		return O_STA;
 	}
 	return O_NONE;
+}
+
+/* "left-up" -> R_LEFTUP */
+enum tmx_map_renderorder parse_renderorder(const char *renderorder) {
+	if (renderorder == NULL || !strcmp(renderorder, "right-down")) {
+		return R_RIGHTDOWN;
+	}
+	if (!strcmp(renderorder, "right-up")) {
+		return R_RIGHTUP;
+	}
+	if (!strcmp(renderorder, "left-down")) {
+		return R_LEFTDOWN;
+	}
+	if (!strcmp(renderorder, "left-up")) {
+		return R_LEFTUP;
+	}
+	return R_NONE;
 }
 
 /* "#337FA2" -> 0x337FA2 */

@@ -339,21 +339,26 @@ static tmx_map* pjson_map(json_t *map_el, const char *filename) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_map *res;
-	char *col, *orient;
+	char *col, *orient, *renderorder;
 	int i;
 
 	if (!(res = alloc_map())) return NULL;
 
-	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s}",
-	                   "height",      &(res->height),      "width",     &(res->width),
-	                   "tileheight",  &(res->tile_height), "tilewidth", &(res->tile_width),
-	                   "orientation", &orient)) {
+	if (json_unpack_ex(map_el, &err, 0, "{s:i, s:i, s:i, s:i, s:s s:s}",
+	                   "height",      &(res->height),      "width",       &(res->width),
+	                   "tileheight",  &(res->tile_height), "tilewidth",   &(res->tile_width),
+	                   "orientation", &orient,             "renderorder", &renderorder)) {
 		tmx_err(E_MISSEL, "json parser: %s", err.text);
 		goto cleanup;
 	}
 
 	if ((res->orient = parse_orient(orient)) == O_NONE) {
 		tmx_err(E_JDATA, "json parser: unsupported 'orientation' '%s'", orient);
+		goto cleanup;
+	}
+
+	if ((res->renderorder = parse_renderorder(renderorder)) == R_NONE) {
+		tmx_err(E_JDATA, "json parser: unsupported 'renderorder' '%s'", renderorder);
 		goto cleanup;
 	}
 
