@@ -187,6 +187,11 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 		tmx_free_func(value);
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"rotation"))) { /* rotation */
+		obj->rotation = atof(value);
+		tmx_free_func(value);
+	}
+
 	/* If it has a child, then it's a polygon or a polyline or an ellipse */
 	curr_depth = xmlTextReaderDepth(reader);
 	if (!xmlTextReaderIsEmptyElement(reader)) {

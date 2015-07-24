@@ -89,10 +89,11 @@ static int pjson_objects(json_t *obj_el, tmx_object **obj_headaddr) {
 	o->next = *obj_headaddr;
 	*obj_headaddr = o;
 
-	if (json_unpack_ex(obj_el, &err, 0, "{s:F, s:F, s:F, s:F, s:b, s:s}",
-	                   "height",  &(o->height),  "width", &(o->width),
-	                   "x",       &(o->x),       "y",     &(o->y),
-	                   "visible", &(o->visible), "name",   &name)) {
+	if (json_unpack_ex(obj_el, &err, 0, "{s:F, s:F, s:F, s:F, s:b, s:F, s:s}",
+	                   "height",  &(o->height),  "width",    &(o->width),
+	                   "x",       &(o->x),       "y",        &(o->y),
+	                   "visible", &(o->visible), "rotation", &(o->rotation),
+	                   "name",    &name)) {
 		tmx_err(E_MISSEL, "json parser: (tileset) %s", err.text);
 		return 0;
 	}

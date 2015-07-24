@@ -2,7 +2,7 @@
  "height":18,
  "layers":[
         {
-         "height":18,
+         "height":0,
          "image":"bg.jpg",
          "name":"Image",
          "opacity":1,
@@ -12,7 +12,7 @@
             },
          "type":"imagelayer",
          "visible":true,
-         "width":28,
+         "width":0,
          "x":0,
          "y":0
         }, 
@@ -30,7 +30,7 @@
         {
          "color":"#aa0000",
          "draworder":"topdown",
-         "height":18,
+         "height":0,
          "name":"Objects",
          "objects":[
                 {
@@ -41,7 +41,7 @@
                     {
 
                     },
-                 "rotation":0,
+                 "rotation":22.5,
                  "type":"",
                  "visible":true,
                  "width":192,
@@ -139,7 +139,7 @@
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
-         "width":28,
+         "width":0,
          "x":0,
          "y":0
         }],

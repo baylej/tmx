@@ -2,7 +2,7 @@
 	TMX.H - TMX C LOADER
 	Copyright (c) 2013-2014, Bayle Jonathan <baylej@github>
 
-	Data Stuctures storing the map and functions prototypes
+	Data Stuctures storing the map, and functions prototypes
 
 	See : (I'm using names from this documentation)
 	http://doc.mapeditor.org/reference/tmx-map-format/
@@ -76,7 +76,7 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
 	int x_offset, y_offset; /* tileoffset */
-	/* terraintypes(0.9), tile(0.9) are for the QtTiled terrain feature */
+	/* terraintypes(0.9) is for the QtTiled terrain feature */
 	tmx_image *image;
 	tmx_property *properties;
 	tmx_tile *tiles;
@@ -92,6 +92,7 @@ typedef struct _tmx_obj { /* <object> */
 	double **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
 	int visible; /* 0 == false */
+	double rotation;
 	tmx_property *properties;
 	struct _tmx_obj *next;
 } tmx_object;

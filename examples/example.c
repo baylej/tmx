@@ -52,6 +52,7 @@ void dump_objects(tmx_object *o) {
 		printf("\n\t\tx=%lf", o->x);
 		printf("\n\t\ty=%lf", o->y);
 		printf("\n\t\tnumber of points='%d'", o->points_len);
+		printf("\n\t\trotation=%lf", o->rotation);
 		printf("\n\t\tvisible=%s", str_bool(o->visible));
 		if (o->points_len) dump_points(o->points, o->points_len);
 		dump_prop(o->properties, 2);
