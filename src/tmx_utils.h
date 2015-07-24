@@ -10,7 +10,7 @@
 */
 enum enccmp_t {CSV, B64Z};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
-tmx_map* parse_xml (const char *filename); /* tmx_xml.c */
+tmx_map* parse_xml(const char *filename); /* tmx_xml.c */
 tmx_map* parse_json(const char *filename); /* tmx_json.c */
 
 /*
@@ -20,6 +20,7 @@ tmx_property* alloc_prop(void);
 tmx_image*    alloc_image(void);
 tmx_object*   alloc_object(void);
 tmx_layer*    alloc_layer(void);
+tmx_tile*     alloc_tile(void);
 tmx_tileset*  alloc_tileset(void);
 tmx_map*      alloc_map(void);
 tmx_tile*     alloc_tile(void);

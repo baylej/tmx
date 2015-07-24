@@ -26,14 +26,14 @@ void set_color(SDL_Renderer *ren, int color) {
 	SDL_SetRenderDrawColor(ren, r, g, b, SDL_ALPHA_OPAQUE);
 }
 
-void draw_polyline(SDL_Renderer *ren, int **points, int x, int y, int pointsc) {
+void draw_polyline(SDL_Renderer *ren, double **points, double x, double y, int pointsc) {
 	int i;
 	for (i=1; i<pointsc; i++) {
 		SDL_RenderDrawLine(ren, x+points[i-1][0], y+points[i-1][1], x+points[i][0], y+points[i][1]);
 	}
 }
 
-void draw_polygon(SDL_Renderer *ren, int **points, int x, int y, int pointsc) {
+void draw_polygon(SDL_Renderer *ren, double **points, double x, double y, int pointsc) {
 	draw_polyline(ren, points, x, y, pointsc);
 	if (pointsc > 2) {
 		SDL_RenderDrawLine(ren, x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1]);
@@ -76,7 +76,7 @@ void draw_layer(SDL_Renderer *ren, tmx_map *map, tmx_layer *layer) {
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
-			ts = tmx_get_tile(map, layer->content.gids[(i*map->width)+j], &(srcrect.x), &(srcrect.y));
+			ts = tmx_get_tileset(map, layer->content.gids[(i*map->width)+j], &(srcrect.x), &(srcrect.y));
 			if (ts) {
 				/* TODO Opacity and Flips */
 				srcrect.w = dstrect.w = ts->tile_width;

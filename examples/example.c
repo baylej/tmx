@@ -34,11 +34,11 @@ void print_shape(enum tmx_shape shape) {
 	}
 }
 
-void dump_points(int **p, int pl) {
+void dump_points(double **p, int pl) {
 	int i;
 	printf("\n\t\tpoints=");
 	for (i=0; i<pl; i++) {
-		printf(" (%d, %d)", p[i][0], p[i][1]);
+		printf(" (%lf, %lf)", p[i][0], p[i][1]);
 	}
 }
 
@@ -49,8 +49,8 @@ void dump_objects(tmx_object *o) {
 	} else {
 		printf("\n\t\tname='%s'", o->name);
 		printf("\n\t\tshape=");  print_shape(o->shape);
-		printf("\n\t\tx=%lu", o->x);
-		printf("\n\t\ty=%lu", o->y);
+		printf("\n\t\tx=%lf", o->x);
+		printf("\n\t\ty=%lf", o->y);
 		printf("\n\t\tnumber of points='%d'", o->points_len);
 		printf("\n\t\tvisible=%s", str_bool(o->visible));
 		if (o->points_len) dump_points(o->points, o->points_len);

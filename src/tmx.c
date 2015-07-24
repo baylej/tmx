@@ -179,7 +179,7 @@ tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, un
 tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
 	unsigned int id;
 	tmx_tileset *ts;
-	tmx_tile* t;
+	tmx_tile *t;
 
 	if (!map) {
 		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");

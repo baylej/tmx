@@ -98,7 +98,7 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_property **prop_headadr
 	return 1;
 }
 
-static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslenadr) {
+static int parse_points(xmlTextReaderPtr reader, double ***ptsarrayadr, int *ptslenadr) {
 	char *value, *v;
 	int i;
 
@@ -109,13 +109,13 @@ static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslen
 
 	*ptslenadr = 1 + count_char_occurences(value, ' ');
 
-	*ptsarrayadr = (int**)tmx_alloc_func(NULL, *ptslenadr * sizeof(int*)); /* points[i][x,y] */
+	*ptsarrayadr = (double**)tmx_alloc_func(NULL, *ptslenadr * sizeof(double*)); /* points[i][x,y] */
 	if (!(*ptsarrayadr)) {
 		tmx_errno = E_ALLOC;
 		return 0;
 	}
 
-	(*ptsarrayadr)[0] = (int*)tmx_alloc_func(NULL, *ptslenadr * 2 * sizeof(int));
+	(*ptsarrayadr)[0] = (double*)tmx_alloc_func(NULL, *ptslenadr * 2 * sizeof(double));
 	if (!(*ptsarrayadr)[0]) {
 		tmx_free_func(*ptsarrayadr);
 		tmx_errno = E_ALLOC;
@@ -128,7 +128,7 @@ static int parse_points(xmlTextReaderPtr reader, int ***ptsarrayadr, int *ptslen
 
 	v = value;
 	for (i=0; i<*ptslenadr; i++) {
-		if (sscanf(v, "%d,%d", (*ptsarrayadr)[i], (*ptsarrayadr)[i]+1) != 2) {
+		if (sscanf(v, "%lf,%lf", (*ptsarrayadr)[i], (*ptsarrayadr)[i]+1) != 2) {
 			tmx_err(E_XDATA, "xml parser: corrupted point list");
 			return 0;
 		}
@@ -146,7 +146,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x */
-		obj->x = atoi(value);
+		obj->x = atof(value);
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'x' attribute in the 'object' element");
@@ -154,7 +154,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"y"))) { /* y */
-		obj->y = atoi(value);
+		obj->y = atof(value);
 		tmx_free_func(value);
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'y' attribute in the 'object' element");
@@ -178,12 +178,12 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"height"))) { /* height */
 		obj->shape = S_SQUARE;
-		obj->height = atoi(value);
+		obj->height = atof(value);
 		tmx_free_func(value);
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"width"))) { /* width */
-		obj->width = atoi(value);
+		obj->width = atof(value);
 		tmx_free_func(value);
 	}
 

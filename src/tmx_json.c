@@ -50,17 +50,17 @@ static int pjson_properties(json_t *prp_el, tmx_property **prp_headaddr) {
 }
 
 /* unlike other parsers, this one's first argument is an array, not an element */
-static int pjson_points(json_t *pts_ar, int ***pts_araddr, int *ptslen_addr) {
+static int pjson_points(json_t *pts_ar, double ***pts_araddr, int *ptslen_addr) {
 	json_error_t err;
 	json_t *tmp;
 	int i;
 
 	*ptslen_addr = (int)(json_array_size(pts_ar));
-	if (!(*pts_araddr = (int**)tmx_alloc_func(NULL, *ptslen_addr * sizeof(int*)))) {
+	if (!(*pts_araddr = (double**)tmx_alloc_func(NULL, *ptslen_addr * sizeof(double*)))) {
 		tmx_errno = E_ALLOC;
 		return 0;
 	}
-	if (!(*pts_araddr[0] = (int*)tmx_alloc_func(NULL, *ptslen_addr * 2 * sizeof(int)))) {
+	if (!(*pts_araddr[0] = (double*)tmx_alloc_func(NULL, *ptslen_addr * 2 * sizeof(double)))) {
 		tmx_errno = E_ALLOC;
 		return 0;
 	}
@@ -70,7 +70,7 @@ static int pjson_points(json_t *pts_ar, int ***pts_araddr, int *ptslen_addr) {
 
 	for (i=0; i<*ptslen_addr; i++) {
 		tmp = json_array_get(pts_ar, i);
-		if (json_unpack_ex(tmp, &err, 0, "{s:i, s:i}", "x", (*pts_araddr)[i], "y", (*pts_araddr)[i]+1)) {
+		if (json_unpack_ex(tmp, &err, 0, "{s:F, s:F}", "x", (*pts_araddr)[i], "y", (*pts_araddr)[i]+1)) {
 			tmx_err(E_MISSEL, "json parser: (point) %s", err.text);
 			return 0;
 		}
@@ -89,7 +89,7 @@ static int pjson_objects(json_t *obj_el, tmx_object **obj_headaddr) {
 	o->next = *obj_headaddr;
 	*obj_headaddr = o;
 
-	if (json_unpack_ex(obj_el, &err, 0, "{s:i, s:i, s:i, s:i, s:b, s:s}",
+	if (json_unpack_ex(obj_el, &err, 0, "{s:F, s:F, s:F, s:F, s:b, s:s}",
 	                   "height",  &(o->height),  "width", &(o->width),
 	                   "x",       &(o->x),       "y",     &(o->y),
 	                   "visible", &(o->visible), "name",   &name)) {

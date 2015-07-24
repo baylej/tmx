@@ -85,10 +85,10 @@ typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
 typedef struct _tmx_obj { /* <object> */
 	char *name;
 	enum tmx_shape shape;
-	unsigned long x, y;
-	unsigned long width, height;
+	double x, y;
+	double width, height;
 	int gid;
-	int **points; /* point[i][x,y]; x=0 y=1 */
+	double **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
 	int visible; /* 0 == false */
 	tmx_property *properties;

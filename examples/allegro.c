@@ -40,14 +40,14 @@ void* al_img_loader(const char *path) {
 /*
 	Draw objects
 */
-void draw_polyline(int **points, int x, int y, int pointsc, ALLEGRO_COLOR color) {
+void draw_polyline(double **points, double x, double y, int pointsc, ALLEGRO_COLOR color) {
 	int i;
 	for (i=1; i<pointsc; i++) {
 		al_draw_line(x+points[i-1][0], y+points[i-1][1], x+points[i][0], y+points[i][1], color, LINE_THICKNESS);
 	}
 }
 
-void draw_polygone(int **points, int x, int y, int pointsc, ALLEGRO_COLOR color) {
+void draw_polygone(double **points, double x, double y, int pointsc, ALLEGRO_COLOR color) {
 	draw_polyline(points, x, y, pointsc, color);
 	if (pointsc > 2) {
 		al_draw_line(x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1], color, LINE_THICKNESS);
@@ -96,7 +96,7 @@ void draw_layer(tmx_map *map, tmx_layer *layer) {
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
-			ts = tmx_get_tile(map, layer->content.gids[(i*map->width)+j], &x, &y);
+			ts = tmx_get_tileset(map, layer->content.gids[(i*map->width)+j], &x, &y);
 			if (ts) {
 				w = ts->tile_width; h = ts->tile_height;
 				tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;
