@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8)
 #-----------#
 
 project(tmx C)
+set(API_VERSION "0.10")
+set(BUILD_VERSION "0.10.1")
 
 option(WANT_ZLIB "use zlib (ability to decompress layers data) ?" on)
 option(WANT_XML "use libXml2 (ability to read .tmx maps) ?" on)
@@ -63,25 +65,37 @@ else(WANT_JSON)
     message("Json not wanted")
 endif(WANT_JSON)
 
-if(WIN32)
+if(MSVC)
     # disable warning on _strncpy (spams the output)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif(WIN32)
+endif(MSVC)
 
 #-----------#
 #   Build
 #-----------#
 
-add_library(${PROJECT_NAME} ${SOURCES})
+list(APPEND targets ${PROJECT_NAME})
+
+add_library(${PROJECT_NAME} STATIC ${SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${BUILD_VERSION})
+
 if(BUILD_SHARED_LIBS)
-  target_link_libraries(${PROJECT_NAME} ${libs})
-endif()
+  list(APPEND targets ${PROJECT_NAME}_shared)
+
+  add_library(${PROJECT_NAME}_shared SHARED ${SOURCES})
+  target_link_libraries(${PROJECT_NAME}_shared ${libs})
+
+  set_target_properties(${PROJECT_NAME}_shared PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+  set_target_properties(${PROJECT_NAME}_shared PROPERTIES SOVERSION ${API_VERSION})
+  set_target_properties(${PROJECT_NAME}_shared PROPERTIES VERSION ${BUILD_VERSION})
+endif(BUILD_SHARED_LIBS)
 
 #-----------#
 #  Install
 #-----------#
 
-install(TARGETS ${PROJECT_NAME} 
+install(TARGETS ${targets}
+        RUNTIME DESTINATION "bin"
         LIBRARY DESTINATION "lib"
         ARCHIVE DESTINATION "lib")
 install(FILES "src/tmx.h" DESTINATION "include")
