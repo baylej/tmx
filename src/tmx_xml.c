@@ -170,12 +170,6 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"gid"))) { /* gid */
-		obj->shape = S_TILE;
-		obj->gid = atoi(value);
-		tmx_free_func(value);
-	}
-
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"height"))) { /* height */
 		obj->shape = S_SQUARE;
 		obj->height = atof(value);
@@ -184,6 +178,12 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"width"))) { /* width */
 		obj->width = atof(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"gid"))) { /* gid */
+		obj->shape = S_TILE;
+		obj->gid = atoi(value);
 		tmx_free_func(value);
 	}
 
