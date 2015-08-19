@@ -126,7 +126,6 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 		printf(" (NULL) }");
 	} else {
 		printf("\n\tname='%s'", l->name);
-		printf("\n\tcolor=#%.6X", l->color);
 		printf("\n\tvisible=%s", str_bool(l->visible));
 		printf("\n\topacity='%f'", l->opacity);
 		if (l->type == L_LAYER && l->content.gids) {
@@ -135,8 +134,10 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 				printf("%d,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
 			}
 		} else if (l->type == L_OBJGR) {
+			printf("\n\tcolor=#%.6X", l->content.objgr->color);
+			printf("\n\tdraworder=%d", l->content.objgr->draworder);
 			printf("\n\ttype=ObjectGroup");
-			dump_objects(l->content.head);
+			dump_objects(l->content.objgr->head);
 		} else if (l->type == L_IMAGE) {
 			printf("\n\tx_offset=%d", l->x_offset);
 			printf("\n\ty_offset=%d", l->y_offset);

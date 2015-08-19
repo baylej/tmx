@@ -54,7 +54,9 @@ void draw_polygone(double **points, double x, double y, int pointsc, ALLEGRO_COL
 	}
 }
 
-void draw_objects(tmx_object *head, ALLEGRO_COLOR color) {
+void draw_objects(tmx_object_group *objgr) {
+	ALLEGRO_COLOR color = int_to_al_color(objgr->color);
+	tmx_object *head = objgr->head;
 	while (head) {
 		if (head->visible) {
 			if (head->shape == S_SQUARE) {
@@ -128,7 +130,7 @@ ALLEGRO_BITMAP* render_map(tmx_map *map) {
 	while (layers) {
 		if (layers->visible) {
 			if (layers->type == L_OBJGR) {
-				draw_objects(layers->content.head, int_to_al_color(layers->color));
+				draw_objects(layers->content.objgr);
 			} else if (layers->type == L_IMAGE) {
 				if (layers->opacity < 1.) {
 					float op = layers->opacity;

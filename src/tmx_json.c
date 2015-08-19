@@ -79,15 +79,15 @@ static int pjson_points(json_t *pts_ar, double ***pts_araddr, int *ptslen_addr) 
 	return 1;
 }
 
-static int pjson_objects(json_t *obj_el, tmx_object **obj_headaddr) {
+static int pjson_objects(json_t *obj_el, tmx_object_group *objgr) {
 	json_error_t err;
 	json_t *tmp;
 	tmx_object *o;
 	char *name;
 
 	if (!(o = alloc_object())) return 0;
-	o->next = *obj_headaddr;
-	*obj_headaddr = o;
+	o->next = objgr->head;
+	objgr->head = o;
 
 	if (json_unpack_ex(obj_el, &err, 0, "{s:F, s:F, s:F, s:F, s:b, s:F, s:s}",
 	                   "height",  &(o->height),  "width",    &(o->width),
@@ -151,8 +151,6 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 		return 0;
 	}
 
-	if (!json_unpack(lay_el, "{s:s}", "color", &name)) lay->color = get_color_rgb(name);
-
 	if (lay->type == L_LAYER) {
 		/* FIXME verify data length = map.height * map.width */
 		if ((tmp = json_object_get(lay_el, "data")) && json_is_array(tmp)) {
@@ -174,9 +172,18 @@ static int pjson_layer(json_t *lay_el, tmx_layer **lay_headaddr, const char *fil
 			}
 		} else return 0;
 	} else {
+		tmx_object_group *objgr = alloc_objgr();
+		lay->content.objgr = objgr;
+		if (!json_unpack(lay_el, "{s:s}", "color", &name))
+			lay->content.objgr->color = get_color_rgb(name);
+
+		name = NULL;
+		json_unpack(lay_el, "{s:s}", "draworder", &name);
+		lay->content.objgr->draworder = parse_objgr_draworder(name);
+
 		if ((tmp = json_object_get(lay_el, "objects")) && json_is_array(tmp)) {
 			for (i=0; i<(int)json_array_size(tmp); i++) {
-				if (!pjson_objects(json_array_get(tmp, i), &(lay->content.head))) return 0;
+				if (!pjson_objects(json_array_get(tmp, i), lay->content.objgr)) return 0;
 			}
 		}
 	}

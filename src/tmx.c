@@ -80,6 +80,13 @@ static void free_obj(tmx_object *o) {
 	}
 }
 
+static void free_objgr(tmx_object_group *o) {
+	if (o) {
+		free_obj(o->head);
+		tmx_free_func(o);
+	}
+}
+
 static void free_image(tmx_image *i) {
 	if (i) {
 		tmx_free_func(i->source);
@@ -97,7 +104,7 @@ static void free_layers(tmx_layer *l) {
 		if (l->type == L_LAYER)
 			tmx_free_func(l->content.gids);
 		else if (l->type == L_OBJGR)
-			free_obj(l->content.head);
+			free_objgr(l->content.objgr);
 		else if (l->type == L_IMAGE) {
 			free_image(l->content.image);
 		}

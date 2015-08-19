@@ -278,6 +278,10 @@ tmx_object* alloc_object(void) {
 	return res;
 }
 
+tmx_object_group* alloc_objgr(void) {
+	return (tmx_object_group*)node_alloc(sizeof(tmx_object_group));
+}
+
 tmx_layer* alloc_layer(void) {
 	tmx_layer *res = (tmx_layer*)node_alloc(sizeof(tmx_layer));
 	if (res) {
@@ -332,6 +336,17 @@ enum tmx_map_renderorder parse_renderorder(const char *renderorder) {
 		return R_LEFTUP;
 	}
 	return R_NONE;
+}
+
+/* "index" -> G_INDEX */
+enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder) {
+	if (draworder == NULL || !strcmp(draworder, "topdown")) {
+		return G_TOPDOWN;
+	}
+	if (!strcmp(draworder, "index")) {
+		return G_INDEX;
+	}
+	return G_NONE;
 }
 
 /* "#337FA2" -> 0x337FA2 */

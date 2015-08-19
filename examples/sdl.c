@@ -40,9 +40,10 @@ void draw_polygon(SDL_Renderer *ren, double **points, double x, double y, int po
 	}
 }
 
-void draw_objects(SDL_Renderer *ren, tmx_object *head, int color) {
+void draw_objects(SDL_Renderer *ren, tmx_object_group *objgr) {
 	SDL_Rect rect;
-	set_color(ren, color);
+	set_color(ren, objgr->color);
+	tmx_object *head = objgr->head;
 	/* FIXME line thickness */
 	while (head) {
 		if (head->visible) {
@@ -126,7 +127,7 @@ SDL_Texture* render_map(SDL_Renderer *ren, tmx_map *map) {
 	while (layers) {
 		if (layers->visible) {
 			if (layers->type == L_OBJGR) {
-				draw_objects(ren, layers->content.head, layers->color);
+				draw_objects(ren, layers->content.objgr);
 			} else if (layers->type == L_IMAGE) {
 				draw_image_layer(ren, layers->content.image);
 			} else if (layers->type == L_LAYER) {

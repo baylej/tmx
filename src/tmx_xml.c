@@ -344,11 +344,6 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"color"))) { /* color */
-		res->color = get_color_rgb(value);
-		tmx_free_func(value);
-	}
-
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x_offset */
 		res->x_offset = (int)atoi(value);
 		tmx_free_func(value);
@@ -356,6 +351,21 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"y"))) { /* y_offset */
 		res->y_offset = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	/* objectgroups have more properties */
+	if (type == L_OBJGR) {
+		tmx_object_group *objgr = alloc_objgr();
+		res->content.objgr = objgr;
+
+		if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"color"))) { /* color */
+			objgr->color = get_color_rgb(value);
+			tmx_free_func(value);
+		}
+
+		value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"draworder"); /* draworder */
+		objgr->draworder = parse_objgr_draworder(value);
 		tmx_free_func(value);
 	}
 
@@ -373,8 +383,8 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 			} else if (!strcmp(name, "object")) {
 				if (!(obj = alloc_object())) return 0;
 
-				obj->next = res->content.head;
-				res->content.head = obj;
+				obj->next = res->content.objgr->head;
+				res->content.objgr->head = obj;
 
 				if (!parse_object(reader, obj)) return 0;
 			} else {

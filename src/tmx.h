@@ -45,6 +45,7 @@ extern void  (*tmx_img_free_func) (void *address);
 enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA};
 enum tmx_map_renderorder {R_NONE, R_RIGHTDOWN, R_RIGHTUP, R_LEFTDOWN, R_LEFTUP};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
+enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
 
 typedef struct _tmx_prop { /* <properties> and <property> */
@@ -97,9 +98,14 @@ typedef struct _tmx_obj { /* <object> */
 	struct _tmx_obj *next;
 } tmx_object;
 
-typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
-	char *name;
+typedef struct _tmx_objgr { /* <objectgroup> */
 	int color; /* bytes : RGB */
+	enum tmx_objgr_draworder draworder;
+	tmx_object *head;
+} tmx_object_group;
+
+typedef struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
+	char *name;
 	double opacity;
 	int visible; /* 0 == false */
 	int x_offset, y_offset; /* For image layers */
@@ -107,9 +113,9 @@ typedef struct _tmx_layer { /* <layer>+<data> <objectgroup>+<object> */
 	enum tmx_layer_type type;
 	union layer_content {
 		int32_t *gids;
-		tmx_object *head;
+		tmx_object_group *objgr;
 		tmx_image *image;
-	}content;
+	} content;
 
 	void *user_data; /* not freed by tmx_free ! */
 	tmx_property *properties;

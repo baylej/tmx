@@ -16,14 +16,15 @@ tmx_map* parse_json(const char *filename); /* tmx_json.c */
 /*
 	Node allocation
 */
-tmx_property* alloc_prop(void);
-tmx_image*    alloc_image(void);
-tmx_object*   alloc_object(void);
-tmx_layer*    alloc_layer(void);
-tmx_tile*     alloc_tile(void);
-tmx_tileset*  alloc_tileset(void);
-tmx_map*      alloc_map(void);
-tmx_tile*     alloc_tile(void);
+tmx_property*     alloc_prop(void);
+tmx_image*        alloc_image(void);
+tmx_object*       alloc_object(void);
+tmx_object_group* alloc_objgr(void);
+tmx_layer*        alloc_layer(void);
+tmx_tile*         alloc_tile(void);
+tmx_tileset*      alloc_tileset(void);
+tmx_map*          alloc_map(void);
+tmx_tile*         alloc_tile(void);
 
 /*
 	Misc
@@ -31,6 +32,7 @@ tmx_tile*     alloc_tile(void);
 #define MAX(a,b) (a<b) ? b: a;
 enum tmx_map_orient parse_orient(const char *orient_str);
 enum tmx_map_renderorder parse_renderorder(const char *renderorder);
+enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);
