@@ -252,78 +252,51 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 	Node allocation
 */
 
-tmx_property* alloc_prop(void) {
-	tmx_property *res = (tmx_property*)tmx_alloc_func(NULL, sizeof(tmx_property));
+static void* node_alloc(size_t size) {
+	void *res = tmx_alloc_func(NULL, size);
 	if (res) {
-		memset(res, 0, sizeof(tmx_property));
+		memset(res, 0, size);
 	} else {
 		tmx_errno = E_ALLOC;
 	}
 	return res;
+}
+
+tmx_property* alloc_prop(void) {
+	return (tmx_property*)node_alloc(sizeof(tmx_property));
 }
 
 tmx_image* alloc_image(void) {
-	tmx_image *res = (tmx_image*)tmx_alloc_func(NULL, sizeof(tmx_image));
-	if (res) {
-		memset(res, 0, sizeof(tmx_image));
-	} else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
+	return (tmx_image*)node_alloc(sizeof(tmx_image));
 }
 
 tmx_object* alloc_object(void) {
-	tmx_object *res = (tmx_object*)tmx_alloc_func(NULL, sizeof(tmx_object));
+	tmx_object *res = (tmx_object*)node_alloc(sizeof(tmx_object));
 	if (res) {
-		memset(res, 0, sizeof(tmx_object));
 		res->visible = 1;
-	} else {
-		tmx_errno = E_ALLOC;
 	}
 	return res;
 }
 
 tmx_layer* alloc_layer(void) {
-	tmx_layer *res = (tmx_layer*)tmx_alloc_func(NULL, sizeof(tmx_layer));
+	tmx_layer *res = (tmx_layer*)node_alloc(sizeof(tmx_layer));
 	if (res) {
-		memset(res, 0, sizeof(tmx_layer));
 		res->opacity = 1.0f;
 		res->visible = 1;
-	} else {
-		tmx_errno = E_ALLOC;
 	}
 	return res;
 }
 
 tmx_tile* alloc_tile(void) {
-	tmx_tile *res = (tmx_tile*)tmx_alloc_func(NULL, sizeof(tmx_tile));
-	if (res) {
-		memset(res, 0, sizeof(tmx_tile));
-	}
-	else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
+	return (tmx_tile*)node_alloc(sizeof(tmx_tile));
 }
 
 tmx_tileset* alloc_tileset(void) {
-	tmx_tileset *res = (tmx_tileset*)tmx_alloc_func(NULL, sizeof(tmx_tileset));
-	if (res) {
-		memset(res, 0, sizeof(tmx_tileset));
-	} else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
+	return (tmx_tileset*)node_alloc(sizeof(tmx_tileset));
 }
 
 tmx_map* alloc_map(void) {
-	tmx_map *res = (tmx_map*)tmx_alloc_func(NULL, sizeof(tmx_map));
-	if (res) {
-		memset(res, 0, sizeof(tmx_map));
-	} else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
+	return (tmx_map*)node_alloc(sizeof(tmx_map));
 }
 
 /*
