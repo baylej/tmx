@@ -1,25 +1,58 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <tmx.h>
 
 #define str_bool(b) (b==0? "false": "true")
 
-void dump_prop(tmx_property *p, int depth) {
-	int i; char padding[5];
-	for (i=0; i<depth; i++) {
-		padding[i] = '\t';
+void print_orient(enum tmx_map_orient orient) {
+	switch(orient) {
+		case O_NONE: printf("none");  break;
+		case O_ORT:  printf("ortho"); break;
+		case O_ISO:  printf("isome"); break;
+		case O_STA:  printf("stagg"); break;
+		default: printf("unknown");
 	}
-	padding[depth] = '\0';
+}
 
-	printf("\n%sproperties={", padding);
+void print_renderorder(enum tmx_map_renderorder ro) {
+	switch(ro) {
+		case R_NONE:      printf("none");      break;
+		case R_RIGHTDOWN: printf("rightdown"); break;
+		case R_RIGHTUP:   printf("rightup");   break;
+		case R_LEFTDOWN:  printf("leftdown");  break;
+		case R_LEFTUP:    printf("leftup");    break;
+		default: printf("unknown");
+	}
+}
+
+void print_draworder(enum tmx_objgr_draworder dro) {
+	switch(dro) {
+		case G_NONE:    printf("none");    break;
+		case G_INDEX:   printf("index");   break;
+		case G_TOPDOWN: printf("topdown"); break;
+		default: printf("unknown");
+	}
+}
+
+void mk_padding(char pad[11], int depth) {
+	if (depth>10) depth=10;
+	memset(pad, '\t', depth);
+	pad[depth] = '\0';
+}
+
+void dump_prop(tmx_property *p, int depth) {
+	char padding[11]; mk_padding(padding, depth);
+
+	printf("\n%s" "properties={", padding);
 	if (!p) {
 		printf(" (NULL) }");
 	} else {
 		while (p) {
-			printf("\n%s\t'%s'='%s'", padding, p->name, p->value);
+			printf("\n%s\t" "'%s'='%s'", padding, p->name, p->value);
 			p = p->next;
 		}
-		printf("\n%s}", padding);
+		printf("\n" "%s}", padding);
 	}
 }
 
@@ -36,53 +69,59 @@ void print_shape(enum tmx_shape shape) {
 
 void dump_points(double **p, int pl) {
 	int i;
-	printf("\n\t\tpoints=");
 	for (i=0; i<pl; i++) {
-		printf(" (%lf, %lf)", p[i][0], p[i][1]);
+		printf(" (%f, %f)", p[i][0], p[i][1]);
 	}
 }
 
-void dump_objects(tmx_object *o) {
-	printf("\n\tobject={");
+void dump_objects(tmx_object *o, int depth) {
+	char padding[11]; mk_padding(padding, depth);
+
+	printf("\n%s" "object={", padding);
 	if (!o) {
 		printf(" (NULL) }");
 	} else {
-		printf("\n\t\tname='%s'", o->name);
-		printf("\n\t\tshape=");  print_shape(o->shape);
-		printf("\n\t\tx=%lf", o->x);
-		printf("\n\t\ty=%lf", o->y);
-		printf("\n\t\tnumber of points='%d'", o->points_len);
-		printf("\n\t\trotation=%lf", o->rotation);
-		printf("\n\t\tvisible=%s", str_bool(o->visible));
-		if (o->points_len) dump_points(o->points, o->points_len);
-		dump_prop(o->properties, 2);
-		printf("\n\t}");
+		printf("\n%s\t" "name='%s'", padding, o->name);
+		printf("\n%s\t" "shape=", padding);  print_shape(o->shape);
+		printf("\n%s\t" "x=%f", padding, o->x);
+		printf("\n%s\t" "y=%f", padding, o->y);
+		printf("\n%s\t" "number of points='%d'", padding, o->points_len);
+		printf("\n%s\t" "rotation=%f", padding, o->rotation);
+		printf("\n%s\t" "visible=%s", padding, str_bool(o->visible));
+		if (o->points_len) {
+			printf("\n%s\t" "points=", padding);
+			dump_points(o->points, o->points_len);
+		}
+		dump_prop(o->properties, depth+1);
+		printf("\n%s}", padding);
 	}
 
 	if (o && o->next) {
-		dump_objects(o->next);
+		dump_objects(o->next, depth);
 	}
 }
 
-void dump_image(tmx_image *i) {
-	printf("\n\timage={");
+void dump_image(tmx_image *i, int depth) {
+	char padding[11]; mk_padding(padding, depth);
+
+	printf("\n%s" "image={", padding);
 	if (i) {
-		printf("\n\t\tsource='%s'", i->source);
-		printf("\n\t\theight=%lu", i->height);
-		printf("\n\t\twidth=%lu", i->width);
-		printf("\n\t\tuses_trans=%s", str_bool(i->uses_trans));
-		printf("\n\t\ttrans=#%.6X", i->trans);
-		printf("\n\t}");
+		printf("\n%s\t" "source='%s'", padding, i->source);
+		printf("\n%s\t" "height=%lu", padding, i->height);
+		printf("\n%s\t" "width=%lu", padding, i->width);
+		printf("\n%s\t" "uses_trans=%s", padding, str_bool(i->uses_trans));
+		printf("\n%s\t" "trans=#%.6X", padding, i->trans);
+		printf("\n%s}", padding);
 	} else {
 		printf(" (NULL) }");
 	}
 }
 
 void dump_tile(tmx_tile *t) {
-	printf("\n\ttile={");
+	printf("\n\t" "tile={");
 	if (t) {
-		printf("\n\t\tid=%u", t->id);
-		//dump_image(t->image);
+		printf("\n\t\t" "id=%u", t->id);
+		dump_image(t->image, 2);
 		dump_prop(t->properties, 2);
 		printf("\n\t}");
 	} else {
@@ -97,16 +136,16 @@ void dump_tile(tmx_tile *t) {
 void dump_tileset(tmx_tileset *t) {
 	printf("\ntileset={");
 	if (t) {
-		printf("\n\tname=%s", t->name);
-		printf("\n\tfirstgid=%u", t->firstgid);
-		printf("\n\ttile_height=%d", t->tile_height);
-		printf("\n\ttile_width=%d", t->tile_width);
-		printf("\n\tfirstgid=%d", t->firstgid);
-		printf("\n\tmargin=%d", t->margin);
-		printf("\n\tspacing=%d", t->spacing);
-		printf("\n\tx_offset=%d", t->x_offset);
-		printf("\n\ty_offset=%d", t->y_offset);
-		dump_image(t->image);
+		printf("\n\t" "name=%s", t->name);
+		printf("\n\t" "firstgid=%u", t->firstgid);
+		printf("\n\t" "tile_height=%d", t->tile_height);
+		printf("\n\t" "tile_width=%d", t->tile_width);
+		printf("\n\t" "firstgid=%d", t->firstgid);
+		printf("\n\t" "margin=%d", t->margin);
+		printf("\n\t" "spacing=%d", t->spacing);
+		printf("\n\t" "x_offset=%d", t->x_offset);
+		printf("\n\t" "y_offset=%d", t->y_offset);
+		dump_image(t->image, 1);
 		dump_tile(t->tiles);
 		dump_prop(t->properties, 1);
 		printf("\n}");
@@ -125,24 +164,24 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 	if (!l) {
 		printf(" (NULL) }");
 	} else {
-		printf("\n\tname='%s'", l->name);
-		printf("\n\tvisible=%s", str_bool(l->visible));
-		printf("\n\topacity='%f'", l->opacity);
+		printf("\n\t" "name='%s'", l->name);
+		printf("\n\t" "visible=%s", str_bool(l->visible));
+		printf("\n\t" "opacity='%f'", l->opacity);
 		if (l->type == L_LAYER && l->content.gids) {
-			printf("\n\ttype=Layer\n\ttiles=");
+			printf("\n\t" "type=Layer" "\n\t" "tiles=");
 			for (i=0; i<tc; i++) {
 				printf("%d,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
 			}
 		} else if (l->type == L_OBJGR) {
-			printf("\n\tcolor=#%.6X", l->content.objgr->color);
-			printf("\n\tdraworder=%d", l->content.objgr->draworder);
-			printf("\n\ttype=ObjectGroup");
-			dump_objects(l->content.objgr->head);
+			printf("\n\t" "color=#%.6X", l->content.objgr->color);
+			printf("\n\t" "draworder="); print_draworder(l->content.objgr->draworder);
+			printf("\n\t" "type=ObjectGroup");
+			dump_objects(l->content.objgr->head, 1);
 		} else if (l->type == L_IMAGE) {
-			printf("\n\tx_offset=%d", l->x_offset);
-			printf("\n\ty_offset=%d", l->y_offset);
-			printf("\n\ttype=ImageLayer");
-			dump_image(l->content.image);
+			printf("\n\t" "x_offset=%d", l->x_offset);
+			printf("\n\t" "y_offset=%d", l->y_offset);
+			printf("\n\t" "type=ImageLayer");
+			dump_image(l->content.image, 1);
 		}
 		dump_prop(l->properties, 1);
 		printf("\n}");
@@ -156,13 +195,13 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 void dump_map(tmx_map *m) {
 	fputs("map={", stdout);
 	if (m) {
-		printf("\n\torient=%d", m->orient);
-		printf("\n\trenderorder=%d", m->renderorder);
-		printf("\n\theight=%d", m->height);
-		printf("\n\twidth=%d", m->width);
-		printf("\n\ttheight=%d", m->tile_height);
-		printf("\n\ttwidth=%d", m->tile_width);
-		printf("\n\tbgcol=#%.6X", m->backgroundcolor);
+		printf("\n\t" "orient="); print_orient(m->orient);
+		printf("\n\t" "renderorder=%d", m->renderorder);
+		printf("\n\t" "height=%d", m->height);
+		printf("\n\t" "width=%d", m->width);
+		printf("\n\t" "theight=%d", m->tile_height);
+		printf("\n\t" "twidth=%d", m->tile_width);
+		printf("\n\t" "bgcol=#%.6X", m->backgroundcolor);
 	} else {
 		fputs("\n(NULL)", stdout);
 	}
