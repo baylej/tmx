@@ -51,6 +51,7 @@ enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
 /* typedefs of the structures below */
 typedef struct _tmx_prop tmx_property;
 typedef struct _tmx_img tmx_image;
+typedef struct _tmx_frame tmx_anim_frame;
 typedef struct _tmx_tile tmx_tile;
 typedef struct _tmx_ts tmx_tileset;
 typedef struct _tmx_obj tmx_object;
@@ -74,10 +75,19 @@ struct _tmx_img { /* <image> */
 	void *resource_image;
 };
 
+struct _tmx_frame { /* <frame> */
+	unsigned int tile_id;
+	unsigned int duration;
+};
+
 struct _tmx_tile { /* <tile> */
 	unsigned int id;
 	tmx_image *image;
 	tmx_object *collision;
+
+	unsigned int animation_len;
+	tmx_anim_frame *animation;
+
 	tmx_property *properties;
 	tmx_tile *next;
 };

@@ -24,6 +24,17 @@
     <property name="number" value="3"/>
    </properties>
   </tile>
+  <tile id="6">
+   <animation>
+    <frame tileid="0" duration="200"/>
+    <frame tileid="1" duration="300"/>
+    <frame tileid="2" duration="400"/>
+    <frame tileid="3" duration="500"/>
+    <frame tileid="4" duration="600"/>
+    <frame tileid="5" duration="700"/>
+    <frame tileid="6" duration="2000"/>
+   </animation>
+  </tile>
  </tileset>
  <imagelayer name="Image">
   <image source="bg.jpg"/>

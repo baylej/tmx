@@ -118,12 +118,22 @@ void dump_image(tmx_image *i, int depth) {
 }
 
 void dump_tile(tmx_tile *t) {
+	unsigned int i;
 	printf("\n\t" "tile={");
 	if (t) {
 		printf("\n\t\t" "id=%u", t->id);
 		dump_image(t->image, 2);
 		dump_prop(t->properties, 2);
 		dump_objects(t->collision, 2);
+
+		if (t->animation) {
+			printf("\n\t\t" "animation={");
+			for (i=0; i<t->animation_len; i++) {
+				printf("\n\t\t\t" "tile=%3d (%6dms)", t->animation[i].tile_id, t->animation[i].duration);
+			}
+			printf("\n\t\t}");
+		}
+
 		printf("\n\t}");
 	} else {
 		printf(" (NULL) }");

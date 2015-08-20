@@ -419,6 +419,71 @@ static int parse_tileoffset(xmlTextReaderPtr reader, int *x, int *y) {
 	return 1;
 }
 
+/* recursive function that alloc tmx_anim_frames on the stack and then move them to the heap */
+static tmx_anim_frame* parse_animation(xmlTextReaderPtr reader, int frame_count, unsigned int *length) {
+	char *value;
+	int curr_depth;
+	tmx_anim_frame frame;
+	tmx_anim_frame *res;
+
+	curr_depth = xmlTextReaderDepth(reader);
+
+	value = (char*)xmlTextReaderConstName(reader);
+	if (strcmp(value, "frame")) {
+		tmx_err(E_XDATA, "xml parser: invalid element '%s' within an 'animation'", value);
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tileid"))) { /* tileid */
+		frame.tile_id = atoi(value);
+		tmx_free_func(value);
+	}
+	else {
+		tmx_err(E_MISSEL, "xml parser: missing 'tileid' attribute in the 'frame' element");
+		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"duration"))) { /* duration */
+		frame.duration = atoi(value);
+		tmx_free_func(value);
+	}
+	else {
+		tmx_err(E_MISSEL, "xml parser: missing 'duration' attribute in the 'frame' element");
+		return 0;
+	}
+
+	if (xmlTextReaderNext(reader) != 1) return 0;
+
+	/* skips unwanted nodes */
+	while (xmlTextReaderDepth(reader)  > curr_depth ||
+		  (xmlTextReaderDepth(reader) == curr_depth && xmlTextReaderNodeType(reader) != XML_READER_TYPE_ELEMENT)) {
+		if (xmlTextReaderNext(reader) != 1) return 0;
+	}
+
+	/* no more frames, alloc on the heap and returns */
+	if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_END_ELEMENT && xmlTextReaderDepth(reader) < curr_depth) {
+		res = (tmx_anim_frame*)tmx_alloc_func(NULL, (frame_count+1) * sizeof(tmx_anim_frame));
+		if (res == NULL) {
+			tmx_err(E_ALLOC, "xml parser: failed to alloc %d animation frames", frame_count+1);
+			return NULL;
+		}
+		res[frame_count] = frame;
+		*length = frame_count+1;
+		return res;
+	}
+	/* recurse */
+	else if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
+		res = parse_animation(reader, frame_count+1, length);
+		if (res != NULL) {
+			res[frame_count] = frame;
+		}
+		return res;
+	}
+
+	tmx_err(E_XDATA, "xml parser: unexpected element '%s' within 'animation'", (char*)xmlTextReaderConstName(reader));
+	return NULL;
+}
+
 static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const char *filename) {
 	tmx_tile *res = NULL;
 	tmx_object *obj;
@@ -466,6 +531,19 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const ch
 						res->collision = obj;
 
 						if (!parse_object(reader, obj)) return 0;
+					}
+					/* else: ignore */
+				} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+				         xmlTextReaderDepth(reader) != curr_depth+1);
+			}
+			else if (!strcmp(name, "animation")) {
+				/* reads the first frame */
+				do {
+					if (xmlTextReaderRead(reader) != 1) return 0;
+					name = (char*)xmlTextReaderConstName(reader);
+					if (!strcmp(name, "frame")) {
+						res->animation = parse_animation(reader, 0, &(res->animation_len));
+						if (!(res->animation)) return 0;
 					}
 					/* else: ignore */
 				} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
