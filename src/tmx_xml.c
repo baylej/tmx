@@ -421,6 +421,7 @@ static int parse_tileoffset(xmlTextReaderPtr reader, int *x, int *y) {
 
 static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const char *filename) {
 	tmx_tile *res = NULL;
+	tmx_object *obj;
 	int curr_depth;
 	const char *name;
 	char *value;
@@ -454,13 +455,29 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const ch
 			else if (!strcmp(name, "image")) {
 				if (!parse_image(reader, &(res->image), 0, filename)) return 0;
 			}
+			else if (!strcmp(name, "objectgroup")) { /* tile collision */
+				do {
+					if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+					name = (char*)xmlTextReaderConstName(reader);
+					if (!strcmp(name, "object")) {
+						if (!(obj = alloc_object())) return 0;
+
+						obj->next = res->collision;
+						res->collision = obj;
+
+						if (!parse_object(reader, obj)) return 0;
+					}
+					/* else: ignore */
+				} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+				         xmlTextReaderDepth(reader) != curr_depth+1);
+			}
 			else {
 				/* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
-		xmlTextReaderDepth(reader) != curr_depth);
+	         xmlTextReaderDepth(reader) != curr_depth);
 
 	return 1;
 }

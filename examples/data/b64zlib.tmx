@@ -10,6 +10,9 @@
    <properties>
     <property name="number" value="1"/>
    </properties>
+   <objectgroup draworder="index">
+    <object id="0" x="11.75" y="4.75" width="10.25" height="25.25"/>
+   </objectgroup>
   </tile>
   <tile id="1">
    <properties>

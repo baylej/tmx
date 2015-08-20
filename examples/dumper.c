@@ -123,6 +123,7 @@ void dump_tile(tmx_tile *t) {
 		printf("\n\t\t" "id=%u", t->id);
 		dump_image(t->image, 2);
 		dump_prop(t->properties, 2);
+		dump_objects(t->collision, 2);
 		printf("\n\t}");
 	} else {
 		printf(" (NULL) }");

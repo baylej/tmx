@@ -76,7 +76,8 @@ struct _tmx_img { /* <image> */
 
 struct _tmx_tile { /* <tile> */
 	unsigned int id;
-	tmx_image* image;
+	tmx_image *image;
+	tmx_object *collision;
 	tmx_property *properties;
 	tmx_tile *next;
 };

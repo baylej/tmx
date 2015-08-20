@@ -88,6 +88,7 @@ static void free_tiles(tmx_tile *t) {
 		free_tiles(t->next);
 		free_props(t->properties);
 		free_image(t->image);
+		free_obj(t->collision);
 		tmx_free_func(t);
 	}
 }
