@@ -22,41 +22,11 @@ void  (*tmx_img_free_func) (void *address) = NULL;
 
 tmx_map* tmx_load(const char *path) {
 	tmx_map *map = NULL;
-	const char *extension;
-	FILE *file;
-	int fchar;
 
 	if (!tmx_alloc_func) tmx_alloc_func = realloc;
 	if (!tmx_free_func) tmx_free_func = free;
 
-	/* is 'path' a JSON or a XML file ? */
-	extension = strrchr(path, '.'); /* First using the file extension */
-	if (extension && (!strcmp(extension, ".tmx") || !strcmp(extension, ".xml"))) {
-		map = parse_xml(path);
-	} else if (extension && !strcmp(extension, ".json")) {
-		map = parse_json(path);
-	} else {
-		/* open the file and check with the first character */
-		if ((file = fopen(path, "r"))) {
-			fchar = fgetc(file);
-			fclose(file);
-			if (fchar == '<') {
-				map = parse_xml(path);
-			} else if (fchar == '{') {
-				map = parse_json(path);
-			} else {
-				tmx_errno = E_FORMAT;
-			}
-		} else {
-			if (errno == EACCES) {
-				tmx_errno = E_ACCESS;
-			} else if (errno == ENOENT) {
-				tmx_errno = E_NOENT;
-			} else {
-				tmx_err(E_UNKN, "%s", strerror(errno));
-			}
-		}
-	}
+	map = parse_xml(path);
 
 	return map;
 }

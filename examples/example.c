@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
 	tmx_map *m;
 
 	if (argc != 2) {
-		fprintf(stderr, "usage: %s <map.(tmx|xml|json)>\n", argv[0]);
+		fprintf(stderr, "usage: %s <map.tmx>\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
