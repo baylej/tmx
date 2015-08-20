@@ -48,13 +48,23 @@ enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
 
-typedef struct _tmx_prop { /* <properties> and <property> */
+/* typedefs of the structures below */
+typedef struct _tmx_prop tmx_property;
+typedef struct _tmx_img tmx_image;
+typedef struct _tmx_tile tmx_tile;
+typedef struct _tmx_ts tmx_tileset;
+typedef struct _tmx_obj tmx_object;
+typedef struct _tmx_objgr tmx_object_group;
+typedef struct _tmx_layer tmx_layer;
+typedef struct _tmx_map tmx_map;
+
+struct _tmx_prop { /* <properties> and <property> */
 	char *name;
 	char *value;
-	struct _tmx_prop *next;
-} tmx_property;
+	tmx_property *next;
+};
 
-typedef struct _tmx_img { /* <image> */
+struct _tmx_img { /* <image> */
 	char *source;
 	int trans; /* bytes : RGB */
 	int uses_trans;
@@ -62,29 +72,28 @@ typedef struct _tmx_img { /* <image> */
 	/*char *format; Not currently implemented in QtTiled
 	char *data;*/
 	void *resource_image;
-} tmx_image;
+};
 
-typedef struct _tmx_tile { /* <tile> */
+struct _tmx_tile { /* <tile> */
 	unsigned int id;
 	tmx_image* image;
 	tmx_property *properties;
-	struct _tmx_tile *next;
-} tmx_tile;
+	tmx_tile *next;
+};
 
-typedef struct _tmx_ts { /* <tileset> and <tileoffset> */
+struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
 	char *name;
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
 	int x_offset, y_offset; /* tileoffset */
-	/* terraintypes(0.9) is for the QtTiled terrain feature */
 	tmx_image *image;
 	tmx_property *properties;
 	tmx_tile *tiles;
-	struct _tmx_ts *next;
-} tmx_tileset;
+	tmx_tileset *next;
+};
 
-typedef struct _tmx_obj { /* <object> */
+struct _tmx_obj { /* <object> */
 	char *name;
 	enum tmx_shape shape;
 	double x, y;
@@ -95,16 +104,16 @@ typedef struct _tmx_obj { /* <object> */
 	int visible; /* 0 == false */
 	double rotation;
 	tmx_property *properties;
-	struct _tmx_obj *next;
-} tmx_object;
+	tmx_object *next;
+};
 
-typedef struct _tmx_objgr { /* <objectgroup> */
+struct _tmx_objgr { /* <objectgroup> */
 	int color; /* bytes : RGB */
 	enum tmx_objgr_draworder draworder;
 	tmx_object *head;
-} tmx_object_group;
+};
 
-typedef struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
+struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	char *name;
 	double opacity;
 	int visible; /* 0 == false */
@@ -119,10 +128,10 @@ typedef struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 
 	void *user_data; /* not freed by tmx_free ! */
 	tmx_property *properties;
-	struct _tmx_layer *next;
-} tmx_layer;
+	tmx_layer *next;
+};
 
-typedef struct _tmx_map { /* <map> (Head of the data structure) */
+struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_map_orient orient;
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
@@ -132,7 +141,7 @@ typedef struct _tmx_map { /* <map> (Head of the data structure) */
 	tmx_property *properties;
 	tmx_tileset *ts_head;
 	tmx_layer *ly_head;
-} tmx_map;
+};
 
 /*
 	Functions
