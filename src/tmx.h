@@ -30,13 +30,13 @@ extern "C" {
 */
 /* Custom realloc and free function, for memalloc debugging purposes
    Please modify these values if once before you use tmx_load */
-extern void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
-extern void  (*tmx_free_func ) (void *address);             /* free */
+TMXEXPORT extern void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
+TMXEXPORT extern void  (*tmx_free_func ) (void *address);             /* free */
 
 /* load/free tmx_image->resource_image, you should set this if you want
    the library to load/free images */
-extern void* (*tmx_img_load_func) (const char *path);
-extern void  (*tmx_img_free_func) (void *address);
+TMXEXPORT extern void* (*tmx_img_load_func) (const char *path);
+TMXEXPORT extern void  (*tmx_img_free_func) (void *address);
 
 /*
 	Data Structures
@@ -160,17 +160,17 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 
 /* Load a map and return the head of the data structure
    returns NULL if an error occured and set tmx_errno */
-tmx_map *tmx_load(const char *path);
+TMXEXPORT tmx_map *tmx_load(const char *path);
 
 /* Free the map data structure */
-void tmx_map_free(tmx_map *map);
+TMXEXPORT void tmx_map_free(tmx_map *map);
 
 /* returns the tileset and the upper-left coordinate on the tileset
    of the tile associated with this gid, returns NULL if it fails */
-tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
+TMXEXPORT tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
 
 /* returns the tile associated with this gid, returns NULL if it fails */
-tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
+TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
 
 /*
 	Error handling
@@ -200,9 +200,9 @@ typedef enum _tmx_error_codes {
 extern tmx_error_codes tmx_errno;
 
 /* print the error message prefixed with the parameter */
-void tmx_perror(const char*);
+TMXEXPORT void tmx_perror(const char*);
 /* return the error message for the current value of `tmx_errno` */
-const char* tmx_strerr(void); /* FIXME errno parameter ? (as strerror) */
+TMXEXPORT const char* tmx_strerr(void); /* FIXME errno parameter ? (as strerror) */
 
 #ifdef __cplusplus
 }
