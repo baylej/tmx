@@ -28,16 +28,18 @@ You can either use cmake, ccmake or cmake-gui.
 #include <tmx.h>
 
 int main(void) {
-  tmx_map map = tmx_load("path/map.tmx");
+  tmx_map *map = tmx_load("path/map.tmx");
   if (!map) {
     tmx_perror("tmx_load");
     return 1;
   }
   /* ... */
-  tmx_free(map);
+  tmx_map_free(map);
   return 0;
 }
 ```
+
+See the dumper example (`examples/dumper/dumper.c`) for an in-depth usage of TMX.
 
 ### Help
 
