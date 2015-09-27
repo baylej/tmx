@@ -11,7 +11,5 @@ find_package(tmx REQUIRED)
 add_executable(dumper "dumper.c")
 
 # Links with the static library
-target_link_libraries(dumper tmx)
+target_link_libraries(dumper tmx ZLIB::ZLIB ${LIBXML2_LIBRARIES})
 
-# Links with the shared library
-#target_link_libraries(dumper tmx_shared)

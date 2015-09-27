@@ -35,7 +35,7 @@ if(WANT_ZLIB)
     include(FindZLIB)
     find_package(ZLIB REQUIRED)
     include_directories(${ZLIB_INCLUDE_DIR})
-    list(APPEND libs ${ZLIB_LIBRARY})
+    list(APPEND libs ZLIB::ZLIB)
 else(WANT_ZLIB)
     message("Zlib not wanted")
 endif(WANT_ZLIB)
@@ -51,45 +51,44 @@ if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(MSVC)
 
-configure_file("${PROJECT_NAME}Config.cmake.in" "${PROJECT_NAME}Config.cmake" @ONLY)
+configure_file("tmxConfig.cmake.in" "tmxConfig.cmake" @ONLY)
 
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake" COMPATIBILITY SameMajorVersion)
+write_basic_package_version_file("tmxConfigVersion.cmake" COMPATIBILITY SameMajorVersion)
 
 #-----------#
 #   Build
 #-----------#
 
-list(APPEND targets ${PROJECT_NAME})
+list(APPEND targets tmx)
 
-add_library(${PROJECT_NAME} STATIC ${SOURCES})
-set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${BUILD_VERSION})
-target_link_libraries(${PROJECT_NAME} ${libs})
-target_compile_definitions(${PROJECT_NAME} PUBLIC "TMXEXPORT=")
+add_library(tmx STATIC ${SOURCES})
+set_target_properties(tmx PROPERTIES VERSION ${BUILD_VERSION})
+target_compile_definitions(tmx PUBLIC "TMXEXPORT=")
 
-set_property(TARGET ${PROJECT_NAME}
+set_property(TARGET tmx
              APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
              $<INSTALL_INTERFACE:include>)
 
 if(BUILD_SHARED_LIBS)
-    list(APPEND targets ${PROJECT_NAME}_shared)
+    list(APPEND targets tmx_shared)
 
-    add_library(${PROJECT_NAME}_shared SHARED ${SOURCES})
-    target_link_libraries(${PROJECT_NAME}_shared ${libs})
+    add_library(tmx_shared SHARED ${SOURCES})
+    target_link_libraries(tmx_shared PRIVATE ${libs})
 
     if(MSVC OR CYGWIN OR MINGW)
-        target_compile_definitions(${PROJECT_NAME}_shared
+        target_compile_definitions(tmx_shared
                                    PRIVATE   "TMXEXPORT=__declspec(dllexport)"
                                    INTERFACE "TMXEXPORT=__declspec(dllimport)")
     else()
-        target_compile_definitions(${PROJECT_NAME}_shared PUBLIC "TMXEXPORT=")
+        target_compile_definitions(tmx_shared PUBLIC "TMXEXPORT=")
     endif()
 
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES SOVERSION ${API_VERSION})
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES VERSION ${BUILD_VERSION})
+    set_target_properties(tmx_shared PROPERTIES OUTPUT_NAME tmx)
+    set_target_properties(tmx_shared PROPERTIES SOVERSION ${API_VERSION})
+    set_target_properties(tmx_shared PROPERTIES VERSION ${BUILD_VERSION})
 
-    set_property(TARGET ${PROJECT_NAME}_shared
+    set_property(TARGET tmx_shared
                  APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
                  $<INSTALL_INTERFACE:include>)
 endif(BUILD_SHARED_LIBS)
@@ -101,14 +100,14 @@ endif(BUILD_SHARED_LIBS)
 include(GNUInstallDirs)
 
 install(TARGETS ${targets}
-        EXPORT ${PROJECT_NAME}_exports
+        EXPORT tmx_exports
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-install(EXPORT ${PROJECT_NAME}_exports
-        FILE "${PROJECT_NAME}Exports.cmake"
-        DESTINATION "lib/cmake/${PROJECT_NAME}")
-install(FILES "${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake" "${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-        DESTINATION "lib/cmake/${PROJECT_NAME}")
+install(EXPORT tmx_exports
+        FILE "tmxExports.cmake"
+        DESTINATION "lib/cmake/tmx")
+install(FILES "${CMAKE_BINARY_DIR}/tmxConfig.cmake" "${CMAKE_BINARY_DIR}/tmxConfigVersion.cmake"
+        DESTINATION "lib/cmake/tmx")
