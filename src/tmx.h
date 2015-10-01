@@ -105,15 +105,20 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 };
 
 struct _tmx_obj { /* <object> */
-	char *name;
 	enum tmx_shape shape;
+
 	double x, y;
 	double width, height;
+
 	int gid;
+
 	double **points; /* point[i][x,y]; x=0 y=1 */
 	int points_len;
+
 	int visible; /* 0 == false */
 	double rotation;
+
+	char *name, *type;
 	tmx_property *properties;
 	tmx_object *next;
 };

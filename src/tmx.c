@@ -45,6 +45,7 @@ static void free_obj(tmx_object *o) {
 		free_obj(o->next);
 		tmx_free_func(o->name);
 		if (o->points) tmx_free_func(*(o->points));
+		tmx_free_func(o->type);
 		tmx_free_func(o->points);
 		tmx_free_func(o);
 	}

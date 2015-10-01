@@ -165,6 +165,10 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 		obj->name = value;
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"type"))) { /* type */
+		obj->type = value;
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"visible"))) { /* visible */
 		obj->visible = (char)atoi(value);
 		tmx_free_func(value);
