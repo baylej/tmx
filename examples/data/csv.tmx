@@ -65,7 +65,7 @@
 </data>
  </layer>
  <objectgroup color="#aa0000" name="Objects">
-  <object id="1" name="square" x="128" y="128" width="192" height="192" rotation="22.5"/>
+  <object id="1" name="square" type="spawn" x="128" y="128" width="192" height="192" rotation="22.5"/>
   <object id="2" name="polygon" x="492" y="325">
    <polygon points="20,-5 -44,-197 180,-229"/>
   </object>

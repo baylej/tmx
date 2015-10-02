@@ -11,6 +11,25 @@ void print_orient(enum tmx_map_orient orient) {
 		case O_ORT:  printf("ortho"); break;
 		case O_ISO:  printf("isome"); break;
 		case O_STA:  printf("stagg"); break;
+		case O_HEX:  printf("hexag"); break;
+		default: printf("unknown");
+	}
+}
+
+void print_stagger_index(enum tmx_stagger_index index) {
+	switch(index) {
+		case SI_NONE: printf("none"); break;
+		case SI_EVEN: printf("even"); break;
+		case SI_ODD:  printf("odd");  break;
+		default: printf("unknown");
+	}
+}
+
+void print_stagger_axis(enum tmx_stagger_axis axis) {
+	switch(axis) {
+		case SA_NONE: printf("none"); break;
+		case SA_X:    printf("x");    break;
+		case SA_Y:    printf("y");    break;
 		default: printf("unknown");
 	}
 }
@@ -81,7 +100,9 @@ void dump_objects(tmx_object *o, int depth) {
 	if (!o) {
 		printf(" (NULL) }");
 	} else {
+		printf("\n%s\t" "id=%u", padding, o->id);
 		printf("\n%s\t" "name='%s'", padding, o->name);
+		printf("\n%s\t" "type='%s'", padding, o->type);
 		printf("\n%s\t" "shape=", padding);  print_shape(o->shape);
 		printf("\n%s\t" "x=%f", padding, o->x);
 		printf("\n%s\t" "y=%f", padding, o->y);
@@ -213,6 +234,9 @@ void dump_map(tmx_map *m) {
 		printf("\n\t" "theight=%d", m->tile_height);
 		printf("\n\t" "twidth=%d", m->tile_width);
 		printf("\n\t" "bgcol=#%.6X", m->backgroundcolor);
+		printf("\n\t" "staggerindex="); print_stagger_index(m->stagger_index);
+		printf("\n\t" "staggeraxis="); print_stagger_axis(m->stagger_axis);
+		printf("\n\t" "hexsidelength=%d", m->hexsidelength);
 	} else {
 		fputs("\n(NULL)", stdout);
 	}
