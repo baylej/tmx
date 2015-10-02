@@ -318,6 +318,9 @@ enum tmx_map_orient parse_orient(const char *orient_str) {
 	if (!strcmp(orient_str, "stagging")) {
 		return O_STA;
 	}
+	if (!strcmp(orient_str, "hexagonal")) {
+		return O_HEX;
+	}
 	return O_NONE;
 }
 
@@ -347,6 +350,28 @@ enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder) {
 		return G_INDEX;
 	}
 	return G_NONE;
+}
+
+/* "even" -> SI_EVEN */
+enum tmx_stagger_index parse_stagger_index(const char *staggerindex) {
+	if (staggerindex == NULL || !strcmp(staggerindex, "odd")) {
+		return SI_ODD;
+	}
+	if (!strcmp(staggerindex, "even")) {
+		return SI_EVEN;
+	}
+	return SI_NONE;
+}
+
+/* "y" -> SA_Y */
+enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis) {
+	if (staggeraxis == NULL || !strcmp(staggeraxis, "y")) {
+		return SA_Y;
+	}
+	if (!strcmp(staggeraxis, "columns")) {
+		return SA_X;
+	}
+	return SA_NONE;
 }
 
 /* "#337FA2" -> 0x337FA2 */

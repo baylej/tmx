@@ -42,8 +42,10 @@ TMXEXPORT extern void  (*tmx_img_free_func) (void *address);
 	Data Structures
 */
 
-enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA};
+enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA, O_HEX};
 enum tmx_map_renderorder {R_NONE, R_RIGHTDOWN, R_RIGHTUP, R_LEFTDOWN, R_LEFTUP};
+enum tmx_stagger_index {SI_NONE, SI_EVEN, SI_ODD};
+enum tmx_stagger_axis {SA_NONE, SA_X, SA_Y};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
@@ -149,8 +151,14 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 
 struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_map_orient orient;
+
 	unsigned int width, height;
 	unsigned int tile_width, tile_height;
+
+	enum tmx_stagger_index stagger_index;
+	enum tmx_stagger_axis stagger_axis;
+	int hexsidelength;
+
 	int backgroundcolor; /* bytes : RGB */
 	enum tmx_map_renderorder renderorder;
 

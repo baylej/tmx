@@ -689,6 +689,20 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 		goto cleanup;
 	}
 
+	value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"staggerindex"); /* staggerindex */
+	if (value != NULL && (res->stagger_index = parse_stagger_index(value), res->stagger_index == SI_NONE)) {
+		tmx_err(E_XDATA, "xml parser: unsupported 'staggerindex' '%s'", value);
+		goto cleanup;
+	}
+	tmx_free_func(value);
+
+	value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"staggeraxis"); /* staggeraxis */
+	if (res->stagger_axis = parse_stagger_axis(value), res->stagger_axis == SA_NONE) {
+		tmx_err(E_XDATA, "xml parser: unsupported 'staggeraxis' '%s'", value);
+		goto cleanup;
+	}
+	tmx_free_func(value);
+
 	value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"renderorder"); /* renderorder */
 	if (res->renderorder = parse_renderorder(value), res->renderorder == R_NONE) {
 		tmx_err(E_XDATA, "xml parser: unsupported 'renderorder' '%s'", value);
@@ -730,6 +744,11 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, const char *filename) {
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"backgroundcolor"))) { /* backgroundcolor */
 		res->backgroundcolor = get_color_rgb(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"hexsidelength"))) { /* hexsidelength */
+		res->hexsidelength = atoi(value);
 		tmx_free_func(value);
 	}
 
