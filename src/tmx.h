@@ -107,6 +107,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 };
 
 struct _tmx_obj { /* <object> */
+	unsigned int id;
 	enum tmx_shape shape;
 
 	double x, y;

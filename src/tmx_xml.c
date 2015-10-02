@@ -143,6 +143,14 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 	char *value;
 
 	/* parses each attribute */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
+		obj->id = atoi(value);
+		tmx_free_func(value);
+	} else {
+		tmx_err(E_MISSEL, "xml parser: missing 'id' attribute in the 'object' element");
+		return 0;
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x */
 		obj->x = atof(value);
 		tmx_free_func(value);
