@@ -56,7 +56,7 @@ void print_draworder(enum tmx_objgr_draworder dro) {
 
 void mk_padding(char pad[11], int depth) {
 	if (depth>10) depth=10;
-	memset(pad, '\t', depth);
+	if (depth>0) memset(pad, '\t', depth);
 	pad[depth] = '\0';
 }
 
