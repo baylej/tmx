@@ -169,6 +169,7 @@ void dump_tileset(tmx_tileset *t) {
 	printf("\ntileset={");
 	if (t) {
 		printf("\n\t" "name=%s", t->name);
+		printf("\n\t" "tilecount=%u", t->tilecount);
 		printf("\n\t" "firstgid=%u", t->firstgid);
 		printf("\n\t" "tile_height=%d", t->tile_height);
 		printf("\n\t" "tile_width=%d", t->tile_width);

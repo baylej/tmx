@@ -100,6 +100,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
 	int x_offset, y_offset; /* tileoffset */
+	unsigned int tilecount;
 	tmx_image *image;
 	tmx_property *properties;
 	tmx_tile *tiles;

@@ -586,6 +586,14 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 		return 0;
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilecount"))) { /* tilecount */
+		ts_addr->tilecount = atoi(value);
+		tmx_free_func(value);
+	} else {
+		tmx_err(E_MISSEL, "xml parser: missing 'tilecount' attribute in the 'tileset' element");
+		return 0;
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilewidth"))) { /* tile_width */
 		ts_addr->tile_width = atoi(value);
 		tmx_free_func(value);
