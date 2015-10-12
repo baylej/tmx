@@ -28,6 +28,13 @@ tmx_map* tmx_load(const char *path) {
 
 	map = parse_xml(path);
 
+	if (map) {
+		if (!mk_map_tile_array(map)) {
+			tmx_map_free(map);
+			map = NULL;
+		}
+	}
+
 	return map;
 }
 
@@ -84,24 +91,27 @@ static void free_layers(tmx_layer *l) {
 	}
 }
 
-static void free_tiles(tmx_tile *t) {
+static void free_tiles(tmx_tile *t, int tilecount) {
+	int i;
 	if (t) {
-		free_tiles(t->next);
-		free_props(t->properties);
-		free_image(t->image);
-		free_obj(t->collision);
-		tmx_free_func(t->animation);
-		tmx_free_func(t);
+		for (i=0; i<tilecount; i++) {
+			free_props(t[i].properties);
+			free_image(t[i].image);
+			free_obj(t[i].collision);
+			tmx_free_func(t[i].animation);
+		}
 	}
 }
 
 static void free_ts(tmx_tileset *ts) {
+	int i;
 	if (ts) {
 		free_ts(ts->next);
 		tmx_free_func(ts->name);
 		free_image(ts->image);
 		free_props(ts->properties);
-		free_tiles(ts->tiles);
+		free_tiles(ts->tiles, ts->tilecount);
+		tmx_free_func(ts->tiles);
 		tmx_free_func(ts);
 	}
 }
@@ -111,81 +121,20 @@ void tmx_map_free(tmx_map *map) {
 		free_ts(map->ts_head);
 		free_props(map->properties);
 		free_layers(map->ly_head);
+		tmx_free_func(map->tiles);
 		tmx_free_func(map);
 	}
 }
 
-tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y) {
-	unsigned int tiles_x_count;
-	unsigned int ts_w, id, tx, ty;
-	tmx_tileset *ts;
-
-	if (!map) {
-		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");
-		return NULL;
-	}
-
-	if (!x || !y) {
-		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: x or y is NULL");
-		return NULL;
-	}
-
-	gid &= TMX_FLIP_BITS_REMOVAL;
-	ts = map->ts_head;
-
-	while (ts) {
-		if (ts->firstgid <= gid) {
-			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
-				id = gid - ts->firstgid; /* local id (for this image) */
-
-				ts_w = ts->image->width  - 2 * (ts->margin) + ts->spacing;
-
-				tiles_x_count = ts_w / (ts->tile_width  + ts->spacing);
-
-				tx = id % tiles_x_count;
-				ty = id / tiles_x_count;
-
-				*x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); /* set bitmap's region */
-				*y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing); /* x and y coordinates */
-				return ts;
-			}
-		}
-		ts = ts->next;
-	}
-
-	return NULL;
-}
-
 tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
-	unsigned int id;
-	tmx_tileset *ts;
-	tmx_tile *t;
-
 	if (!map) {
 		tmx_err(E_INVAL, "tmx_get_tile: invalid argument: map is NULL");
 		return NULL;
 	}
 
 	gid &= TMX_FLIP_BITS_REMOVAL;
-	ts = map->ts_head;
 
-	while (ts) {
-		if (ts->firstgid <= gid) {
-			if (!ts->next || ts->next->firstgid < ts->firstgid || ts->next->firstgid > gid) {
-				id = gid - ts->firstgid; /* local id (for this tile) */
-
-				t = ts->tiles;
-
-				while (t) {
-					if (t->id == id) {
-						return t;
-					}
-					t = t->next;
-				}
-			}
-		}
-		ts = ts->next;
-	}
+	if (gid < map->tilecount) return map->tiles[gid];
 
 	return NULL;
 }

@@ -84,6 +84,9 @@ struct _tmx_frame { /* <frame> */
 
 struct _tmx_tile { /* <tile> */
 	unsigned int id;
+	tmx_tileset *tileset;
+	unsigned int ul_x, ul_y; /* upper-left coordinate of this tile */
+
 	tmx_image *image;
 	tmx_object *collision;
 
@@ -91,7 +94,6 @@ struct _tmx_tile { /* <tile> */
 	tmx_anim_frame *animation;
 
 	tmx_property *properties;
-	tmx_tile *next;
 };
 
 struct _tmx_ts { /* <tileset> and <tileoffset> */
@@ -167,6 +169,9 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	tmx_property *properties;
 	tmx_tileset *ts_head;
 	tmx_layer *ly_head;
+
+	unsigned int tilecount; /* length of map->tiles */
+	tmx_tile **tiles; /* GID indexed tile array (array of pointers to tmx_tile) */
 };
 
 /*
@@ -179,10 +184,6 @@ TMXEXPORT tmx_map *tmx_load(const char *path);
 
 /* Free the map data structure */
 TMXEXPORT void tmx_map_free(tmx_map *map);
-
-/* returns the tileset and the upper-left coordinate on the tileset
-   of the tile associated with this gid, returns NULL if it fails */
-TMXEXPORT tmx_tileset* tmx_get_tileset(tmx_map *map, unsigned int gid, unsigned int *x, unsigned int *y);
 
 /* returns the tile associated with this gid, returns NULL if it fails */
 TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);

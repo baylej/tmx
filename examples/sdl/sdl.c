@@ -69,19 +69,23 @@ void draw_objects(tmx_object_group *objgr) {
 	}
 }
 
-int gid_clear_flags(unsigned int gid) {
+unsigned int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
 void draw_layer(tmx_map *map, tmx_layer *layer) {
 	unsigned long i, j;
+	unsigned int gid;
 	float op;
 	tmx_tileset *ts;
 	SDL_Rect srcrect, dstrect;
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
-			ts = tmx_get_tileset(map, layer->content.gids[(i*map->width)+j], &(srcrect.x), &(srcrect.y));
+			gid = gid_clear_flags(layer->content.gids[(i*map->width)+j]);
+			ts = map->tiles[gid]->tileset;
+			srcrect.x = map->tiles[gid]->ul_x;
+			srcrect.y = map->tiles[gid]->ul_y;
 			if (ts) {
 				/* TODO Opacity and Flips */
 				srcrect.w = dstrect.w = ts->tile_width;

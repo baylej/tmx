@@ -138,30 +138,25 @@ void dump_image(tmx_image *i, int depth) {
 	}
 }
 
-void dump_tile(tmx_tile *t) {
-	unsigned int i;
-	printf("\n\t" "tile={");
-	if (t) {
-		printf("\n\t\t" "id=%u", t->id);
-		dump_image(t->image, 2);
-		dump_prop(t->properties, 2);
-		dump_objects(t->collision, 2);
+void dump_tile(tmx_tile *t, unsigned int tilecount) {
+	unsigned int i, j;
+	for (i=0; i<tilecount; i++) {
+		printf("\n\t" "tile={");
+		printf("\n\t\t" "id=%u", t[i].id);
+		printf("\n\t\t" "upper-left=(%u,%u)", t[i].ul_x, t[i].ul_y);
+		dump_image(t[i].image, 2);
+		dump_prop(t[i].properties, 2);
+		dump_objects(t[i].collision, 2);
 
-		if (t->animation) {
+		if (t[i].animation) {
 			printf("\n\t\t" "animation={");
-			for (i=0; i<t->animation_len; i++) {
-				printf("\n\t\t\t" "tile=%3d (%6dms)", t->animation[i].tile_id, t->animation[i].duration);
+			for (j=0; j<t[i].animation_len; j++) {
+				printf("\n\t\t\t" "tile=%3d (%6dms)", t[i].animation[j].tile_id, t[i].animation[j].duration);
 			}
 			printf("\n\t\t}");
 		}
 
 		printf("\n\t}");
-	} else {
-		printf(" (NULL) }");
-	}
-
-	if (t && t->next) {
-		dump_tile(t->next);
 	}
 }
 
@@ -179,7 +174,7 @@ void dump_tileset(tmx_tileset *t) {
 		printf("\n\t" "x_offset=%d", t->x_offset);
 		printf("\n\t" "y_offset=%d", t->y_offset);
 		dump_image(t->image, 1);
-		dump_tile(t->tiles);
+		dump_tile(t->tiles, t->tilecount);
 		dump_prop(t->properties, 1);
 		printf("\n}");
 	} else {

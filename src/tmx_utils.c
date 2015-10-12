@@ -291,8 +291,8 @@ tmx_layer* alloc_layer(void) {
 	return res;
 }
 
-tmx_tile* alloc_tile(void) {
-	return (tmx_tile*)node_alloc(sizeof(tmx_tile));
+tmx_tile* alloc_tiles(int count) {
+	return (tmx_tile*)node_alloc(count * sizeof(tmx_tile));
 }
 
 tmx_tileset* alloc_tileset(void) {
@@ -306,6 +306,78 @@ tmx_map* alloc_map(void) {
 /*
 	Misc
 */
+
+/* Sets tile->tileset and tile->ul_x,y */
+int set_tiles_runtime_props(tmx_tileset *ts) {
+	int i;
+	unsigned int tiles_x_count, ts_w, tx, ty;
+
+	if (ts == NULL) {
+		tmx_err(E_INVAL, "set_tiles_runtime_props: invalid argument: ts is NULL");
+		return 0;
+	}
+
+	for (i=0; i<ts->tilecount; i++) {
+		ts->tiles[i].id = i;
+		ts->tiles[i].tileset = ts;
+
+		/* set bitmap's region x and y coordinates */
+		ts_w = ts->image->width - 2 * (ts->margin) + ts->spacing;
+
+		tiles_x_count = ts_w / (ts->tile_width + ts->spacing);
+
+		tx = i % tiles_x_count;
+		ty = i / tiles_x_count;
+
+		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); 
+		ts->tiles[i].ul_y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing);
+	}
+
+	return 1;
+}
+
+/* Creates the array at map->tiles */
+int mk_map_tile_array(tmx_map *map) {
+	int i;
+	unsigned int max_firstgid, tilecount;
+	tmx_tileset *ts;
+
+	if (!map) {
+		tmx_err(E_INVAL, "mk_map_tile_array: invalid argument: map is NULL");
+		return 0;
+	}
+
+	/* Counts total tile count */
+	max_firstgid = 0;
+	tilecount = 0;
+	ts = map->ts_head;
+	while (ts != NULL) {
+		if (ts->firstgid > max_firstgid) {
+			max_firstgid = ts->firstgid;
+			tilecount = ts->tilecount;
+		}
+		ts = ts->next;
+	}
+	map->tilecount = max_firstgid + tilecount;
+
+	/* Allocates the GID indexed tile array */
+	if (!(map->tiles = tmx_alloc_func(NULL, map->tilecount * sizeof(void*)))) {
+		tmx_errno = E_ALLOC;
+		return 0;
+	}
+
+	/* Populates the array */
+	map->tiles[0] = NULL; /* GIDs start from 1 */
+	ts = map->ts_head;
+	while (ts != NULL) {
+		for (i=0; i<ts->tilecount; i++) {
+			map->tiles[ts->firstgid + i] = &(ts->tiles[i]);
+		}
+		ts = ts->next;
+	}
+
+	return 1;
+}
 
 /* "orthogonal" -> ORT */
 enum tmx_map_orient parse_orient(const char *orient_str) {

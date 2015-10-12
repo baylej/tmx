@@ -85,20 +85,23 @@ int gid_extract_flags(unsigned int gid) {
 	return res;
 }
 
-int gid_clear_flags(unsigned int gid) {
+unsigned int gid_clear_flags(unsigned int gid) {
 	return gid & TMX_FLIP_BITS_REMOVAL;
 }
 
 void draw_layer(tmx_map *map, tmx_layer *layer) {
 	unsigned long i, j;
-	unsigned int x, y, w, h, flags;
+	unsigned int gid, x, y, w, h, flags;
 	float op;
 	tmx_tileset *ts;
 	ALLEGRO_BITMAP *tileset;
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
-			ts = tmx_get_tileset(map, layer->content.gids[(i*map->width)+j], &x, &y);
+			gid = gid_clear_flags(layer->content.gids[(i*map->width)+j]);
+			ts = map->tiles[gid]->tileset;
+			x  = map->tiles[gid]->ul_x;
+			y  = map->tiles[gid]->ul_y;
 			if (ts) {
 				w = ts->tile_width; h = ts->tile_height;
 				tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;

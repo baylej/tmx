@@ -20,7 +20,7 @@ tmx_image*        alloc_image(void);
 tmx_object*       alloc_object(void);
 tmx_object_group* alloc_objgr(void);
 tmx_layer*        alloc_layer(void);
-tmx_tile*         alloc_tile(void);
+tmx_tile*         alloc_tiles(int count);
 tmx_tileset*      alloc_tileset(void);
 tmx_map*          alloc_map(void);
 tmx_tile*         alloc_tile(void);
@@ -29,6 +29,8 @@ tmx_tile*         alloc_tile(void);
 	Misc
 */
 #define MAX(a,b) (a<b) ? b: a;
+int set_tiles_runtime_props(tmx_tileset *ts);
+int mk_map_tile_array(tmx_map *map);
 enum tmx_map_orient parse_orient(const char *orient_str);
 enum tmx_map_renderorder parse_renderorder(const char *renderorder);
 enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder);

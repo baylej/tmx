@@ -494,24 +494,20 @@ static tmx_anim_frame* parse_animation(xmlTextReaderPtr reader, int frame_count,
 	return NULL;
 }
 
-static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const char *filename) {
+static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, const char *filename) {
 	tmx_tile *res = NULL;
 	tmx_object *obj;
+	unsigned int id;
 	int curr_depth;
 	const char *name;
 	char *value;
 
 	curr_depth = xmlTextReaderDepth(reader);
 
-	if (!(res = alloc_tile())) return 0;
-
-	while (*tile_headadr) {
-		tile_headadr = &((*tile_headadr)->next);
-	}
-	*tile_headadr = res;
-
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
-		res->id = atoi(value);
+		id = atoi(value);
+		res = &(tileset->tiles[id]);
+		res->id = id;
 		tmx_free_func(value);
 	}
 	else {
@@ -572,7 +568,7 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tile **tile_headadr, const ch
 
 /* parses a tileset within the tmx file or in a dedicated tsx file */
 static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, const char *filename) {
-	int curr_depth;
+	int curr_depth, i;
 	const char *name;
 	char *value;
 
@@ -620,6 +616,8 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 		tmx_free_func(value);
 	}
 
+	if (!(ts_addr->tiles = alloc_tiles(ts_addr->tilecount))) return 0;
+
 	/* Parse each child */
 	do {
 		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
@@ -633,7 +631,7 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(ts_addr->properties))) return 0;
 			} else if (!strcmp(name, "tile")) {
-				if (!parse_tile(reader, &(ts_addr->tiles), filename)) return 0;
+				if (!parse_tile(reader, ts_addr, filename)) return 0;
 			} else {
 				/* Unknown element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
@@ -641,6 +639,8 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
+
+	if (!set_tiles_runtime_props(ts_addr)) return 0;
 
 	return 1;
 }
