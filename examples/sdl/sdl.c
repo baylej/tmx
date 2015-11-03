@@ -4,11 +4,11 @@
 */
 #include <stdio.h>
 #include <tmx.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keyboard.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_events.h>
+#include <SDL_keyboard.h>
+#include <SDL_keycode.h>
+#include <SDL_image.h>
 
 #define fatal_error(str)  { fputs(str, stderr); goto errquit; }
 #define fatal_error2(str) { fputs(str, stderr);  return NULL; }
