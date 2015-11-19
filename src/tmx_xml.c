@@ -4,8 +4,6 @@
 	see http://www.xmlsoft.org/examples/index.html#reader1.c
 */
 
-#ifdef WANT_XML
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -777,16 +775,3 @@ tmx_map *parse_xml(const char *filename) {
 
 	return res;
 }
-
-#else
-
-#include <stdio.h>
-#include "tmx.h"
-#include "tmx_utils.h"
-
-tmx_map *parse_xml(const char *path) {
-	tmx_err(E_FONCT, "This library was not built with the XML parser");
-	return NULL;
-}
-
-#endif /* WANT_XML */

@@ -40,7 +40,6 @@ else(WANT_ZLIB)
     message("Zlib not wanted")
 endif(WANT_ZLIB)
 
-add_definitions(-DWANT_XML)
 include(FindLibXml2)
 find_package(LibXml2 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIR})
