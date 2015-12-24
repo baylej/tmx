@@ -379,6 +379,10 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 		tmx_free_func(value);
 	}
 
+	if (type == L_OBJGR && xmlTextReaderIsEmptyElement(reader)) {
+		return 1;
+	}
+
 	do {
 		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 
