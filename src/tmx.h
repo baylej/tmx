@@ -61,6 +61,12 @@ typedef struct _tmx_objgr tmx_object_group;
 typedef struct _tmx_layer tmx_layer;
 typedef struct _tmx_map tmx_map;
 
+typedef union {
+	int integer;
+	float decimal;
+	void *pointer;
+} tmx_user_data;
+
 struct _tmx_prop { /* <properties> and <property> */
 	char *name;
 	char *value;
@@ -94,16 +100,22 @@ struct _tmx_tile { /* <tile> */
 	tmx_anim_frame *animation;
 
 	tmx_property *properties;
+
+	tmx_user_data user_data;
 };
 
 struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int firstgid;
 	char *name;
+
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
 	int x_offset, y_offset; /* tileoffset */
+
 	unsigned int tilecount;
 	tmx_image *image;
+
+	tmx_user_data user_data;
 	tmx_property *properties;
 	tmx_tile *tiles;
 	tmx_tileset *next;
@@ -148,7 +160,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 		tmx_image *image;
 	} content;
 
-	void *user_data; /* not freed by tmx_free ! */
+	tmx_user_data user_data;
 	tmx_property *properties;
 	tmx_layer *next;
 };
@@ -172,6 +184,8 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 
 	unsigned int tilecount; /* length of map->tiles */
 	tmx_tile **tiles; /* GID indexed tile array (array of pointers to tmx_tile) */
+
+	tmx_user_data user_data;
 };
 
 /*
