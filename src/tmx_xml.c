@@ -568,7 +568,7 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, const char 
 
 /* parses a tileset within the tmx file or in a dedicated tsx file */
 static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, const char *filename) {
-	int curr_depth, i;
+	int curr_depth;
 	const char *name;
 	char *value;
 

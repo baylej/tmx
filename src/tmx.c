@@ -104,7 +104,6 @@ static void free_tiles(tmx_tile *t, int tilecount) {
 }
 
 static void free_ts(tmx_tileset *ts) {
-	int i;
 	if (ts) {
 		free_ts(ts->next);
 		tmx_free_func(ts->name);

@@ -309,7 +309,7 @@ tmx_map* alloc_map(void) {
 
 /* Sets tile->tileset and tile->ul_x,y */
 int set_tiles_runtime_props(tmx_tileset *ts) {
-	int i;
+	unsigned int i;
 	unsigned int tiles_x_count, ts_w, tx, ty;
 
 	if (ts == NULL) {
@@ -338,7 +338,7 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 
 /* Creates the array at map->tiles */
 int mk_map_tile_array(tmx_map *map) {
-	int i;
+	unsigned int i;
 	unsigned int max_firstgid, tilecount;
 	tmx_tileset *ts;
 
