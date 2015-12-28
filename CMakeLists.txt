@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 # Configure
 #-----------#
 
-project(tmx VERSION 0.13.0 LANGUAGES C)
+project(tmx VERSION 0.13.1 LANGUAGES C)
 set(API_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 set(BUILD_VERSION "${PROJECT_VERSION}")
 
