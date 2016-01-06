@@ -4,7 +4,7 @@
   <property name="json" value="jansson"/>
   <property name="xml" value="libxml2"/>
  </properties>
- <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1" tilecount="9">
+ <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1" tilecount="9" columns="3">
   <image source="numbers.png" width="100" height="100"/>
   <tile id="0">
    <properties>

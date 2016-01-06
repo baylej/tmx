@@ -339,8 +339,7 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 /* Creates the array at map->tiles */
 int mk_map_tile_array(tmx_map *map) {
 	unsigned int i;
-	unsigned int max_firstgid, tilecount;
-	tmx_tileset *ts;
+	tmx_tileset *ts, *max_ts;
 
 	if (!map) {
 		tmx_err(E_INVAL, "mk_map_tile_array: invalid argument: map is NULL");
@@ -348,30 +347,34 @@ int mk_map_tile_array(tmx_map *map) {
 	}
 
 	/* Counts total tile count */
-	max_firstgid = 0;
-	tilecount = 0;
-	ts = map->ts_head;
+	ts = max_ts = map->ts_head;
 	while (ts != NULL) {
-		if (ts->firstgid > max_firstgid) {
-			max_firstgid = ts->firstgid;
-			tilecount = ts->tilecount;
+		if (ts->firstgid > max_ts->firstgid) {
+			max_ts = ts;
 		}
 		ts = ts->next;
 	}
-	map->tilecount = max_firstgid + tilecount;
+	if (max_ts->image) {
+		map->tilecount = max_ts->firstgid + max_ts->tilecount;
+	}
+	else {
+		/* Gets the last id, ts->tiles is sorted by id */
+		map->tilecount = max_ts->firstgid + max_ts->tiles[max_ts->tilecount - 1].id + 1;
+	}
 
 	/* Allocates the GID indexed tile array */
 	if (!(map->tiles = tmx_alloc_func(NULL, map->tilecount * sizeof(void*)))) {
 		tmx_errno = E_ALLOC;
 		return 0;
 	}
+	memset(map->tiles, 0, map->tilecount * sizeof(void*));
 
 	/* Populates the array */
 	map->tiles[0] = NULL; /* GIDs start from 1 */
 	ts = map->ts_head;
 	while (ts != NULL) {
 		for (i=0; i<ts->tilecount; i++) {
-			map->tiles[ts->firstgid + i] = &(ts->tiles[i]);
+			map->tiles[ts->firstgid + ts->tiles[i].id] = &(ts->tiles[i]);
 		}
 		ts = ts->next;
 	}

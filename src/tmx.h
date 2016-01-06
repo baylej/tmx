@@ -151,7 +151,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	char *name;
 	double opacity;
 	int visible; /* 0 == false */
-	int x_offset, y_offset; /* For image layers */
+	int offsetx, offsety;
 
 	enum tmx_layer_type type;
 	union layer_content {

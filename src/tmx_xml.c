@@ -354,13 +354,13 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x_offset */
-		res->x_offset = (int)atoi(value);
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"offsetx"))) { /* offsetx */
+		res->offsetx = (int)atoi(value);
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"y"))) { /* y_offset */
-		res->y_offset = (int)atoi(value);
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"offsety"))) { /* offsety */
+		res->offsety = (int)atoi(value);
 		tmx_free_func(value);
 	}
 
@@ -503,6 +503,7 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, const char 
 	tmx_object *obj;
 	unsigned int id;
 	int curr_depth;
+	int len, to_move;
 	const char *name;
 	char *value;
 
@@ -510,8 +511,27 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, const char 
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
 		id = atoi(value);
-		res = &(tileset->tiles[id]);
+		/* Insertion sort */
+		len = tileset->user_data.integer;
+		for (to_move=0; (len-1)-to_move >= 0; to_move++) {
+			if (tileset->tiles[(len-1)-to_move].id < id) {
+				break;
+			}
+		}
+		if (to_move > 0) {
+			memmove((tileset->tiles)+(len-to_move+1), (tileset->tiles)+(len-to_move), to_move * sizeof(tmx_tile));
+		}
+		res = &(tileset->tiles[len-to_move]);
+
+		if ((unsigned int)(tileset->user_data.integer) == tileset->tilecount) {
+			tileset->user_data.integer = 0;
+		}
+		else {
+			tileset->user_data.integer += 1;
+		}
+		/* --- */
 		res->id = id;
+		res->tileset = tileset;
 		tmx_free_func(value);
 	}
 	else {
@@ -644,7 +664,7 @@ static int parse_tileset_sub(xmlTextReaderPtr reader, tmx_tileset *ts_addr, cons
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
 
-	if (!set_tiles_runtime_props(ts_addr)) return 0;
+	if (ts_addr->image && !set_tiles_runtime_props(ts_addr)) return 0;
 
 	return 1;
 }

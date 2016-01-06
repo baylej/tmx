@@ -94,20 +94,26 @@ void draw_layer(tmx_map *map, tmx_layer *layer) {
 	unsigned int gid, x, y, w, h, flags;
 	float op;
 	tmx_tileset *ts;
+	tmx_image *im;
 	ALLEGRO_BITMAP *tileset;
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
 			gid = gid_clear_flags(layer->content.gids[(i*map->width)+j]);
 			ts = map->tiles[gid]->tileset;
+			im = map->tiles[gid]->image; 
 			x  = map->tiles[gid]->ul_x;
 			y  = map->tiles[gid]->ul_y;
-			if (ts) {
-				w = ts->tile_width; h = ts->tile_height;
-				tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;
-				flags = gid_extract_flags(layer->content.gids[(i*map->width)+j]);
-				al_draw_tinted_bitmap_region(tileset, al_map_rgba_f(op, op, op, op), x, y, w, h, j*ts->tile_width, i*ts->tile_height, flags);
+			w  = ts->tile_width;
+			h  = ts->tile_height;
+			if (im) {
+				tileset = (ALLEGRO_BITMAP*)im->resource_image;
 			}
+			else {
+				tileset = (ALLEGRO_BITMAP*)ts->image->resource_image;
+			}
+			flags = gid_extract_flags(layer->content.gids[(i*map->width)+j]);
+			al_draw_tinted_bitmap_region(tileset, al_map_rgba_f(op, op, op, op), x, y, w, h, j*ts->tile_width, i*ts->tile_height, flags);
 		}
 	}
 }

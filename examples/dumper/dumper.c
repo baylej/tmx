@@ -195,6 +195,8 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 		printf("\n\t" "name='%s'", l->name);
 		printf("\n\t" "visible=%s", str_bool(l->visible));
 		printf("\n\t" "opacity='%f'", l->opacity);
+		printf("\n\t" "offsetx=%d", l->offsetx);
+		printf("\n\t" "offsety=%d", l->offsety);
 		if (l->type == L_LAYER && l->content.gids) {
 			printf("\n\t" "type=Layer" "\n\t" "tiles=");
 			for (i=0; i<tc; i++) {
@@ -206,8 +208,6 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 			printf("\n\t" "type=ObjectGroup");
 			dump_objects(l->content.objgr->head, 1);
 		} else if (l->type == L_IMAGE) {
-			printf("\n\t" "x_offset=%d", l->x_offset);
-			printf("\n\t" "y_offset=%d", l->y_offset);
 			printf("\n\t" "type=ImageLayer");
 			dump_image(l->content.image, 1);
 		}
