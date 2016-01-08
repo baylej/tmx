@@ -5,6 +5,13 @@
 #ifndef TMXUTILS_H
 #define TMXUTILS_H
 
+/* UNUSED macro to suppress `unused parameter` warnings with GCC and CLANG */
+#ifdef __GNUC__
+#define UNUSED __attribute__((__unused__))
+#else
+#define UNUSED
+#endif
+
 /*
 	Parser implementations
 */

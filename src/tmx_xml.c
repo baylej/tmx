@@ -27,7 +27,7 @@ static void* tmx_malloc(size_t len) {
 	On failure tmx_errno is set and and an error message is generated.
 */
 
-static void error_handler(void *arg, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
+static void error_handler(void *arg UNUSED, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
 	if (severity == XML_PARSER_SEVERITY_ERROR) {
 		tmx_err(E_XDATA, "xml parser: error at line %d: %s", xmlTextReaderLocatorLineNumber(locator), msg);
 	}

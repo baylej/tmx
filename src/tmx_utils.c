@@ -143,11 +143,11 @@ cleanup:
 #ifdef WANT_ZLIB
 #include <zlib.h>
 
-void* z_alloc(void *opaque, unsigned int items, unsigned int size) {
+void* z_alloc(void *opaque UNUSED, unsigned int items, unsigned int size) {
 	return tmx_alloc_func(NULL, items *size);
 }
 
-void z_free(void *opaque, void *address) {
+void z_free(void *opaque UNUSED, void *address) {
 	tmx_free_func(address);
 }
 
