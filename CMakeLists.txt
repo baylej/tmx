@@ -63,7 +63,6 @@ list(APPEND targets tmx)
 
 add_library(tmx STATIC ${SOURCES})
 set_target_properties(tmx PROPERTIES VERSION ${BUILD_VERSION})
-target_compile_definitions(tmx PUBLIC "TMXEXPORT=")
 
 set_property(TARGET tmx
              APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
@@ -79,8 +78,6 @@ if(BUILD_SHARED_LIBS)
         target_compile_definitions(tmx_shared
                                    PRIVATE   "TMXEXPORT=__declspec(dllexport)"
                                    INTERFACE "TMXEXPORT=__declspec(dllimport)")
-    else()
-        target_compile_definitions(tmx_shared PUBLIC "TMXEXPORT=")
     endif()
 
     set_target_properties(tmx_shared PROPERTIES OUTPUT_NAME tmx)

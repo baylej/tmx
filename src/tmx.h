@@ -16,6 +16,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef TMXEXPORT
+#define TMXEXPORT
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
