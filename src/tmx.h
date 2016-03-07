@@ -79,7 +79,7 @@ struct _tmx_prop { /* <properties> and <property> */
 
 struct _tmx_img { /* <image> */
 	char *source;
-	int trans; /* bytes : RGB */
+	unsigned int trans; /* bytes : RGB */
 	int uses_trans;
 	unsigned long width, height;
 	/*char *format; Not currently implemented in QtTiled
@@ -146,7 +146,7 @@ struct _tmx_obj { /* <object> */
 };
 
 struct _tmx_objgr { /* <objectgroup> */
-	int color; /* bytes : RGB */
+	unsigned int color; /* bytes : RGB */
 	enum tmx_objgr_draworder draworder;
 	tmx_object *head;
 };
@@ -179,7 +179,7 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_stagger_axis stagger_axis;
 	int hexsidelength;
 
-	int backgroundcolor; /* bytes : RGB */
+	unsigned int backgroundcolor; /* bytes : RGB */
 	enum tmx_map_renderorder renderorder;
 
 	tmx_property *properties;

@@ -151,7 +151,7 @@ void dump_tile(tmx_tile *t, unsigned int tilecount) {
 		if (t[i].animation) {
 			printf("\n\t\t" "animation={");
 			for (j=0; j<t[i].animation_len; j++) {
-				printf("\n\t\t\t" "tile=%3d (%6dms)", t[i].animation[j].tile_id, t[i].animation[j].duration);
+				printf("\n\t\t\t" "tile=%3u (%6ums)", t[i].animation[j].tile_id, t[i].animation[j].duration);
 			}
 			printf("\n\t\t}");
 		}
@@ -166,11 +166,11 @@ void dump_tileset(tmx_tileset *t) {
 		printf("\n\t" "name=%s", t->name);
 		printf("\n\t" "tilecount=%u", t->tilecount);
 		printf("\n\t" "firstgid=%u", t->firstgid);
-		printf("\n\t" "tile_height=%d", t->tile_height);
-		printf("\n\t" "tile_width=%d", t->tile_width);
-		printf("\n\t" "firstgid=%d", t->firstgid);
-		printf("\n\t" "margin=%d", t->margin);
-		printf("\n\t" "spacing=%d", t->spacing);
+		printf("\n\t" "tile_height=%u", t->tile_height);
+		printf("\n\t" "tile_width=%u", t->tile_width);
+		printf("\n\t" "firstgid=%u", t->firstgid);
+		printf("\n\t" "margin=%u", t->margin);
+		printf("\n\t" "spacing=%u", t->spacing);
 		printf("\n\t" "x_offset=%d", t->x_offset);
 		printf("\n\t" "y_offset=%d", t->y_offset);
 		dump_image(t->image, 1);
@@ -225,10 +225,10 @@ void dump_map(tmx_map *m) {
 	if (m) {
 		printf("\n\t" "orient="); print_orient(m->orient);
 		printf("\n\t" "renderorder=%d", m->renderorder);
-		printf("\n\t" "height=%d", m->height);
-		printf("\n\t" "width=%d", m->width);
-		printf("\n\t" "theight=%d", m->tile_height);
-		printf("\n\t" "twidth=%d", m->tile_width);
+		printf("\n\t" "height=%u", m->height);
+		printf("\n\t" "width=%u", m->width);
+		printf("\n\t" "theight=%u", m->tile_height);
+		printf("\n\t" "twidth=%u", m->tile_width);
 		printf("\n\t" "bgcol=#%.6X", m->backgroundcolor);
 		printf("\n\t" "staggerindex="); print_stagger_index(m->stagger_index);
 		printf("\n\t" "staggeraxis="); print_stagger_axis(m->stagger_axis);
