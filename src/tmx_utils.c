@@ -309,12 +309,20 @@ tmx_map* alloc_map(void) {
 
 /* Sets tile->tileset and tile->ul_x,y */
 int set_tiles_runtime_props(tmx_tileset *ts) {
-	unsigned int i;
+	unsigned int i, j;
 	unsigned int tiles_x_count, ts_w, tx, ty;
 
 	if (ts == NULL) {
 		tmx_err(E_INVAL, "set_tiles_runtime_props: invalid argument: ts is NULL");
 		return 0;
+	}
+
+	/* reindex tiles (tiles are sorted, but not indexed correctly) */
+	for (i=ts->tilecount-1, j=0; j<ts->tilecount; j++, i--) {
+		if (ts->tiles[i].id > 0L && ts->tiles[i].id != i) {
+			memcpy(ts->tiles+(ts->tiles[i].id), ts->tiles+i, sizeof(tmx_tile));
+			memset(ts->tiles+i, 0, sizeof(tmx_tile));
+		}
 	}
 
 	for (i=0; i<ts->tilecount; i++) {
@@ -329,7 +337,7 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 		tx = i % tiles_x_count;
 		ty = i / tiles_x_count;
 
-		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing); 
+		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing);
 		ts->tiles[i].ul_y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing);
 	}
 
