@@ -85,21 +85,23 @@ void draw_layer(tmx_map *map, tmx_layer *layer) {
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
 			gid = gid_clear_flags(layer->content.gids[(i*map->width)+j]);
-			ts = map->tiles[gid]->tileset;
-			im = map->tiles[gid]->image;
-			srcrect.x = map->tiles[gid]->ul_x;
-			srcrect.y = map->tiles[gid]->ul_y;
-			srcrect.w = dstrect.w = ts->tile_width;
-			srcrect.h = dstrect.h = ts->tile_height;
-			dstrect.x = j*ts->tile_width;  dstrect.y = i*ts->tile_height;
-			/* TODO Opacity and Flips */
-			if (im) {
-				tileset = (SDL_Texture*)im->resource_image;
+			if (map->tiles[gid] != NULL) {
+				ts = map->tiles[gid]->tileset;
+				im = map->tiles[gid]->image;
+				srcrect.x = map->tiles[gid]->ul_x;
+				srcrect.y = map->tiles[gid]->ul_y;
+				srcrect.w = dstrect.w = ts->tile_width;
+				srcrect.h = dstrect.h = ts->tile_height;
+				dstrect.x = j*ts->tile_width;  dstrect.y = i*ts->tile_height;
+				/* TODO Opacity and Flips */
+				if (im) {
+					tileset = (SDL_Texture*)im->resource_image;
+				}
+				else {
+					tileset = (SDL_Texture*)ts->image->resource_image;
+				}
+				SDL_RenderCopy(ren, tileset, &srcrect, &dstrect);
 			}
-			else {
-				tileset = (SDL_Texture*)ts->image->resource_image;
-			}
-			SDL_RenderCopy(ren, tileset, &srcrect, &dstrect);
 		}
 	}
 }
