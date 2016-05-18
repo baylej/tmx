@@ -49,6 +49,22 @@ static xmlTextReaderPtr create_parser(const char *filename) {
 	return reader;
 }
 
+static xmlTextReaderPtr create_parser_memory(char *buffer, size_t size) {
+	xmlTextReaderPtr reader = NULL;
+	if ((reader = xmlReaderForMemory(buffer, size, NULL, NULL, 0))) {
+
+		xmlTextReaderSetErrorHandler(reader, error_handler, NULL);
+
+		if (xmlTextReaderRead(reader) != 1) {
+			xmlFreeTextReader(reader);
+			reader = NULL;
+		}
+	} else {
+		tmx_err(E_UNKN, "xml parser: unable to parse memory buffer %s", "");
+	}
+	return reader;
+}
+
 static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	char *value;
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
@@ -829,6 +845,20 @@ tmx_map *parse_xml(const char *filename) {
 
 	if ((reader = create_parser(filename))) {
 		res = parse_root_map(reader, filename);
+		xmlFreeTextReader(reader);
+	}
+
+	return res;
+}
+
+tmx_map *parse_xml_memory(char *buffer, size_t size, const char* absolute_path) {
+	xmlTextReaderPtr reader;
+	tmx_map *res = NULL;
+
+	xmlMemSetup((xmlFreeFunc)tmx_free_func, (xmlMallocFunc)tmx_malloc, (xmlReallocFunc)tmx_alloc_func, (xmlStrdupFunc)tmx_strdup);
+
+	if ((reader = create_parser_memory(buffer, size))) {
+		res = parse_root_map(reader, absolute_path);
 		xmlFreeTextReader(reader);
 	}
 

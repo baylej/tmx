@@ -18,6 +18,7 @@
 enum enccmp_t {CSV, B64Z};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
 tmx_map* parse_xml(const char *filename); /* tmx_xml.c */
+tmx_map* parse_xml_memory(char* buffer, size_t size, const char* absolute_path); /* tmx_xml.c */
 
 /*
 	Node allocation

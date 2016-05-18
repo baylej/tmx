@@ -38,6 +38,24 @@ tmx_map* tmx_load(const char *path) {
 	return map;
 }
 
+tmx_map* tmx_load_memory(char *buffer, size_t size, const char* absolute_path)  {
+	tmx_map *map = NULL;
+
+	if (!tmx_alloc_func) tmx_alloc_func = realloc;
+	if (!tmx_free_func) tmx_free_func = free;
+
+	map = parse_xml_memory(buffer, size, absolute_path);
+
+	if (map) {
+		if (!mk_map_tile_array(map)) {
+			tmx_map_free(map);
+			map = NULL;
+		}
+	}
+
+	return map;
+}
+
 static void free_props(tmx_property *p) {
 	if (p) {
 		free_props(p->next);
