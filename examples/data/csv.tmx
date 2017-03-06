@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f" nextobjectid="5">
  <properties>
-  <property name="json" value="jansson"/>
+  <property name="bool_false" type="bool" value="false"/>
+  <property name="bool_true" type="bool" value="true"/>
+  <property name="pi" type="float" value="3.14"/>
   <property name="xml" value="libxml2"/>
  </properties>
  <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1" tilecount="9" columns="3">
   <image source="numbers.png" width="100" height="100"/>
   <tile id="0">
    <properties>
-    <property name="number" value="1"/>
+    <property name="number" type="int" value="1"/>
    </properties>
    <objectgroup draworder="index">
     <object id="0" x="11.75" y="4.75" width="10.25" height="25.25"/>
@@ -16,12 +18,12 @@
   </tile>
   <tile id="1">
    <properties>
-    <property name="number" value="2"/>
+    <property name="number" type="int" value="2"/>
    </properties>
   </tile>
   <tile id="2">
    <properties>
-    <property name="number" value="3"/>
+    <property name="number" type="int" value="3"/>
    </properties>
   </tile>
   <tile id="6">
@@ -37,7 +39,7 @@
   </tile>
  </tileset>
  <imagelayer name="Image">
-  <image source="bg.jpg"/>
+  <image source="bg.jpg" width="896" height="576"/>
   <properties>
    <property name="alt" value="rainbow"/>
   </properties>
