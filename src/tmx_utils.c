@@ -457,6 +457,31 @@ enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis) {
 	return SA_NONE;
 }
 
+/* "integer" -> PT_INT */
+enum tmx_property_type parse_property_type(const char *propertytype) {
+	if (propertytype == NULL || !strcmp(propertytype, "string")) {
+		return PT_STRING;
+	}
+	if (!strcmp(propertytype, "int")) {
+		return PT_INT;
+	}
+	if (!strcmp(propertytype, "float")) {
+		return PT_FLOAT;
+	}
+	if (!strcmp(propertytype, "bool")) {
+		return PT_BOOL;
+	}
+	return PT_NONE;
+}
+
+/* "false" -> 0 */
+int parse_boolean(const char *boolean) {
+	if (boolean != NULL && !strcmp(boolean, "true")) {
+		return 1;
+	}
+	return 0;
+}
+
 /* "#337FA2" -> 0x337FA2 */
 int get_color_rgb(const char *c) {
 	if (*c == '#') c++;

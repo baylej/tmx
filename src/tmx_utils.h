@@ -43,6 +43,8 @@ enum tmx_map_renderorder parse_renderorder(const char *renderorder);
 enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder);
 enum tmx_stagger_index parse_stagger_index(const char *staggerindex);
 enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis);
+enum tmx_property_type parse_property_type(const char *propertytype);
+int parse_boolean(const char *boolean);
 int get_color_rgb(const char *c);
 int count_char_occurences(const char *str, char c);
 char* str_trim(char *str);

@@ -60,6 +60,29 @@ void mk_padding(char pad[11], int depth) {
 	pad[depth] = '\0';
 }
 
+void print_prop(tmx_property *p, int depth) {
+	char padding[12]; mk_padding(padding, depth);
+
+	printf("\n%s" "'%s'=(", padding, p->name);
+	switch(p->type) {
+		case PT_NONE:   printf("none");    break;
+		case PT_INT:    printf("integer"); break;
+		case PT_FLOAT:  printf("float");   break;
+		case PT_BOOL:   printf("bool");    break;
+		case PT_STRING: printf("string");  break;
+		default: printf("unknown");
+	}
+	printf(")");
+	switch(p->type) {
+		case PT_INT:    printf("%d", p->value.integer); break;
+		case PT_FLOAT:  printf("%f", p->value.decimal); break;
+		case PT_BOOL:   printf(p->value.integer? "true": "false"); break;
+		case PT_NONE:
+		case PT_STRING:
+		default:        printf("'%s'", p->value.string); break;
+	}
+}
+
 void dump_prop(tmx_property *p, int depth) {
 	char padding[11]; mk_padding(padding, depth);
 
@@ -68,7 +91,7 @@ void dump_prop(tmx_property *p, int depth) {
 		printf(" (NULL) }");
 	} else {
 		while (p) {
-			printf("\n%s\t" "'%s'='%s'", padding, p->name, p->value);
+			print_prop(p, depth+1);
 			p = p->next;
 		}
 		printf("\n" "%s}", padding);

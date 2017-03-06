@@ -58,8 +58,33 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 		return 0;
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"value"))) { /* source */
-		prop->value = value;
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "type"))) { /* type */
+		prop->type = parse_property_type(value);
+		tmx_free_func(value);
+	} else {
+		prop->type = PT_STRING;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "value"))) { /* source */
+		switch (prop->type) {
+			case PT_INT:
+				prop->value.integer = atoi(value);
+				tmx_free_func(value);
+				break;
+			case PT_FLOAT:
+				prop->value.decimal = atof(value);
+				tmx_free_func(value);
+				break;
+			case PT_BOOL:
+				prop->value.integer = parse_boolean(value);
+				tmx_free_func(value);
+				break;
+			case PT_NONE:
+			case PT_STRING:
+			default:
+				prop->value.string = value;
+				break;
+		}
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'value' attribute in the 'property' element");
 		return 0;
@@ -350,7 +375,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"opacity"))) { /* opacity */
-		res->opacity = (float)strtod(value, NULL);
+		res->opacity = atof(value);
 		tmx_free_func(value);
 	}
 

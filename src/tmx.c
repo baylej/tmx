@@ -42,7 +42,9 @@ static void free_props(tmx_property *p) {
 	if (p) {
 		free_props(p->next);
 		tmx_free_func(p->name);
-		tmx_free_func(p->value);
+		if (p->type == PT_STRING || p->type == PT_NONE) {
+			tmx_free_func(p->value.string);
+		}
 		tmx_free_func(p);
 	}
 }
