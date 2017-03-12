@@ -5,6 +5,9 @@
   <property name="bool_false" type="bool" value="false"/>
   <property name="bool_true" type="bool" value="true"/>
   <property name="colour" type="color" value="#cc1a1a1a"/>
+  <property name="multilines">foo
+bar
+baz</property>
   <property name="pi" type="float" value="3.14"/>
   <property name="xml" value="libxml2"/>
  </properties>
