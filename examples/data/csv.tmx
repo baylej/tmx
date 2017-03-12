@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f" nextobjectid="5">
  <properties>
+  <property name="alt" type="file" value="b64zlib.tmx"/>
   <property name="bool_false" type="bool" value="false"/>
   <property name="bool_true" type="bool" value="true"/>
+  <property name="colour" type="color" value="#cc1a1a1a"/>
   <property name="pi" type="float" value="3.14"/>
   <property name="xml" value="libxml2"/>
  </properties>
