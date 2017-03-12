@@ -471,6 +471,12 @@ enum tmx_property_type parse_property_type(const char *propertytype) {
 	if (!strcmp(propertytype, "bool")) {
 		return PT_BOOL;
 	}
+	if (!strcmp(propertytype, "color")) {
+		return PT_COLOR;
+	}
+	if (!strcmp(propertytype, "file")) {
+		return PT_FILE;
+	}
 	return PT_NONE;
 }
 

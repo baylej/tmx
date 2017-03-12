@@ -53,7 +53,7 @@ enum tmx_stagger_axis {SA_NONE, SA_X, SA_Y};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
-enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING};
+enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE};
 
 /* typedefs of the structures below */
 typedef struct _tmx_prop tmx_property;
@@ -73,9 +73,10 @@ typedef union {
 } tmx_user_data;
 
 typedef union {
-	int integer; /* type = int or bool */
+	int integer, bool; /* type = int or bool */
 	float decimal; /* type = float */
-	char *string; /* default and type = string */
+	char *string, *file; /* default and type = string or file */
+    unsigned int color; /* type = color */
 } tmx_property_value;
 
 struct _tmx_prop { /* <properties> and <property> */

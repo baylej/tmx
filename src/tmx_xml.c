@@ -79,8 +79,13 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 				prop->value.integer = parse_boolean(value);
 				tmx_free_func(value);
 				break;
+			case PT_COLOR:
+				prop->value.integer = get_color_rgb(value);
+				tmx_free_func(value);
+				break;
 			case PT_NONE:
 			case PT_STRING:
+			case PT_FILE:
 			default:
 				prop->value.string = value;
 				break;
