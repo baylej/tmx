@@ -51,6 +51,7 @@ static xmlTextReaderPtr create_parser(const char *filename) {
 
 static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	char *value;
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
 		prop->name = value;
 	} else {
@@ -90,6 +91,11 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 				prop->value.string = value;
 				break;
 		}
+	} else if (prop->type == PT_NONE || prop->type == PT_STRING) {
+		if (!(value = (char*)xmlTextReaderReadInnerXml(reader))) {
+			tmx_err(E_MISSEL, "xml parser: missing 'value' attribute or inner XML for the 'property' element");
+		}
+		prop->value.string = value;
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'value' attribute in the 'property' element");
 		return 0;
