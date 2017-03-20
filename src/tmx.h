@@ -2,7 +2,7 @@
 	TMX.H - TMX C LOADER
 	Copyright (c) 2013-2017, Bayle Jonathan <baylej@github>
 
-	Data Stuctures storing the map, and functions prototypes
+	Data Structures storing the map, and function prototypes
 
 	See : (I'm using names from this documentation)
 	http://doc.mapeditor.org/reference/tmx-map-format/
@@ -33,7 +33,7 @@ extern "C" {
 	Configuration
 */
 /* Custom realloc and free function, for memalloc debugging purposes
-   Please modify these values if once before you use tmx_load */
+   Please modify these values once before you use tmx_load */
 TMXEXPORT extern void* (*tmx_alloc_func) (void *address, size_t len); /* realloc */
 TMXEXPORT extern void  (*tmx_free_func ) (void *address);             /* free */
 
@@ -55,7 +55,7 @@ enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
 enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE};
 
-/* typedefs of the structures below */
+/* Typedefs of the structures below */
 typedef struct _tmx_prop tmx_property;
 typedef struct _tmx_img tmx_image;
 typedef struct _tmx_frame tmx_anim_frame;
@@ -205,14 +205,14 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	Functions
 */
 
-/* Load a map and return the head of the data structure
-   returns NULL if an error occured and set tmx_errno */
+/* Loads a map and return the head of the data structure
+   returns NULL if an error occurred and set tmx_errno */
 TMXEXPORT tmx_map *tmx_load(const char *path);
 
-/* Free the map data structure */
+/* Frees the map data structure */
 TMXEXPORT void tmx_map_free(tmx_map *map);
 
-/* returns the tile associated with this gid, returns NULL if it fails */
+/* Returns the tile associated with this gid, returns NULL if it fails */
 TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
 
 /*
@@ -220,7 +220,7 @@ TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
 	each time a function fails, tmx_errno is set
 */
 
-/* possible values for `tmx_errno` */
+/* Possible values for `tmx_errno` */
 typedef enum _tmx_error_codes {
 	/* Syst */
 	E_NONE   = 0,     /* No error so far */
@@ -230,9 +230,9 @@ typedef enum _tmx_error_codes {
 	/* I/O */
 	E_ACCESS = 10,    /* privileges needed */
 	E_NOENT  = 11,    /* File not found */
-	E_FORMAT = 12,    /* Unsupproted/Unknown file format */
-	E_ENCCMP = 13,    /* Unsupproted/Unknown data encoding/compression */
-	E_FONCT  = 16,    /* Fonctionnality not enabled */
+	E_FORMAT = 12,    /* Unsupported/Unknown file format */
+	E_ENCCMP = 13,    /* Unsupported/Unknown data encoding/compression */
+	E_FONCT  = 16,    /* Functionality not enabled */
 	E_BDATA  = 20,    /* B64 bad data */
 	E_ZDATA  = 21,    /* Zlib corrupted data */
 	E_XDATA  = 22,    /* XML corrupted data */
@@ -242,9 +242,9 @@ typedef enum _tmx_error_codes {
 
 extern tmx_error_codes tmx_errno;
 
-/* print the error message prefixed with the parameter */
+/* Prints the error message prefixed with the parameter */
 TMXEXPORT void tmx_perror(const char*);
-/* return the error message for the current value of `tmx_errno` */
+/* Returns the error message for the current value of `tmx_errno` */
 TMXEXPORT const char* tmx_strerr(void); /* FIXME errno parameter ? (as strerror) */
 
 #ifdef __cplusplus
