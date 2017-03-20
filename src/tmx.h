@@ -209,6 +209,10 @@ struct _tmx_map { /* <map> (Head of the data structure) */
    returns NULL if an error occured and set tmx_errno */
 TMXEXPORT tmx_map *tmx_load(const char *path);
 
+/* Load a map from memory and return the head of the data structure
+   returns NULL if an error occured and set tmx_errno */
+TMXEXPORT tmx_map *tmx_load_memory(char *buffer, size_t size, const char* absolute_path);
+
 /* Free the map data structure */
 TMXEXPORT void tmx_map_free(tmx_map *map);
 
