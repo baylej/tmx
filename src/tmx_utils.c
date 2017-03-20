@@ -354,6 +354,11 @@ int mk_map_tile_array(tmx_map *map) {
 		return 0;
 	}
 
+	if (!map->ts_head) {
+		tmx_err(E_INVAL, "mk_map_tile_array: invalid argument: map->ts_head is NULL");
+		return 0;
+	}
+
 	/* Counts total tile count */
 	ts = max_ts = map->ts_head;
 	while (ts != NULL) {
