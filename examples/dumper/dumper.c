@@ -248,7 +248,7 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 }
 
 void dump_map(tmx_map *m) {
-	fputs("map={", stdout);
+	printf("map={");
 	if (m) {
 		printf("\n\t" "orient="); print_orient(m->orient);
 		printf("\n\t" "renderorder=%d", m->renderorder);
@@ -261,9 +261,9 @@ void dump_map(tmx_map *m) {
 		printf("\n\t" "staggeraxis="); print_stagger_axis(m->stagger_axis);
 		printf("\n\t" "hexsidelength=%d", m->hexsidelength);
 	} else {
-		fputs("\n(NULL)", stdout);
+		printf("\n(NULL)");
 	}
-	puts("\n}");
+	printf("\n}");
 
 	if (m) {
 		dump_tileset(m->ts_head);

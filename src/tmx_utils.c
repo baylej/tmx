@@ -354,6 +354,11 @@ int mk_map_tile_array(tmx_map *map) {
 		return 0;
 	}
 
+	if (!(map->ts_head)) {
+		/* no tileset => nothing to do */
+		return 1;
+	}
+
 	/* Counts total tile count */
 	ts = max_ts = map->ts_head;
 	while (ts != NULL) {
