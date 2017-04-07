@@ -73,7 +73,7 @@ typedef union {
 } tmx_user_data;
 
 typedef union {
-	int integer, bool; /* type = int or bool */
+	int integer, boolean; /* type = int or bool */
 	float decimal; /* type = float */
 	char *string, *file; /* default and type = string or file */
     unsigned int color; /* type = color */
