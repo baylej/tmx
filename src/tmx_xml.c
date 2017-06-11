@@ -103,12 +103,18 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	return 1;
 }
 
-static int parse_properties(xmlTextReaderPtr reader, tmx_property **prop_headadr) {
+static int parse_properties(xmlTextReaderPtr reader, tmx_properties **prop_hashptr) {
 	tmx_property *res;
 	int curr_depth;
 	const char *name;
 
 	curr_depth = xmlTextReaderDepth(reader);
+
+	/* Create hashtable */
+	if (*prop_hashptr == NULL)
+	{
+		if (!(*prop_hashptr = (tmx_properties*)mk_hashtable(5))) return 0;
+	}
 
 	/* Parse each child */
 	do {
@@ -118,11 +124,8 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_property **prop_headadr
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "property")) {
 				if (!(res = alloc_prop())) return 0;
-				res->next = *prop_headadr;
-				*prop_headadr = res;
-
 				if (!parse_property(reader, res)) return 0;
-
+				hashtable_set((void*)*prop_hashptr, res->name, (void*)res, NULL);
 			} else { /* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
 			}

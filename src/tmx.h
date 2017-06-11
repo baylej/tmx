@@ -65,6 +65,7 @@ typedef struct _tmx_obj tmx_object;
 typedef struct _tmx_objgr tmx_object_group;
 typedef struct _tmx_layer tmx_layer;
 typedef struct _tmx_map tmx_map;
+typedef void tmx_properties; /* hashtable, use function tmx_get_property(...) */
 
 typedef union {
 	int integer;
@@ -83,7 +84,6 @@ struct _tmx_prop { /* <properties> and <property> */
 	char *name;
 	enum tmx_property_type type;
 	tmx_property_value value;
-	tmx_property *next;
 };
 
 struct _tmx_img { /* <image> */
@@ -112,7 +112,7 @@ struct _tmx_tile { /* <tile> */
 	unsigned int animation_len;
 	tmx_anim_frame *animation;
 
-	tmx_property *properties;
+	tmx_properties *properties;
 
 	tmx_user_data user_data;
 };
@@ -129,7 +129,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 	tmx_image *image;
 
 	tmx_user_data user_data;
-	tmx_property *properties;
+	tmx_properties *properties;
 	tmx_tile *tiles;
 	tmx_tileset *next;
 };
@@ -150,7 +150,7 @@ struct _tmx_obj { /* <object> */
 	double rotation;
 
 	char *name, *type;
-	tmx_property *properties;
+	tmx_properties *properties;
 	tmx_object *next;
 };
 
@@ -174,7 +174,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	} content;
 
 	tmx_user_data user_data;
-	tmx_property *properties;
+	tmx_properties *properties;
 	tmx_layer *next;
 };
 
@@ -191,7 +191,7 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	unsigned int backgroundcolor; /* bytes : RGB */
 	enum tmx_map_renderorder renderorder;
 
-	tmx_property *properties;
+	tmx_properties *properties;
 	tmx_tileset *ts_head;
 	tmx_layer *ly_head;
 
@@ -214,6 +214,14 @@ TMXEXPORT void tmx_map_free(tmx_map *map);
 
 /* Returns the tile associated with this gid, returns NULL if it fails */
 TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
+
+/* Returns the tmx_property from given hashtable and key, returns NULL if not found */
+TMXEXPORT tmx_property* tmx_get_property(tmx_properties *hash, const char *key);
+
+/* ForEach callback type to be used with function tmx_property_foreach(...) */
+typedef void (*tmx_property_functor)(tmx_property *property, void *userdata);
+/* Calls `callback` for each entry in the property hashtable, order of entries is random */
+TMXEXPORT void tmx_property_foreach(tmx_properties *hash, tmx_property_functor callback, void *userdata);
 
 /*
 	Error handling

@@ -58,6 +58,21 @@ char* mk_absolute_path(const char *base_path, const char *rel_path);
 void* load_image(void **ptr, const char *base_path, const char *rel_path);
 
 /*
+	Hashtable
+*/
+typedef void (*hashtable_entry_deallocator)(void *val, const char *key);
+typedef void (*hashtable_foreach_functor)(void *val, void *userdata, const char *key);
+
+void* mk_hashtable(unsigned int initial_size);
+void  hashtable_set(void *hashtable, const char *key, void *val, hashtable_entry_deallocator deallocator);
+void* hashtable_get(void *hashtable, const char *key);
+void  hashtable_rm(void *hashtable, const char *key, hashtable_entry_deallocator deallocator);
+void  hashtable_foreach(void *hashtable, hashtable_foreach_functor functor, void *userdata);
+void  free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator);
+
+void property_deallocator(void *val, const char *key);
+
+/*
 	Error handling
 */
 #if defined(WIN32) || defined(__WIN32__) || defined(_WIN32)

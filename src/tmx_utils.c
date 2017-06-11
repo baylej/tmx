@@ -7,6 +7,8 @@
 #include <string.h>
 #include <ctype.h> /* is */
 
+#include <libxml/hash.h> /* hashtable */
+
 #include "tmx.h"
 #include "tmx_utils.h"
 
@@ -567,4 +569,47 @@ void* load_image(void **ptr, const char *base_path, const char *rel_path) {
 		return(*ptr);
 	}
 	return (void*)1;
+}
+
+/*
+	Hashtable
+
+	This implementation is based on libxml/hash.h provided by libxml2.
+*/
+
+void* mk_hashtable(unsigned int initial_size) {
+	// Auto-resize is supported
+	return (void*) xmlHashCreate(initial_size);
+}
+
+void hashtable_set(void *hashtable, const char *key, void *val, hashtable_entry_deallocator deallocator) {
+	// Set or update value, key string is duplicated, deallocator may be NULL if values were not allocated
+	xmlHashUpdateEntry((xmlHashTablePtr)hashtable, (const xmlChar*)key, val, (xmlHashDeallocator)deallocator);
+}
+
+void* hashtable_get(void *hashtable, const char *key) {
+	return xmlHashLookup((xmlHashTablePtr)hashtable, (const xmlChar*)key);
+}
+
+void hashtable_rm(void *hashtable, const char *key, hashtable_entry_deallocator deallocator) {
+	xmlHashRemoveEntry((xmlHashTablePtr)hashtable, (const xmlChar*)key, (xmlHashDeallocator)deallocator);
+}
+
+void free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator) {
+	xmlHashFree((xmlHashTablePtr)hashtable, (xmlHashDeallocator)deallocator);
+}
+
+void hashtable_foreach(void *hashtable, hashtable_foreach_functor functor, void *userdata) {
+	xmlHashScan((xmlHashTablePtr)hashtable, (xmlHashScanner)functor, userdata);
+}
+
+void property_deallocator(void *val, const char *key) {
+	if (val) {
+		tmx_property *p = (tmx_property*)val;
+		tmx_free_func(p->name);
+		if (p->type == PT_STRING || p->type == PT_FILE || p->type == PT_NONE) {
+			tmx_free_func(p->value.string);
+		}
+		tmx_free_func(p);
+	}
 }

@@ -60,8 +60,8 @@ void mk_padding(char pad[11], int depth) {
 	pad[depth] = '\0';
 }
 
-void print_prop(tmx_property *p, int depth) {
-	char padding[12]; mk_padding(padding, depth);
+void print_prop(tmx_property *p, void *depth) {
+	char padding[12]; mk_padding(padding, (int)depth);
 
 	printf("\n%s" "'%s'=(", padding, p->name);
 	switch(p->type) {
@@ -87,17 +87,14 @@ void print_prop(tmx_property *p, int depth) {
 	}
 }
 
-void dump_prop(tmx_property *p, int depth) {
+void dump_prop(tmx_properties *p, int depth) {
 	char padding[11]; mk_padding(padding, depth);
 
 	printf("\n%s" "properties={", padding);
 	if (!p) {
 		printf(" (NULL) }");
 	} else {
-		while (p) {
-			print_prop(p, depth+1);
-			p = p->next;
-		}
+		tmx_property_foreach(p, print_prop, (void*)(long)(depth+1));
 		printf("\n" "%s}", padding);
 	}
 }

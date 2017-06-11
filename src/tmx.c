@@ -38,15 +38,8 @@ tmx_map* tmx_load(const char *path) {
 	return map;
 }
 
-static void free_props(tmx_property *p) {
-	if (p) {
-		free_props(p->next);
-		tmx_free_func(p->name);
-		if (p->type == PT_STRING || p->type == PT_FILE || p->type == PT_NONE) {
-			tmx_free_func(p->value.string);
-		}
-		tmx_free_func(p);
-	}
+static void free_props(tmx_properties *h) {
+	free_hashtable((void*)h, property_deallocator);
 }
 
 static void free_obj(tmx_object *o) {
@@ -138,4 +131,28 @@ tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
 	if (gid < map->tilecount) return map->tiles[gid];
 
 	return NULL;
+}
+
+TMXEXPORT tmx_property* tmx_get_property(tmx_properties *hash, const char *key) {
+	if (hash == NULL) {
+		return NULL;
+	}
+	return (tmx_property*) hashtable_get((void*)hash, key);
+}
+
+struct property_foreach_data {
+	tmx_property_functor callback;
+	void *userdata;
+};
+
+static void property_foreach(void *val, void *userdata, const char *key) {
+	struct property_foreach_data *holder = ((struct property_foreach_data*)userdata);
+	holder->callback((tmx_property*)val, holder->userdata);
+}
+
+void tmx_property_foreach(tmx_properties *hash, tmx_property_functor callback, void *userdata) {
+	struct property_foreach_data holder;
+	holder.callback = callback;
+	holder.userdata = userdata;
+	hashtable_foreach((void*)hash, property_foreach, &holder);
 }
