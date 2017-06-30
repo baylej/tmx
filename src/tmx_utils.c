@@ -7,9 +7,8 @@
 #include <string.h>
 #include <ctype.h> /* is */
 
-#include <libxml/hash.h> /* hashtable */
-
 #include "tmx.h"
+#include "tsx.h"
 #include "tmx_utils.h"
 
 /*
@@ -251,63 +250,17 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 }
 
 /*
-	Node allocation
-*/
-
-static void* node_alloc(size_t size) {
-	void *res = tmx_alloc_func(NULL, size);
-	if (res) {
-		memset(res, 0, size);
-	} else {
-		tmx_errno = E_ALLOC;
-	}
-	return res;
-}
-
-tmx_property* alloc_prop(void) {
-	return (tmx_property*)node_alloc(sizeof(tmx_property));
-}
-
-tmx_image* alloc_image(void) {
-	return (tmx_image*)node_alloc(sizeof(tmx_image));
-}
-
-tmx_object* alloc_object(void) {
-	tmx_object *res = (tmx_object*)node_alloc(sizeof(tmx_object));
-	if (res) {
-		res->visible = 1;
-	}
-	return res;
-}
-
-tmx_object_group* alloc_objgr(void) {
-	return (tmx_object_group*)node_alloc(sizeof(tmx_object_group));
-}
-
-tmx_layer* alloc_layer(void) {
-	tmx_layer *res = (tmx_layer*)node_alloc(sizeof(tmx_layer));
-	if (res) {
-		res->opacity = 1.0f;
-		res->visible = 1;
-	}
-	return res;
-}
-
-tmx_tile* alloc_tiles(int count) {
-	return (tmx_tile*)node_alloc(count * sizeof(tmx_tile));
-}
-
-tmx_tileset* alloc_tileset(void) {
-	return (tmx_tileset*)node_alloc(sizeof(tmx_tileset));
-}
-
-tmx_map* alloc_map(void) {
-	return (tmx_map*)node_alloc(sizeof(tmx_map));
-}
-
-/*
 	Misc
 */
+
+void map_post_parsing(tmx_map **map) {
+	if (*map) {
+		if (!mk_map_tile_array(*map)) {
+			tmx_map_free(*map);
+			*map = NULL;
+		}
+	}
+}
 
 /* Sets tile->tileset and tile->ul_x,y */
 int set_tiles_runtime_props(tmx_tileset *ts) {
@@ -349,7 +302,7 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 /* Creates the array at map->tiles */
 int mk_map_tile_array(tmx_map *map) {
 	unsigned int i;
-	tmx_tileset *ts, *max_ts;
+	tmx_tileset_list *ts, *max_ts;
 
 	if (!map) {
 		tmx_err(E_INVAL, "mk_map_tile_array: invalid argument: map is NULL");
@@ -369,12 +322,12 @@ int mk_map_tile_array(tmx_map *map) {
 		}
 		ts = ts->next;
 	}
-	if (max_ts->image) {
-		map->tilecount = max_ts->firstgid + max_ts->tilecount;
+	if (max_ts->tileset->image) {
+		map->tilecount = max_ts->firstgid + max_ts->tileset->tilecount;
 	}
 	else {
 		/* Gets the last id, ts->tiles is sorted by id */
-		map->tilecount = max_ts->firstgid + max_ts->tiles[max_ts->tilecount - 1].id + 1;
+		map->tilecount = max_ts->firstgid + max_ts->tileset->tiles[max_ts->tileset->tilecount - 1].id + 1;
 	}
 
 	/* Allocates the GID indexed tile array */
@@ -388,8 +341,8 @@ int mk_map_tile_array(tmx_map *map) {
 	map->tiles[0] = NULL; /* GIDs start from 1 */
 	ts = map->ts_head;
 	while (ts != NULL) {
-		for (i=0; i<ts->tilecount; i++) {
-			map->tiles[ts->firstgid + ts->tiles[i].id] = &(ts->tiles[i]);
+		for (i=0; i<ts->tileset->tilecount; i++) {
+			map->tiles[ts->firstgid + ts->tileset->tiles[i].id] = &(ts->tileset->tiles[i]);
 		}
 		ts = ts->next;
 	}
@@ -540,6 +493,9 @@ size_t dirpath_len(const char *str) {
 
 /* ("C:\Maps\map.tmx", "tilesets\ts1.tsx") => "C:\Maps\tilesets\ts1.tsx" */
 char* mk_absolute_path(const char *base_path, const char *rel_path) {
+	if (base_path == NULL) {
+		return tmx_strdup(rel_path);
+	}
 	/* if base_path is a directory, it MUST have a trailing path separator */
 	size_t dp_len = dirpath_len(base_path);
 	size_t rp_len = strlen(rel_path);
@@ -569,47 +525,4 @@ void* load_image(void **ptr, const char *base_path, const char *rel_path) {
 		return(*ptr);
 	}
 	return (void*)1;
-}
-
-/*
-	Hashtable
-
-	This implementation is based on libxml/hash.h provided by libxml2.
-*/
-
-void* mk_hashtable(unsigned int initial_size) {
-	// Auto-resize is supported
-	return (void*) xmlHashCreate(initial_size);
-}
-
-void hashtable_set(void *hashtable, const char *key, void *val, hashtable_entry_deallocator deallocator) {
-	// Set or update value, key string is duplicated, deallocator may be NULL if values were not allocated
-	xmlHashUpdateEntry((xmlHashTablePtr)hashtable, (const xmlChar*)key, val, (xmlHashDeallocator)deallocator);
-}
-
-void* hashtable_get(void *hashtable, const char *key) {
-	return xmlHashLookup((xmlHashTablePtr)hashtable, (const xmlChar*)key);
-}
-
-void hashtable_rm(void *hashtable, const char *key, hashtable_entry_deallocator deallocator) {
-	xmlHashRemoveEntry((xmlHashTablePtr)hashtable, (const xmlChar*)key, (xmlHashDeallocator)deallocator);
-}
-
-void free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator) {
-	xmlHashFree((xmlHashTablePtr)hashtable, (xmlHashDeallocator)deallocator);
-}
-
-void hashtable_foreach(void *hashtable, hashtable_foreach_functor functor, void *userdata) {
-	xmlHashScan((xmlHashTablePtr)hashtable, (xmlHashScanner)functor, userdata);
-}
-
-void property_deallocator(void *val, const char *key) {
-	if (val) {
-		tmx_property *p = (tmx_property*)val;
-		tmx_free_func(p->name);
-		if (p->type == PT_STRING || p->type == PT_FILE || p->type == PT_NONE) {
-			tmx_free_func(p->value.string);
-		}
-		tmx_free_func(p);
-	}
 }

@@ -1,7 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <tmx.h>
+#include <tsx.h>
 
 #define str_bool(b) (b==0? "false": "true")
 
@@ -184,29 +188,31 @@ void dump_tile(tmx_tile *t, unsigned int tilecount) {
 	}
 }
 
-void dump_tileset(tmx_tileset *t) {
-	printf("\ntileset={");
-	if (t) {
-		printf("\n\t" "name=%s", t->name);
-		printf("\n\t" "tilecount=%u", t->tilecount);
-		printf("\n\t" "firstgid=%u", t->firstgid);
-		printf("\n\t" "tile_height=%u", t->tile_height);
-		printf("\n\t" "tile_width=%u", t->tile_width);
-		printf("\n\t" "firstgid=%u", t->firstgid);
-		printf("\n\t" "margin=%u", t->margin);
-		printf("\n\t" "spacing=%u", t->spacing);
-		printf("\n\t" "x_offset=%d", t->x_offset);
-		printf("\n\t" "y_offset=%d", t->y_offset);
-		dump_image(t->image, 1);
-		dump_tile(t->tiles, t->tilecount);
-		dump_prop(t->properties, 1);
-		printf("\n}");
-	} else {
-		printf(" (NULL) }");
-	}
+void dump_tileset(tmx_tileset_list *tsl) {
+	if (tsl) {
+		tmx_tileset *t = tsl->tileset;
+		printf("\ntileset={");
+		if (t) {
+			printf("\n\t" "firstgid=%u", tsl->firstgid);
+			printf("\n\t" "name=%s", t->name);
+			printf("\n\t" "tilecount=%u", t->tilecount);
+			printf("\n\t" "tile_height=%u", t->tile_height);
+			printf("\n\t" "tile_width=%u", t->tile_width);
+			printf("\n\t" "margin=%u", t->margin);
+			printf("\n\t" "spacing=%u", t->spacing);
+			printf("\n\t" "x_offset=%d", t->x_offset);
+			printf("\n\t" "y_offset=%d", t->y_offset);
+			dump_image(t->image, 1);
+			dump_tile(t->tiles, t->tilecount);
+			dump_prop(t->properties, 1);
+			printf("\n}");
+		} else {
+			printf(" (NULL) }");
+		}
 
-	if (t && t->next) {
-		dump_tileset(t->next);
+		if (tsl->next) {
+			dump_tileset(tsl->next);
+		}
 	}
 }
 
@@ -245,6 +251,7 @@ void dump_layer(tmx_layer *l, unsigned int tc) {
 }
 
 void dump_map(tmx_map *m) {
+	if (!m) tmx_perror("error");
 	printf("map={");
 	if (m) {
 		printf("\n\t" "orient="); print_orient(m->orient);
@@ -266,7 +273,9 @@ void dump_map(tmx_map *m) {
 		dump_tileset(m->ts_head);
 		dump_layer(m->ly_head, m->height * m->width);
 		dump_prop(m->properties, 0);
+		tmx_map_free(m);
 	}
+	printf("\n");
 }
 
 static int mal_vs_free_count = 0;
@@ -281,24 +290,141 @@ void dbg_free(void *address) {
 	free(address);
 }
 
-int main(int argc, char *argv[]) {
-	tmx_map *m;
+/* for tmx_load_callback */
+int read_function(void *file, char *buffer, int len) {
+	int res;
+	res = fread(buffer, 1, len, file);
+	if (ferror(file)) {
+		perror("error");
+	}
+	return res;
+}
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s <map.tmx>\n", argv[0]);
+int isOption(const char *arg) {
+	return (strlen(arg) > 2) && !strncmp("--", arg, 2);
+}
+
+int isMap(const char *arg) {
+	int len = strlen(arg);
+	return !strncmp(".tmx", arg+len-4, 4);
+}
+
+void printUsage(const char *arg0) {
+	fprintf(stderr, "usage: %s [--use-tileset-mgr] { [--fd|--buffer|--callback] <map.tmx|tileset.tsx> }...\n", arg0);
+}
+
+int main(int argc, char *argv[]) {
+	tmx_map *m = NULL;
+	tmx_tileset_manager *ts_mgr = NULL;
+	int fd, it;
+	FILE *file;
+	long size;
+	char *buffer;
+
+	if (argc < 2) {
+		printUsage(argv[0]);
 		return EXIT_FAILURE;
 	}
 
 	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
 	tmx_free_func  = dbg_free;
 
-	m = tmx_load(argv[1]);
-	if (!m) tmx_perror("error");
+	/* Parses each argument, loads each file (map or tileset) using the specified method (none, fd, buffer, callbacl) */
+	for (it = 1; it < argc; it++) {
+		if (isOption(argv[it])) {
+			if (it == 1 && !strcmp("--help", argv[it])) {
+				printUsage(argv[0]);
+				return EXIT_SUCCESS;
+			}
+			else if (it == 1 && !strcmp("--use-tileset-mgr", argv[it])) {
+				ts_mgr = tmx_make_tileset_manager();
+				if (!ts_mgr) {
+					tmx_perror("error");
+				}
+			}
+			else if (!strcmp("--fd", argv[it])) {
+				fd = open(argv[++it], O_RDONLY);
+				if (fd == -1) {
+					perror("error");
+				}
+				else {
+					if (isMap(argv[it])) {
+						m = tmx_tsmgr_load_fd(ts_mgr, fd);
+						dump_map(m);
+					}
+					else {
+						tmx_load_tileset_fd(ts_mgr, fd, argv[it]);
+					}
+					close(fd);
+				}
+			}
+			else if (!strcmp("--buffer", argv[it])) {
+				file = fopen(argv[++it], "r");
+				if (!file) {
+					perror("error");
+				}
+				else {
+					fseek(file, 0, SEEK_END);
+					size = ftell(file);
+					rewind(file);
 
-	dump_map(m);
-	tmx_map_free(m);
+					buffer = (char*)dbg_alloc(NULL, size);
+					fread(buffer, 1, size, file);
+					if (ferror(file))
+					{
+						perror("error");
+					}
+					else {
+						if (isMap(argv[it])) {
+							m = tmx_tsmgr_load_buffer(ts_mgr, buffer, size);
+							dump_map(m);
+						}
+						else {
+							tmx_load_tileset_buffer(ts_mgr, buffer, size, argv[it]);
+						}
+					}
 
-	printf("\n%d mem alloc not freed\n", mal_vs_free_count);
+					dbg_free(buffer);
+					fclose(file);
+				}
+			}
+			else if (!strcmp("--callback", argv[it])) {
+				file = fopen(argv[++it], "r");
+				if (!file) {
+					perror("error");
+				}
+				else {
+					if (isMap(argv[it])) {
+						m = tmx_tsmgr_load_callback(ts_mgr, read_function, file);
+						dump_map(m);
+					}
+					else {
+						tmx_load_tileset_callback(ts_mgr, read_function, file, argv[it]);
+					}
+					fclose(file);
+				}
+			}
+			else {
+				if (it == 1) fprintf(stderr, "unknown option: %s\nvalid options are --use-tileset-mgr\n", argv[1]);
+				fprintf(stderr, "unknown load method: %s\nvalid methods are --fd, --buffer, --callback\n", argv[it]);
+			}
+		}
+		else {
+			if (isMap(argv[it])) {
+				m = tmx_tsmgr_load(ts_mgr, argv[it]);
+				dump_map(m);
+			}
+			else {
+				tmx_load_tileset(ts_mgr, argv[it]);
+			}
+		}
+	}
+
+	if (ts_mgr) {
+		tmx_free_tileset_manager(ts_mgr);
+	}
+
+	printf("%d mem alloc not freed\n", mal_vs_free_count);
 
 #ifdef PAUSE
 	puts("press <Enter> to quit\n");
@@ -307,4 +433,3 @@ int main(int argc, char *argv[]) {
 
 	return EXIT_SUCCESS;
 }
-
