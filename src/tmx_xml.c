@@ -587,6 +587,8 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, const char 
 				if (!parse_image(reader, &(res->image), 0, filename)) return 0;
 			}
 			else if (!strcmp(name, "objectgroup")) { /* tile collision */
+				if (xmlTextReaderIsEmptyElement(reader)) continue;
+
 				do {
 					if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 					name = (char*)xmlTextReaderConstName(reader);
