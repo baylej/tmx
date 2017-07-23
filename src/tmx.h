@@ -52,8 +52,10 @@ enum tmx_stagger_index {SI_NONE, SI_EVEN, SI_ODD};
 enum tmx_stagger_axis {SA_NONE, SA_X, SA_Y};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
-enum tmx_shape {S_NONE, S_SQUARE, S_POLYGON, S_POLYLINE, S_ELLIPSE, S_TILE};
+enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_TILE, OT_TEXT};
 enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE};
+enum tmx_horizontal_align {HA_NONE, HA_LEFT, HA_CENTER, HA_RIGHT};
+enum tmx_vertical_align {VA_NONE, VA_TOP, VA_CENTER, VA_BOTTOM};
 
 /* Typedefs of the structures below */
 typedef struct _tmx_prop tmx_property;
@@ -62,6 +64,8 @@ typedef struct _tmx_frame tmx_anim_frame;
 typedef struct _tmx_tile tmx_tile;
 typedef struct _tmx_ts tmx_tileset;
 typedef struct _tmx_ts_list tmx_tileset_list;
+typedef struct _tmx_shape tmx_shape;
+typedef struct _tmx_text tmx_text;
 typedef struct _tmx_obj tmx_object;
 typedef struct _tmx_objgr tmx_object_group;
 typedef struct _tmx_layer tmx_layer;
@@ -140,17 +144,41 @@ struct _tmx_ts_list { /* Linked list */
 	tmx_tileset_list *next;
 };
 
+struct _tmx_shape { /* <polygon> and <polyline> */
+	double **points; /* point[i][x,y]; x=0 y=1 */
+	int points_len;
+};
+
+struct _tmx_text { /* <text> */
+	char *fontfamily;
+	int pixelsize;
+	unsigned int color;
+
+	int wrap; /* 0 == false */
+	int bold;
+	int italic;
+	int underline;
+	int strikeout;
+	int kerning;
+
+	enum tmx_horizontal_align halign;
+	enum tmx_vertical_align valign;
+
+	char *text;
+};
+
 struct _tmx_obj { /* <object> */
 	unsigned int id;
-	enum tmx_shape shape;
+	enum tmx_obj_type obj_type;
 
 	double x, y;
 	double width, height;
 
-	int gid;
-
-	double **points; /* point[i][x,y]; x=0 y=1 */
-	int points_len;
+	union {
+		int gid;
+		tmx_shape *shape;
+		tmx_text *text;
+	} content;
 
 	int visible; /* 0 == false */
 	double rotation;

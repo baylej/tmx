@@ -53,15 +53,15 @@ void draw_objects(tmx_object_group *objgr) {
 	/* FIXME line thickness */
 	while (head) {
 		if (head->visible) {
-			if (head->shape == S_SQUARE) {
+			if (head->obj_type == OT_SQUARE) {
 				rect.x =     head->x;  rect.y =      head->y;
 				rect.w = head->width;  rect.h = head->height;
 				SDL_RenderDrawRect(ren, &rect);
-			} else if (head->shape  == S_POLYGON) {
-				draw_polygon(head->points, head->x, head->y, head->points_len);
-			} else if (head->shape == S_POLYLINE) {
-				draw_polyline(head->points, head->x, head->y, head->points_len);
-			} else if (head->shape == S_ELLIPSE) {
+			} else if (head->obj_type  == OT_POLYGON) {
+				draw_polygon(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+			} else if (head->obj_type == OT_POLYLINE) {
+				draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+			} else if (head->obj_type == OT_ELLIPSE) {
 				/* FIXME: no function in SDL2 */
 			}
 		}

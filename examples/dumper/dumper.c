@@ -58,6 +58,26 @@ void print_draworder(enum tmx_objgr_draworder dro) {
 	}
 }
 
+void print_halign(enum tmx_horizontal_align halign) {
+	switch(halign) {
+		case HA_NONE:   printf("none");   break;
+		case HA_LEFT:   printf("left");   break;
+		case HA_CENTER: printf("center"); break;
+		case HA_RIGHT:  printf("right");  break;
+		default: printf("unknown");
+	}
+}
+
+void print_valign(enum tmx_vertical_align valign) {
+	switch(valign) {
+		case VA_NONE:   printf("none");   break;
+		case VA_TOP:    printf("top");    break;
+		case VA_CENTER: printf("center"); break;
+		case VA_BOTTOM: printf("bottom"); break;
+		default: printf("unknown");
+	}
+}
+
 void mk_padding(char pad[11], int depth) {
 	if (depth>10) depth=10;
 	if (depth>0) memset(pad, '\t', depth);
@@ -103,13 +123,14 @@ void dump_prop(tmx_properties *p, int depth) {
 	}
 }
 
-void print_shape(enum tmx_shape shape) {
-	switch(shape) {
-		case S_NONE:     printf("none");     break;
-		case S_SQUARE:   printf("square");   break;
-		case S_ELLIPSE:  printf("ellipse");  break;
-		case S_POLYGON:  printf("polygon");  break;
-		case S_POLYLINE: printf("polyline"); break;
+void print_obj_type(enum tmx_obj_type type) {
+	switch(type) {
+		case OT_NONE:     printf("none");     break;
+		case OT_TEXT:     printf("text");     break;
+		case OT_SQUARE:   printf("square");   break;
+		case OT_ELLIPSE:  printf("ellipse");  break;
+		case OT_POLYGON:  printf("polygon");  break;
+		case OT_POLYLINE: printf("polyline"); break;
 		default: printf("unknown");
 	}
 }
@@ -131,15 +152,30 @@ void dump_objects(tmx_object *o, int depth) {
 		printf("\n%s\t" "id=%u", padding, o->id);
 		printf("\n%s\t" "name='%s'", padding, o->name);
 		printf("\n%s\t" "type='%s'", padding, o->type);
-		printf("\n%s\t" "shape=", padding);  print_shape(o->shape);
+		printf("\n%s\t" "obj_type=", padding);  print_obj_type(o->obj_type);
 		printf("\n%s\t" "x=%f", padding, o->x);
 		printf("\n%s\t" "y=%f", padding, o->y);
-		printf("\n%s\t" "number of points='%d'", padding, o->points_len);
 		printf("\n%s\t" "rotation=%f", padding, o->rotation);
 		printf("\n%s\t" "visible=%s", padding, str_bool(o->visible));
-		if (o->points_len) {
+		if (o->obj_type == OT_POLYGON || o->obj_type == OT_POLYLINE) {
+			printf("\n%s\t" "number of points='%d'", padding, o->content.shape->points_len);
 			printf("\n%s\t" "points=", padding);
-			dump_points(o->points, o->points_len);
+			dump_points(o->content.shape->points, o->content.shape->points_len);
+		}
+		else if (o->obj_type == OT_TEXT) {
+			tmx_text *t = o->content.text;
+			printf("\n%s\t" "fontfamily='%s'", padding, t->fontfamily);
+			printf("\n%s\t" "pixelsize=%d", padding, t->pixelsize);
+			printf("\n%s\t" "color=#%.6X", padding, t->color);
+			printf("\n%s\t" "wrap=%s", padding, str_bool(t->wrap));
+			printf("\n%s\t" "bold=%s", padding, str_bool(t->bold));
+			printf("\n%s\t" "italic=%s", padding, str_bool(t->italic));
+			printf("\n%s\t" "underline=%s", padding, str_bool(t->underline));
+			printf("\n%s\t" "strikeout=%s", padding, str_bool(t->strikeout));
+			printf("\n%s\t" "kerning=%s", padding, str_bool(t->kerning));
+			printf("\n%s\t" "halign=", padding); print_halign(t->halign);
+			printf("\n%s\t" "valign=", padding); print_valign(t->valign);
+			printf("\n%s\t" "text='%s'", padding, t->text);
 		}
 		dump_prop(o->properties, depth+1);
 		printf("\n%s}", padding);

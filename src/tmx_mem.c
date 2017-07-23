@@ -41,6 +41,21 @@ tmx_image* alloc_image(void) {
 	return (tmx_image*)node_alloc(sizeof(tmx_image));
 }
 
+tmx_shape* alloc_shape(void) {
+	return (tmx_shape*)node_alloc(sizeof(tmx_shape));
+}
+
+tmx_text* alloc_text(void) {
+	tmx_text *res = (tmx_text*)node_alloc(sizeof(tmx_text));
+	if (res) {
+		res->pixelsize = 16;
+		res->kerning = 1;
+		res->valign = VA_TOP;
+		res->halign = HA_LEFT;
+	}
+	return res;
+}
+
 tmx_object* alloc_object(void) {
 	tmx_object *res = (tmx_object*)node_alloc(sizeof(tmx_object));
 	if (res) {
@@ -100,9 +115,23 @@ void free_obj(tmx_object *o) {
 	if (o) {
 		free_obj(o->next);
 		tmx_free_func(o->name);
-		if (o->points) tmx_free_func(*(o->points));
+		if (o->obj_type == OT_POLYGON || o->obj_type == OT_POLYLINE) {
+			if (o->content.shape) {
+				if (o->content.shape->points) {
+					tmx_free_func(*(o->content.shape->points));
+					tmx_free_func(o->content.shape->points);
+				}
+				tmx_free_func(o->content.shape);
+			}
+		}
+		else if (o->obj_type == OT_TEXT) {
+			if (o->content.text) {
+				if (o->content.text->fontfamily) tmx_free_func(o->content.text->fontfamily);
+				if (o->content.text->text) tmx_free_func(o->content.text->text);
+				tmx_free_func(o->content.text);
+			}
+		}
 		tmx_free_func(o->type);
-		tmx_free_func(o->points);
 		tmx_free_func(o);
 	}
 }

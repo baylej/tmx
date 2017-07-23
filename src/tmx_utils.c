@@ -440,6 +440,38 @@ enum tmx_property_type parse_property_type(const char *propertytype) {
 	return PT_NONE;
 }
 
+enum tmx_horizontal_align parse_horizontal_align(const char *horalign) {
+	if (horalign == NULL) {
+		return HA_NONE;
+	}
+	if (!strcmp(horalign, "left")) {
+		return HA_LEFT;
+	}
+	if (!strcmp(horalign, "center")) {
+		return HA_CENTER;
+	}
+	if (!strcmp(horalign, "right")) {
+		return HA_RIGHT;
+	}
+	return HA_NONE;
+}
+
+enum tmx_vertical_align parse_vertical_align(const char *veralign) {
+	if (veralign == NULL) {
+		return VA_NONE;
+	}
+	if (!strcmp(veralign, "top")) {
+		return VA_TOP;
+	}
+	if (!strcmp(veralign, "center")) {
+		return VA_CENTER;
+	}
+	if (!strcmp(veralign, "bottom")) {
+		return VA_BOTTOM;
+	}
+	return VA_NONE;
+}
+
 /* "false" -> 0 */
 int parse_boolean(const char *boolean) {
 	if (boolean != NULL && !strcmp(boolean, "true")) {

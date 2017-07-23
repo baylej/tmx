@@ -124,7 +124,7 @@ static int parse_properties(xmlTextReaderPtr reader, tmx_properties **prop_hashp
 	return 1;
 }
 
-static int parse_points(xmlTextReaderPtr reader, double ***ptsarrayadr, int *ptslenadr) {
+static int parse_points(xmlTextReaderPtr reader, tmx_shape *shape) {
 	char *value, *v;
 	int i;
 
@@ -133,28 +133,28 @@ static int parse_points(xmlTextReaderPtr reader, double ***ptsarrayadr, int *pts
 		return 0;
 	}
 
-	*ptslenadr = 1 + count_char_occurences(value, ' ');
+	shape->points_len = 1 + count_char_occurences(value, ' ');
 
-	*ptsarrayadr = (double**)tmx_alloc_func(NULL, *ptslenadr * sizeof(double*)); /* points[i][x,y] */
-	if (!(*ptsarrayadr)) {
+	shape->points = (double**)tmx_alloc_func(NULL, shape->points_len * sizeof(double*)); /* points[i][x,y] */
+	if (!(shape->points)) {
 		tmx_errno = E_ALLOC;
 		return 0;
 	}
 
-	(*ptsarrayadr)[0] = (double*)tmx_alloc_func(NULL, *ptslenadr * 2 * sizeof(double));
-	if (!(*ptsarrayadr)[0]) {
-		tmx_free_func(*ptsarrayadr);
+	shape->points[0] = (double*)tmx_alloc_func(NULL, shape->points_len * 2 * sizeof(double));
+	if (!(shape->points[0])) {
+		tmx_free_func(shape->points);
 		tmx_errno = E_ALLOC;
 		return 0;
 	}
 
-	for (i=1; i<*ptslenadr; i++) {
-		(*ptsarrayadr)[i] = (*ptsarrayadr)[0]+(i*2);
+	for (i=1; i<shape->points_len; i++) {
+		shape->points[i] = shape->points[0]+(i*2);
 	}
 
 	v = value;
-	for (i=0; i<*ptslenadr; i++) {
-		if (sscanf(v, "%lf,%lf", (*ptsarrayadr)[i], (*ptsarrayadr)[i]+1) != 2) {
+	for (i=0; i<shape->points_len; i++) {
+		if (sscanf(v, "%lf,%lf", shape->points[i], shape->points[i]+1) != 2) {
 			tmx_err(E_XDATA, "xml parser: corrupted point list");
 			return 0;
 		}
@@ -162,6 +162,72 @@ static int parse_points(xmlTextReaderPtr reader, double ***ptsarrayadr, int *pts
 	}
 
 	tmx_free_func(value);
+	return 1;
+}
+
+static int parse_text(xmlTextReaderPtr reader, tmx_text *text) {
+	char *value;
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"fontfamily"))) { /* fontfamily */
+		text->fontfamily = value;
+	} else {
+		text->fontfamily = tmx_strdup("sans-serif");
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"pixelsize"))) { /* pixelsize */
+		text->pixelsize = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"color"))) { /* color */
+		text->color = get_color_rgb(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"wrap"))) { /* wrap */
+		text->color = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"bold"))) { /* bold */
+		text->bold = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"italic"))) { /* italic */
+		text->italic = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"underline"))) { /* underline */
+		text->underline = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"strikeout"))) { /* strikeout */
+		text->strikeout = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"kerning"))) { /* kerning */
+		text->kerning = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"halign"))) { /* halign */
+		text->halign = parse_horizontal_align(value);
+		tmx_free_func(value);
+	}
+	
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"valign"))) { /* valign */
+		text->valign = parse_vertical_align(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderReadInnerXml(reader))) {
+		text->text = value;
+	}
+
 	return 1;
 }
 
@@ -209,7 +275,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"height"))) { /* height */
-		obj->shape = S_SQUARE;
+		obj->obj_type = OT_SQUARE;
 		obj->height = atof(value);
 		tmx_free_func(value);
 	}
@@ -220,8 +286,8 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"gid"))) { /* gid */
-		obj->shape = S_TILE;
-		obj->gid = atoi(value);
+		obj->obj_type = OT_TILE;
+		obj->content.gid = atoi(value);
 		tmx_free_func(value);
 	}
 
@@ -241,16 +307,25 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj) {
 				if (!strcmp(name, "properties")) {
 					if (!parse_properties(reader, &(obj->properties))) return 0;
 				} else if (!strcmp(name, "ellipse")) {
-					obj->shape = S_ELLIPSE;
+					obj->obj_type = OT_ELLIPSE;
 				} else {
 					if (!strcmp(name, "polygon")) {
-						obj->shape = S_POLYGON;
+						obj->obj_type = OT_POLYGON;
 					} else if (!strcmp(name, "polyline")) {
-						obj->shape = S_POLYLINE;
+						obj->obj_type = OT_POLYLINE;
+					} else if (!strcmp(name, "text")) {
+						obj->obj_type = OT_TEXT;
 					}
 					/* Unknow element, skip its tree */
 					else if (xmlTextReaderNext(reader) != 1) return 0;
-					if (!parse_points(reader, &(obj->points), &(obj->points_len))) return 0;
+					if (obj->obj_type == OT_POLYGON || obj->obj_type == OT_POLYLINE) {
+						if (obj->content.shape = alloc_shape(), !(obj->content.shape)) return 0;
+						if (!parse_points(reader, obj->content.shape)) return 0;
+					}
+					else if (obj->obj_type == OT_TEXT) {
+						if (obj->content.text = alloc_text(), !(obj->content.text)) return 0;
+						if (!parse_text(reader, obj->content.text)) return 0;
+					}
 				}
 			}
 		} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||

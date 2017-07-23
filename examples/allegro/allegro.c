@@ -59,13 +59,13 @@ void draw_objects(tmx_object_group *objgr) {
 	tmx_object *head = objgr->head;
 	while (head) {
 		if (head->visible) {
-			if (head->shape == S_SQUARE) {
+			if (head->obj_type == OT_SQUARE) {
 				al_draw_rectangle(head->x, head->y, head->x+head->width, head->y+head->height, color, LINE_THICKNESS);
-			} else if (head->shape  == S_POLYGON) {
-				draw_polygone(head->points, head->x, head->y, head->points_len, color);
-			} else if (head->shape == S_POLYLINE) {
-				draw_polyline(head->points, head->x, head->y, head->points_len, color);
-			} else if (head->shape == S_ELLIPSE) {
+			} else if (head->obj_type  == OT_POLYGON) {
+				draw_polygone(head->content.shape->points, head->x, head->y, head->content.shape->points_len, color);
+			} else if (head->obj_type == OT_POLYLINE) {
+				draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len, color);
+			} else if (head->obj_type == OT_ELLIPSE) {
 				al_draw_ellipse(head->x + head->width/2.0, head->y + head->height/2.0, head->width/2.0, head->height/2.0, color, LINE_THICKNESS);
 			}
 		}

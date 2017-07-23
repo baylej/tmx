@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "tmx.h"
+
+
 #ifndef TMXUTILS_H
 #define TMXUTILS_H
 
@@ -33,6 +36,8 @@ void setup_libxml_mem();
 
 tmx_property*     alloc_prop(void);
 tmx_image*        alloc_image(void);
+tmx_shape*        alloc_shape(void);
+tmx_text*         alloc_text(void);
 tmx_object*       alloc_object(void);
 tmx_object_group* alloc_objgr(void);
 tmx_layer*        alloc_layer(void);
@@ -70,6 +75,8 @@ enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder);
 enum tmx_stagger_index parse_stagger_index(const char *staggerindex);
 enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis);
 enum tmx_property_type parse_property_type(const char *propertytype);
+enum tmx_horizontal_align parse_horizontal_align(const char *horalign);
+enum tmx_vertical_align parse_vertical_align(const char *veralign);
 int parse_boolean(const char *boolean);
 int get_color_rgb(const char *c);
 
