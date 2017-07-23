@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f" nextobjectid="5">
+<map version="1.0" tiledversion="1.0.2" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" backgroundcolor="#ffff7f" nextobjectid="6">
  <properties>
   <property name="alt" type="file" value="b64zlib.tmx"/>
   <property name="bool_false" type="bool" value="false"/>
@@ -81,6 +81,9 @@ baz</property>
   </object>
   <object id="4" name="ellipse" x="672" y="352" width="160" height="160">
    <ellipse/>
+  </object>
+  <object id="5" name="text" x="4" y="0" width="110" height="20" rotation="10">
+   <text wrap="1" color="#ff0000" bold="1" italic="1">Hello World</text>
   </object>
  </objectgroup>
 </map>

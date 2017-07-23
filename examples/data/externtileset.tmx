@@ -51,5 +51,8 @@ baz</property>
   <object id="4" name="ellipse" x="672" y="352" width="160" height="160">
    <ellipse/>
   </object>
+  <object id="5" name="text" x="4" y="0" width="110" height="20" rotation="10">
+   <text wrap="1" color="#ff0000" bold="1" italic="1">Hello World</text>
+  </object>
  </objectgroup>
 </map>
