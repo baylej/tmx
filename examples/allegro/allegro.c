@@ -120,27 +120,12 @@ void draw_layer(tmx_map *map, tmx_layer *layer) {
 	}
 }
 
-/*
-	Render map
-*/
-ALLEGRO_BITMAP* render_map(tmx_map *map) {
-	ALLEGRO_BITMAP *res = NULL;
-	tmx_layer *layers = map->ly_head;
-	unsigned long w, h;
-	
-	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
-	
-	w = map->width  * map->tile_width;  /* Bitmap's width and height */
-	h = map->height * map->tile_height;
-	if (!(res = al_create_bitmap(w, h))) fatal_error("failed to create bitmap!");
-	
-	al_set_target_bitmap(res);
-	
-	al_clear_to_color(int_to_al_color(map->backgroundcolor));
-	
+void draw_all_layers(tmx_map *map, tmx_layer *layers) {
 	while (layers) {
 		if (layers->visible) {
-			if (layers->type == L_OBJGR) {
+			if (layers->type == L_GROUP) {
+				draw_all_layers(map, layers->content.group_head);
+			} else if (layers->type == L_OBJGR) {
 				draw_objects(layers->content.objgr);
 			} else if (layers->type == L_IMAGE) {
 				if (layers->opacity < 1.) {
@@ -154,6 +139,26 @@ ALLEGRO_BITMAP* render_map(tmx_map *map) {
 		}
 		layers = layers->next;
 	}
+}
+
+/*
+	Render map
+*/
+ALLEGRO_BITMAP* render_map(tmx_map *map) {
+	ALLEGRO_BITMAP *res = NULL;
+	unsigned long w, h;
+	
+	if (map->orient != O_ORT) fatal_error("only orthogonal orient currently supported in this example!");
+	
+	w = map->width  * map->tile_width;  /* Bitmap's width and height */
+	h = map->height * map->tile_height;
+	if (!(res = al_create_bitmap(w, h))) fatal_error("failed to create bitmap!");
+	
+	al_set_target_bitmap(res);
+	
+	al_clear_to_color(int_to_al_color(map->backgroundcolor));
+	
+	draw_all_layers(map, map->ly_head);
 	
 	al_set_target_backbuffer(al_get_current_display());
 	

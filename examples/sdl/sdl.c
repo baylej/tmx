@@ -113,12 +113,27 @@ void draw_image_layer(tmx_image *img) {
 	SDL_QueryTexture((SDL_Texture*)img->resource_image, NULL, NULL, &(dim.w), &(dim.h));
 
 	SDL_RenderCopy(ren, (SDL_Texture*)img->resource_image, NULL, &dim);
+}
 
+void draw_all_layers(tmx_map *map, tmx_layer *layers) {
+	while (layers) {
+		if (layers->visible) {
+			if (layers->type == L_GROUP) {
+				draw_all_layers(map, layers->content.group_head);
+			} else if (layers->type == L_OBJGR) {
+				draw_objects(layers->content.objgr);
+			} else if (layers->type == L_IMAGE) {
+				draw_image_layer(layers->content.image);
+			} else if (layers->type == L_LAYER) {
+				draw_layer(map, layers);
+			}
+		}
+		layers = layers->next;
+	}
 }
 
 SDL_Texture* render_map(tmx_map *map) {
 	SDL_Texture *res;
-	tmx_layer *layers = map->ly_head;
 	int w, h;
 
 	w = map->width  * map->tile_width;  /* Bitmap's width and height */
@@ -131,18 +146,7 @@ SDL_Texture* render_map(tmx_map *map) {
 	set_color(map->backgroundcolor);
 	SDL_RenderClear(ren);
 
-	while (layers) {
-		if (layers->visible) {
-			if (layers->type == L_OBJGR) {
-				draw_objects(layers->content.objgr);
-			} else if (layers->type == L_IMAGE) {
-				draw_image_layer(layers->content.image);
-			} else if (layers->type == L_LAYER) {
-				draw_layer(map, layers);
-			}
-		}
-		layers = layers->next;
-	}
+	draw_all_layers(map, map->ly_head);
 
 	SDL_SetRenderTarget(ren, NULL);
 	return res;

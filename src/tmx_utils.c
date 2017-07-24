@@ -472,6 +472,25 @@ enum tmx_vertical_align parse_vertical_align(const char *veralign) {
 	return VA_NONE;
 }
 
+enum tmx_layer_type parse_layer_type(const char *nodename) {
+	if (nodename == NULL) {
+		return L_NONE;
+	}
+	if (!strcmp(nodename, "layer")) {
+		return L_LAYER;
+	}
+	if (!strcmp(nodename, "objectgroup")) {
+		return L_OBJGR;
+	}
+	if (!strcmp(nodename, "imagelayer")) {
+		return L_IMAGE;
+	}
+	if (!strcmp(nodename, "group")) {
+		return L_GROUP;
+	}
+	return L_NONE;
+}
+
 /* "false" -> 0 */
 int parse_boolean(const char *boolean) {
 	if (boolean != NULL && !strcmp(boolean, "true")) {

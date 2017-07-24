@@ -50,7 +50,7 @@ enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA, O_HEX};
 enum tmx_map_renderorder {R_NONE, R_RIGHTDOWN, R_RIGHTUP, R_LEFTDOWN, R_LEFTUP};
 enum tmx_stagger_index {SI_NONE, SI_EVEN, SI_ODD};
 enum tmx_stagger_axis {SA_NONE, SA_X, SA_Y};
-enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE};
+enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE, L_GROUP};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_TILE, OT_TEXT};
 enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE};
@@ -82,7 +82,7 @@ typedef union {
 	int integer, boolean; /* type = int or bool */
 	float decimal; /* type = float */
 	char *string, *file; /* default and type = string or file */
-    unsigned int color; /* type = color */
+	unsigned int color; /* type = color */
 } tmx_property_value;
 
 struct _tmx_prop { /* <properties> and <property> */
@@ -205,6 +205,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 		int32_t *gids;
 		tmx_object_group *objgr;
 		tmx_image *image;
+		tmx_layer *group_head;
 	} content;
 
 	tmx_user_data user_data;

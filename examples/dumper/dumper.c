@@ -252,37 +252,42 @@ void dump_tileset(tmx_tileset_list *tsl) {
 	}
 }
 
-void dump_layer(tmx_layer *l, unsigned int tc) {
+void dump_layer(tmx_layer *l, unsigned int tc, int depth) {
 	unsigned int i;
-	printf("\nlayer={");
+	char padding[11]; mk_padding(padding, depth);
+
+	printf("\n%slayer={", padding);
 	if (!l) {
-		printf(" (NULL) }");
+		printf("%s\t (NULL) }", padding);
 	} else {
-		printf("\n\t" "name='%s'", l->name);
-		printf("\n\t" "visible=%s", str_bool(l->visible));
-		printf("\n\t" "opacity='%f'", l->opacity);
-		printf("\n\t" "offsetx=%d", l->offsetx);
-		printf("\n\t" "offsety=%d", l->offsety);
+		printf("\n%s\t" "name='%s'", padding, l->name);
+		printf("\n%s\t" "visible=%s", padding, str_bool(l->visible));
+		printf("\n%s\t" "opacity='%f'", padding, l->opacity);
+		printf("\n%s\t" "offsetx=%d", padding, l->offsetx);
+		printf("\n%s\t" "offsety=%d", padding, l->offsety);
 		if (l->type == L_LAYER && l->content.gids) {
-			printf("\n\t" "type=Layer" "\n\t" "tiles=");
+			printf("\n%s\t" "type=Layer" "\n%s\t" "tiles=", padding, padding);
 			for (i=0; i<tc; i++) {
 				printf("%d,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
 			}
 		} else if (l->type == L_OBJGR) {
-			printf("\n\t" "color=#%.6X", l->content.objgr->color);
-			printf("\n\t" "draworder="); print_draworder(l->content.objgr->draworder);
-			printf("\n\t" "type=ObjectGroup");
-			dump_objects(l->content.objgr->head, 1);
+			printf("\n%s\t" "color=#%.6X", padding, l->content.objgr->color);
+			printf("\n%s\t" "draworder=", padding); print_draworder(l->content.objgr->draworder);
+			printf("\n%s\t" "type=ObjectGroup", padding);
+			dump_objects(l->content.objgr->head, depth+1);
 		} else if (l->type == L_IMAGE) {
-			printf("\n\t" "type=ImageLayer");
-			dump_image(l->content.image, 1);
+			printf("\n%s\t" "type=ImageLayer", padding);
+			dump_image(l->content.image, depth+1);
+		} else if (l->type == L_GROUP) {
+			printf("\n%s\t" "type=Group", padding);
+			dump_layer(l->content.group_head, tc, depth+1);
 		}
-		dump_prop(l->properties, 1);
-		printf("\n}");
+		dump_prop(l->properties, depth+1);
+		printf("\n%s}", padding);
 	}
 
 	if (l) {
-		if (l->next) dump_layer(l->next, tc);
+		if (l->next) dump_layer(l->next, tc, depth);
 	}
 }
 
@@ -307,7 +312,7 @@ void dump_map(tmx_map *m) {
 
 	if (m) {
 		dump_tileset(m->ts_head);
-		dump_layer(m->ly_head, m->height * m->width);
+		dump_layer(m->ly_head, m->height * m->width, 0);
 		dump_prop(m->properties, 0);
 		tmx_map_free(m);
 	}

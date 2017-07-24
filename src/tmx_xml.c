@@ -429,6 +429,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	int curr_depth;
 	const char *name;
 	char *value;
+	enum tmx_layer_type child_type;
 
 	curr_depth = xmlTextReaderDepth(reader);
 
@@ -504,6 +505,8 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 				res->content.objgr->head = obj;
 
 				if (!parse_object(reader, obj)) return 0;
+			} else if (type == L_GROUP && (child_type = parse_layer_type(name)) != L_NONE) {
+				if (!parse_layer(reader, &(res->content.group_head), map_h, map_w, child_type, filename)) return 0;
 			} else {
 				/* Unknow element, skip its tree */
 				if (xmlTextReaderNext(reader) != 1) return 0;
@@ -840,6 +843,7 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_tileset_manager *ts_
 	int curr_depth;
 	const char *name;
 	char *value;
+	enum tmx_layer_type type;
 
 	name = (char*) xmlTextReaderConstName(reader);
 	curr_depth = xmlTextReaderDepth(reader);
@@ -934,17 +938,13 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_tileset_manager *ts_
 			name = (char*)xmlTextReaderConstName(reader);
 			if (!strcmp(name, "tileset")) {
 				if (!parse_tileset_list(reader, &(res->ts_head), ts_mgr, filename)) goto cleanup;
-			} else if (!strcmp(name, "layer")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_LAYER, filename)) goto cleanup;
-			} else if (!strcmp(name, "objectgroup")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_OBJGR, filename)) goto cleanup;
-			} else if (!strcmp(name, "imagelayer")) {
-				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, L_IMAGE, filename)) goto cleanup;
 			} else if (!strcmp(name, "properties")) {
 				if (!parse_properties(reader, &(res->properties))) goto cleanup;
+			} else if ((type = parse_layer_type(name)) != L_NONE) {
+				if (!parse_layer(reader, &(res->ly_head), res->height, res->width, type, filename)) goto cleanup;
 			} else {
 				/* Unknow element, skip its tree */
-				if (xmlTextReaderNext(reader) != 1) goto cleanup;
+				if (xmlTextReaderNext(reader) != 1) return 0;
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||

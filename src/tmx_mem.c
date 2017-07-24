@@ -157,12 +157,17 @@ void free_layers(tmx_layer *l) {
 	if (l) {
 		free_layers(l->next);
 		tmx_free_func(l->name);
-		if (l->type == L_LAYER)
+		if (l->type == L_LAYER) {
 			tmx_free_func(l->content.gids);
-		else if (l->type == L_OBJGR)
+		}
+		else if (l->type == L_OBJGR) {
 			free_objgr(l->content.objgr);
+		}
 		else if (l->type == L_IMAGE) {
 			free_image(l->content.image);
+		}
+		else if (l->type == L_GROUP) {
+			free_layers(l->content.group_head);
 		}
 		free_props(l->properties);
 		tmx_free_func(l);
