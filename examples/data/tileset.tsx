@@ -19,6 +19,7 @@
    <property name="number" type="int" value="3"/>
   </properties>
  </tile>
+ <tile id="4" type="five"/>
  <tile id="6">
   <animation>
    <frame tileid="0" duration="200"/>
