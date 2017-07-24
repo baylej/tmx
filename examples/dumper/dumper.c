@@ -208,6 +208,7 @@ void dump_tile(tmx_tile *t, unsigned int tilecount) {
 		printf("\n\t" "tile={");
 		printf("\n\t\t" "id=%u", t[i].id);
 		printf("\n\t\t" "upper-left=(%u,%u)", t[i].ul_x, t[i].ul_y);
+		printf("\n\t\t" "type='%s'", t[i].type);
 		dump_image(t[i].image, 2);
 		dump_prop(t[i].properties, 2);
 		dump_objects(t[i].collision, 2);

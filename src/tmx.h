@@ -117,6 +117,7 @@ struct _tmx_tile { /* <tile> */
 	unsigned int animation_len;
 	tmx_anim_frame *animation;
 
+	char *type;
 	tmx_properties *properties;
 
 	tmx_user_data user_data;

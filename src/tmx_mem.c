@@ -182,6 +182,7 @@ void free_tiles(tmx_tile *t, int tilecount) {
 			free_image(t[i].image);
 			free_obj(t[i].collision);
 			tmx_free_func(t[i].animation);
+			tmx_free_func(t[i].type);
 		}
 	}
 }

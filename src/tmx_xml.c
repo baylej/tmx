@@ -645,55 +645,60 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, const char 
 		return 0;
 	}
 
-	do {
-		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"type"))) { /* type */
+		res->type = value;
+	}
 
-		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
-			name = (char*)xmlTextReaderConstName(reader);
-			if (!strcmp(name, "properties")) {
-				if (!parse_properties(reader, &(res->properties))) return 0;
-			}
-			else if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->image), 0, filename)) return 0;
-			}
-			else if (!strcmp(name, "objectgroup")) { /* tile collision */
-				if (xmlTextReaderIsEmptyElement(reader)) continue;
+	if (!xmlTextReaderIsEmptyElement(reader)) {
+		do {
+			if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 
-				do {
-					if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
-					name = (char*)xmlTextReaderConstName(reader);
-					if (!strcmp(name, "object")) {
-						if (!(obj = alloc_object())) return 0;
+			if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
+				name = (char*)xmlTextReaderConstName(reader);
+				if (!strcmp(name, "properties")) {
+					if (!parse_properties(reader, &(res->properties))) return 0;
+				}
+				else if (!strcmp(name, "image")) {
+					if (!parse_image(reader, &(res->image), 0, filename)) return 0;
+				}
+				else if (!strcmp(name, "objectgroup")) { /* tile collision */
+					if (xmlTextReaderIsEmptyElement(reader)) continue;
+					do {
+						if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+						name = (char*)xmlTextReaderConstName(reader);
+						if (!strcmp(name, "object")) {
+							if (!(obj = alloc_object())) return 0;
 
-						obj->next = res->collision;
-						res->collision = obj;
+							obj->next = res->collision;
+							res->collision = obj;
 
-						if (!parse_object(reader, obj)) return 0;
-					}
-					/* else: ignore */
-				} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
-				         xmlTextReaderDepth(reader) != curr_depth+1);
+							if (!parse_object(reader, obj)) return 0;
+						}
+						/* else: ignore */
+					} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+							 xmlTextReaderDepth(reader) != curr_depth+1);
+				}
+				else if (!strcmp(name, "animation")) {
+					/* reads the first frame */
+					do {
+						if (xmlTextReaderRead(reader) != 1) return 0;
+						name = (char*)xmlTextReaderConstName(reader);
+						if (!strcmp(name, "frame")) {
+							res->animation = parse_animation(reader, 0, &(res->animation_len));
+							if (!(res->animation)) return 0;
+						}
+						/* else: ignore */
+					} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+							 xmlTextReaderDepth(reader) != curr_depth+1);
+				}
+				else {
+					/* Unknow element, skip its tree */
+					if (xmlTextReaderNext(reader) != 1) return 0;
+				}
 			}
-			else if (!strcmp(name, "animation")) {
-				/* reads the first frame */
-				do {
-					if (xmlTextReaderRead(reader) != 1) return 0;
-					name = (char*)xmlTextReaderConstName(reader);
-					if (!strcmp(name, "frame")) {
-						res->animation = parse_animation(reader, 0, &(res->animation_len));
-						if (!(res->animation)) return 0;
-					}
-					/* else: ignore */
-				} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
-				         xmlTextReaderDepth(reader) != curr_depth+1);
-			}
-			else {
-				/* Unknow element, skip its tree */
-				if (xmlTextReaderNext(reader) != 1) return 0;
-			}
-		}
-	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
-	         xmlTextReaderDepth(reader) != curr_depth);
+		} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+				 xmlTextReaderDepth(reader) != curr_depth);
+	}
 
 	return 1;
 }
