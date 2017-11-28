@@ -850,6 +850,12 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_tileset_manager *ts_
 	char *value;
 	enum tmx_layer_type type;
 
+	/* DTD before root element */
+	if (xmlTextReaderNodeType(reader) == 10)
+	{
+		if (xmlTextReaderRead(reader) != 1) return NULL;
+	}
+
 	name = (char*) xmlTextReaderConstName(reader);
 	curr_depth = xmlTextReaderDepth(reader);
 
