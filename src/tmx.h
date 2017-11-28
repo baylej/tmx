@@ -254,7 +254,7 @@ TMXEXPORT tmx_map* tmx_load_buffer(const char *buffer, int len);
    returns NULL if an error occurred and set tmx_errno */
 TMXEXPORT tmx_map* tmx_load_fd(int fd);
 
-/* allback used by tmx_load to delegate reading to client code
+/* Callback used by tmx_load to delegate reading to client code
    userdata(in): user data passed to tmx_load()
    buffer(in): to store read bytes
    len: how many bytes to read (length of buffer) */
