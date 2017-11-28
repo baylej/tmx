@@ -132,6 +132,7 @@ void free_obj(tmx_object *o) {
 			}
 		}
 		tmx_free_func(o->type);
+		free_props(o->properties);
 		tmx_free_func(o);
 	}
 }
