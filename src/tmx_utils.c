@@ -358,7 +358,7 @@ enum tmx_map_orient parse_orient(const char *orient_str) {
 	if (!strcmp(orient_str, "isometric")) {
 		return O_ISO;
 	}
-	if (!strcmp(orient_str, "stagging")) {
+	if (!strcmp(orient_str, "staggered")) {
 		return O_STA;
 	}
 	if (!strcmp(orient_str, "hexagonal")) {
