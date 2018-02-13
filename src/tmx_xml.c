@@ -843,7 +843,7 @@ static int parse_tileset_list(xmlTextReaderPtr reader, tmx_tileset_list **ts_hea
 
 static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_tileset_manager *ts_mgr, const char *filename) {
 	tmx_map *res = NULL;
-	int curr_depth;
+	int curr_depth, flag;
 	const char *name;
 	char *value;
 	enum tmx_layer_type type;
@@ -860,6 +860,16 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_tileset_manager *ts_
 	if (strcmp(name, "map")) {
 		tmx_err(E_XDATA, "xml parser: root is not a 'map' element");
 		return NULL;
+	}
+
+	/* infinite maps not supported */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"infinite"))) {
+		flag = atoi(value);
+		tmx_free_func(value);
+		if (flag == 1) {
+			tmx_err(E_XDATA, "xml parser: chunked layer data is not supported, edit this map to remove the infinite flag");
+			return NULL;
+		}
 	}
 
 	if (!(res = alloc_map())) return NULL;
