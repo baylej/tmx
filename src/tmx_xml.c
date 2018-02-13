@@ -849,7 +849,7 @@ static tmx_map *parse_root_map(xmlTextReaderPtr reader, tmx_tileset_manager *ts_
 	enum tmx_layer_type type;
 
 	/* DTD before root element */
-	if (xmlTextReaderNodeType(reader) == 10)
+	if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_DOCUMENT_TYPE)
 	{
 		if (xmlTextReaderRead(reader) != 1) return NULL;
 	}
