@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 #include "tmx.h"
-#include "tsx.h"
 #include "tmx_utils.h"
 
 tmx_error_codes tmx_errno = E_NONE;

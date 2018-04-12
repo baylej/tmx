@@ -7,7 +7,6 @@
 #include <libxml/xmlmemory.h>
 
 #include "tmx.h"
-#include "tsx.h"
 #include "tmx_utils.h"
 
 void set_alloc_functions() {
@@ -89,8 +88,32 @@ tmx_tileset_list* alloc_tileset_list(void) {
 	return (tmx_tileset_list*)node_alloc(sizeof(tmx_tileset_list));
 }
 
+tmx_template* alloc_template(void) {
+	tmx_template* res = (tmx_template*)node_alloc(sizeof(tmx_template));
+	res->object = alloc_object();
+	return res;
+}
+
 tmx_map* alloc_map(void) {
 	return (tmx_map*)node_alloc(sizeof(tmx_map));
+}
+
+resource_holder* pack_tileset_resource(tmx_tileset *value) {
+	resource_holder *res = node_alloc(sizeof(resource_holder));
+	if (res) {
+		res->type = RC_TSX;
+		res->resource.tileset = value;
+	}
+	return res;
+}
+
+resource_holder* pack_template_resource(tmx_template *value) {
+	resource_holder *res = node_alloc(sizeof(resource_holder));
+	if (res) {
+		res->type = RC_TX;
+		res->resource.template = value;
+	}
+	return res;
 }
 
 /*
@@ -133,6 +156,9 @@ void free_obj(tmx_object *o) {
 		}
 		tmx_free_func(o->type);
 		free_props(o->properties);
+		if (o->template && o->template->is_embedded) {
+			free_template(o->template);
+		}
 		tmx_free_func(o);
 	}
 }
@@ -202,9 +228,33 @@ void free_ts(tmx_tileset *ts) {
 void free_ts_list(tmx_tileset_list *tsl) {
 	if (tsl) {
 		free_ts_list(tsl->next);
-		if (tsl->tileset->is_embedded) {
+		if (tsl->is_embedded) {
 			free_ts(tsl->tileset);
 		}
 		tmx_free_func(tsl);
+	}
+}
+
+void free_template(tmx_template *tmpl) {
+	if (tmpl) {
+		free_ts_list(tmpl->tileset_ref);
+		free_obj(tmpl->object);
+	}
+	tmx_free_func(tmpl);
+}
+
+void property_deallocator(void *val, const char *key UNUSED) {
+	free_property((tmx_property*)val);
+}
+
+void resource_deallocator(void *val, const char *key UNUSED) {
+	resource_holder *rc_holder;
+	if (val) {
+		rc_holder = (resource_holder*)val;
+		if (rc_holder->type == RC_TSX)
+			free_ts(rc_holder->resource.tileset);
+		else if (rc_holder->type == RC_TX)
+			free_template(rc_holder->resource.template);
+		tmx_free_func(val);
 	}
 }

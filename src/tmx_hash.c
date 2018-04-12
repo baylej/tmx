@@ -6,8 +6,6 @@
 
 #include <libxml/hash.h>
 
-#include "tmx.h"
-#include "tsx.h"
 #include "tmx_utils.h"
 
 void* mk_hashtable(unsigned int initial_size) {
@@ -35,12 +33,4 @@ void free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator) {
 
 void hashtable_foreach(void *hashtable, hashtable_foreach_functor functor, void *userdata) {
 	xmlHashScan((xmlHashTablePtr)hashtable, (xmlHashScanner)functor, userdata);
-}
-
-void property_deallocator(void *val, const char *key UNUSED) {
-	free_property((tmx_property*)val);
-}
-
-void tileset_deallocator(void *val, const char *key UNUSED) {
-	free_ts((tmx_tileset*)val);
 }

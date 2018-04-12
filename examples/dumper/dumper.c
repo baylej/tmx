@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 #include <tmx.h>
-#include <tsx.h>
 
 #define str_bool(b) (b==0? "false": "true")
 
@@ -126,7 +125,9 @@ void dump_prop(tmx_properties *p, int depth) {
 void print_obj_type(enum tmx_obj_type type) {
 	switch(type) {
 		case OT_NONE:     printf("none");     break;
+		case OT_TILE:     printf("tile");     break;
 		case OT_TEXT:     printf("text");     break;
+		case OT_POINT:    printf("point");    break;
 		case OT_SQUARE:   printf("square");   break;
 		case OT_ELLIPSE:  printf("ellipse");  break;
 		case OT_POLYGON:  printf("polygon");  break;
@@ -139,6 +140,24 @@ void dump_points(double **p, int pl) {
 	int i;
 	for (i=0; i<pl; i++) {
 		printf(" (%f, %f)", p[i][0], p[i][1]);
+	}
+}
+
+void dump_objects(tmx_object *o, int depth);
+void dump_tileset(tmx_tileset_list *tsl, int depth);
+
+void dump_template(tmx_template *t, int depth) {
+	char padding[11]; mk_padding(padding, depth);
+
+	printf("\n%s" "template={", padding);
+	if (!t) {
+		printf(" (NULL) }");
+	} else {
+		if (t->tileset_ref) {
+			dump_tileset(t->tileset_ref, depth+1);
+		}
+		dump_objects(t->object, depth+1);
+		printf("\n%s}", padding);
 	}
 }
 
@@ -177,6 +196,7 @@ void dump_objects(tmx_object *o, int depth) {
 			printf("\n%s\t" "valign=", padding); print_valign(t->valign);
 			printf("\n%s\t" "text='%s'", padding, t->text);
 		}
+		dump_template(o->template, depth+1);
 		dump_prop(o->properties, depth+1);
 		printf("\n%s}", padding);
 	}
@@ -202,53 +222,55 @@ void dump_image(tmx_image *i, int depth) {
 	}
 }
 
-void dump_tile(tmx_tile *t, unsigned int tilecount) {
+void dump_tile(tmx_tile *t, unsigned int tilecount, int depth) {
 	unsigned int i, j;
+	char padding[11]; mk_padding(padding, depth);
 	for (i=0; i<tilecount; i++) {
-		printf("\n\t" "tile={");
-		printf("\n\t\t" "id=%u", t[i].id);
-		printf("\n\t\t" "upper-left=(%u,%u)", t[i].ul_x, t[i].ul_y);
-		printf("\n\t\t" "type='%s'", t[i].type);
-		dump_image(t[i].image, 2);
-		dump_prop(t[i].properties, 2);
-		dump_objects(t[i].collision, 2);
+		printf("\n%s" "tile={", padding);
+		printf("\n%s\t" "id=%u", padding, t[i].id);
+		printf("\n%s\t" "upper-left=(%u,%u)", padding, t[i].ul_x, t[i].ul_y);
+		printf("\n%s\t" "type='%s'", padding, t[i].type);
+		dump_image(t[i].image, depth+1);
+		dump_prop(t[i].properties, depth+1);
+		dump_objects(t[i].collision, depth+1);
 
 		if (t[i].animation) {
-			printf("\n\t\t" "animation={");
+			printf("\n%s\t" "animation={", padding);
 			for (j=0; j<t[i].animation_len; j++) {
-				printf("\n\t\t\t" "tile=%3u (%6ums)", t[i].animation[j].tile_id, t[i].animation[j].duration);
+				printf("\n%s\t\t" "tile=%3u (%6ums)", padding, t[i].animation[j].tile_id, t[i].animation[j].duration);
 			}
-			printf("\n\t\t}");
+			printf("\n%s\t}", padding);
 		}
 
-		printf("\n\t}");
+		printf("\n%s}", padding);
 	}
 }
 
-void dump_tileset(tmx_tileset_list *tsl) {
+void dump_tileset(tmx_tileset_list *tsl, int depth) {
+	char padding[11]; mk_padding(padding, depth);
 	if (tsl) {
 		tmx_tileset *t = tsl->tileset;
-		printf("\ntileset={");
+		printf("\n%stileset={", padding);
 		if (t) {
-			printf("\n\t" "firstgid=%u", tsl->firstgid);
-			printf("\n\t" "name=%s", t->name);
-			printf("\n\t" "tilecount=%u", t->tilecount);
-			printf("\n\t" "tile_height=%u", t->tile_height);
-			printf("\n\t" "tile_width=%u", t->tile_width);
-			printf("\n\t" "margin=%u", t->margin);
-			printf("\n\t" "spacing=%u", t->spacing);
-			printf("\n\t" "x_offset=%d", t->x_offset);
-			printf("\n\t" "y_offset=%d", t->y_offset);
-			dump_image(t->image, 1);
-			dump_tile(t->tiles, t->tilecount);
-			dump_prop(t->properties, 1);
-			printf("\n}");
+			printf("\n%s\t" "firstgid=%u", padding, tsl->firstgid);
+			printf("\n%s\t" "name=%s", padding, t->name);
+			printf("\n%s\t" "tilecount=%u", padding, t->tilecount);
+			printf("\n%s\t" "tile_height=%u", padding, t->tile_height);
+			printf("\n%s\t" "tile_width=%u", padding, t->tile_width);
+			printf("\n%s\t" "margin=%u", padding, t->margin);
+			printf("\n%s\t" "spacing=%u", padding, t->spacing);
+			printf("\n%s\t" "x_offset=%d", padding, t->x_offset);
+			printf("\n%s\t" "y_offset=%d", padding, t->y_offset);
+			dump_image(t->image, depth+1);
+			dump_tile(t->tiles, t->tilecount, depth+1);
+			dump_prop(t->properties, depth+1);
+			printf("\n%s}", padding);
 		} else {
 			printf(" (NULL) }");
 		}
 
 		if (tsl->next) {
-			dump_tileset(tsl->next);
+			dump_tileset(tsl->next, depth);
 		}
 	}
 }
@@ -312,7 +334,7 @@ void dump_map(tmx_map *m) {
 	printf("\n}");
 
 	if (m) {
-		dump_tileset(m->ts_head);
+		dump_tileset(m->ts_head, 0);
 		dump_layer(m->ly_head, m->height * m->width, 0);
 		dump_prop(m->properties, 0);
 		tmx_map_free(m);
@@ -352,12 +374,12 @@ int isMap(const char *arg) {
 }
 
 void printUsage(const char *arg0) {
-	fprintf(stderr, "usage: %s [--use-tileset-mgr] { [--fd|--buffer|--callback] <map.tmx|tileset.tsx> }...\n", arg0);
+	fprintf(stderr, "usage: %s [--use-rc-mgr] { [--fd|--buffer|--callback] <map.tmx|tileset.tsx> }...\n", arg0);
 }
 
 int main(int argc, char *argv[]) {
 	tmx_map *m = NULL;
-	tmx_tileset_manager *ts_mgr = NULL;
+	tmx_resource_manager *rc_mgr = NULL;
 	int fd, it;
 	FILE *file;
 	long size;
@@ -371,16 +393,16 @@ int main(int argc, char *argv[]) {
 	tmx_alloc_func = dbg_alloc; /* alloc/free dbg */
 	tmx_free_func  = dbg_free;
 
-	/* Parses each argument, loads each file (map or tileset) using the specified method (none, fd, buffer, callbacl) */
+	/* Parses each argument, loads each file (map or tileset) using the specified method (none, fd, buffer, callback) */
 	for (it = 1; it < argc; it++) {
 		if (isOption(argv[it])) {
 			if (it == 1 && !strcmp("--help", argv[it])) {
 				printUsage(argv[0]);
 				return EXIT_SUCCESS;
 			}
-			else if (it == 1 && !strcmp("--use-tileset-mgr", argv[it])) {
-				ts_mgr = tmx_make_tileset_manager();
-				if (!ts_mgr) {
+			else if (it == 1 && !strcmp("--use-rc-mgr", argv[it])) {
+				rc_mgr = tmx_make_resource_manager();
+				if (!rc_mgr) {
 					tmx_perror("error");
 				}
 			}
@@ -391,11 +413,11 @@ int main(int argc, char *argv[]) {
 				}
 				else {
 					if (isMap(argv[it])) {
-						m = tmx_tsmgr_load_fd(ts_mgr, fd);
+						m = tmx_rcmgr_load_fd(rc_mgr, fd);
 						dump_map(m);
 					}
 					else {
-						tmx_load_tileset_fd(ts_mgr, fd, argv[it]);
+						tmx_load_tileset_fd(rc_mgr, fd, argv[it]);
 					}
 					close(fd);
 				}
@@ -418,11 +440,11 @@ int main(int argc, char *argv[]) {
 					}
 					else {
 						if (isMap(argv[it])) {
-							m = tmx_tsmgr_load_buffer(ts_mgr, buffer, size);
+							m = tmx_rcmgr_load_buffer(rc_mgr, buffer, size);
 							dump_map(m);
 						}
 						else {
-							tmx_load_tileset_buffer(ts_mgr, buffer, size, argv[it]);
+							tmx_load_tileset_buffer(rc_mgr, buffer, size, argv[it]);
 						}
 					}
 
@@ -437,33 +459,33 @@ int main(int argc, char *argv[]) {
 				}
 				else {
 					if (isMap(argv[it])) {
-						m = tmx_tsmgr_load_callback(ts_mgr, read_function, file);
+						m = tmx_rcmgr_load_callback(rc_mgr, read_function, file);
 						dump_map(m);
 					}
 					else {
-						tmx_load_tileset_callback(ts_mgr, read_function, file, argv[it]);
+						tmx_load_tileset_callback(rc_mgr, read_function, file, argv[it]);
 					}
 					fclose(file);
 				}
 			}
 			else {
-				if (it == 1) fprintf(stderr, "unknown option: %s\nvalid options are --use-tileset-mgr\n", argv[1]);
+				if (it == 1) fprintf(stderr, "unknown option: %s\nvalid options are --use-rc-mgr\n", argv[1]);
 				fprintf(stderr, "unknown load method: %s\nvalid methods are --fd, --buffer, --callback\n", argv[it]);
 			}
 		}
 		else {
 			if (isMap(argv[it])) {
-				m = tmx_tsmgr_load(ts_mgr, argv[it]);
+				m = tmx_rcmgr_load(rc_mgr, argv[it]);
 				dump_map(m);
 			}
 			else {
-				tmx_load_tileset(ts_mgr, argv[it]);
+				tmx_load_tileset(rc_mgr, argv[it]);
 			}
 		}
 	}
 
-	if (ts_mgr) {
-		tmx_free_tileset_manager(ts_mgr);
+	if (rc_mgr) {
+		tmx_free_resource_manager(rc_mgr);
 	}
 
 	printf("%d mem alloc not freed\n", mal_vs_free_count);

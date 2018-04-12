@@ -7,8 +7,6 @@
 #include <string.h>
 #include <ctype.h> /* is */
 
-#include "tmx.h"
-#include "tsx.h"
 #include "tmx_utils.h"
 
 /*
@@ -580,4 +578,29 @@ void* load_image(void **ptr, const char *base_path, const char *rel_path) {
 		return(*ptr);
 	}
 	return (void*)1;
+}
+
+/* Resource Manager helper functions */
+int add_tileset(tmx_resource_manager *rc_mgr, const char *key, tmx_tileset *value) {
+	resource_holder *rc_holder;
+	if (value) {
+		rc_holder = pack_tileset_resource(value);
+		if (rc_holder) {
+			hashtable_set((void*)rc_mgr, key, (void*)rc_holder, resource_deallocator);
+			return 1;
+		}
+	}
+	return 0;
+}
+int add_template(tmx_resource_manager *rc_mgr, const char *key, tmx_template *value) {
+	resource_holder *rc_holder;
+	if (value)
+	{
+		rc_holder = pack_template_resource(value);
+		if (rc_holder) {
+			hashtable_set((void*)rc_mgr, key, (void*)rc_holder, resource_deallocator);
+			return 1;
+		}
+	}
+	return 0;
 }

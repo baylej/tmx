@@ -1,6 +1,6 @@
 /*
 	TMX.H - TMX C LOADER
-	Copyright (c) 2013-2017, Bayle Jonathan <baylej@github>
+	Copyright (c) 2013-2018, Bayle Jonathan <baylej@github>
 
 	Data Structures storing the map, and function prototypes
 
@@ -52,7 +52,7 @@ enum tmx_stagger_index {SI_NONE, SI_EVEN, SI_ODD};
 enum tmx_stagger_axis {SA_NONE, SA_X, SA_Y};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE, L_GROUP};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
-enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_TILE, OT_TEXT};
+enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_TILE, OT_TEXT, OT_POINT};
 enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE};
 enum tmx_horizontal_align {HA_NONE, HA_LEFT, HA_CENTER, HA_RIGHT};
 enum tmx_vertical_align {VA_NONE, VA_TOP, VA_CENTER, VA_BOTTOM};
@@ -68,6 +68,7 @@ typedef struct _tmx_shape tmx_shape;
 typedef struct _tmx_text tmx_text;
 typedef struct _tmx_obj tmx_object;
 typedef struct _tmx_objgr tmx_object_group;
+typedef struct _tmx_templ tmx_template;
 typedef struct _tmx_layer tmx_layer;
 typedef struct _tmx_map tmx_map;
 typedef void tmx_properties; /* hashtable, use function tmx_get_property(...) */
@@ -124,7 +125,6 @@ struct _tmx_tile { /* <tile> */
 };
 
 struct _tmx_ts { /* <tileset> and <tileoffset> */
-	int is_embedded; /* used internally to free this node */
 	char *name;
 
 	unsigned int tile_width, tile_height;
@@ -140,6 +140,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 };
 
 struct _tmx_ts_list { /* Linked list */
+	int is_embedded; /* used internally to free this node */
 	unsigned int firstgid;
 	tmx_tileset *tileset;
 	tmx_tileset_list *next;
@@ -185,6 +186,7 @@ struct _tmx_obj { /* <object> */
 	double rotation;
 
 	char *name, *type;
+	tmx_template *template;
 	tmx_properties *properties;
 	tmx_object *next;
 };
@@ -193,6 +195,12 @@ struct _tmx_objgr { /* <objectgroup> */
 	unsigned int color; /* bytes : RGB */
 	enum tmx_objgr_draworder draworder;
 	tmx_object *head;
+};
+
+struct _tmx_templ { /* <template> */
+	int is_embedded; /* used internally to free this node */
+	tmx_tileset_list *tileset_ref; /* not null if object is a tile, is a singleton list */
+	tmx_object *object; /* never null */
 };
 
 struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
@@ -276,6 +284,87 @@ TMXEXPORT tmx_property* tmx_get_property(tmx_properties *hash, const char *key);
 typedef void (*tmx_property_functor)(tmx_property *property, void *userdata);
 /* Calls `callback` for each entry in the property hashtable, order of entries is random */
 TMXEXPORT void tmx_property_foreach(tmx_properties *hash, tmx_property_functor callback, void *userdata);
+
+/*
+	Resource Manager functions
+*/
+
+/* Resource Manager type (private hashtable) */
+typedef void tmx_resource_manager;
+
+/* Creates a Resource Manager that holds a hashtable of loaded resources
+   Only external tilesets (in .TSX files) and object templates (in .TX files)
+   are indexed in a Resource Manager
+   This is particularly useful to load only once tilesets and templates
+   referenced in multiple maps
+   The key is the `source` attribute of a tileset element or the `template`
+   attribute of an object element */
+TMXEXPORT tmx_resource_manager* tmx_make_resource_manager();
+
+/* Frees the Resource Manager and all its loaded tilesets and object templates
+   All maps holding a pointer to external tileset or an object template loaded
+   by the given manager now hold a pointer to freed memory */
+TMXEXPORT void tmx_free_resource_manager(tmx_resource_manager *rc_mgr);
+
+/*
+	Pre-load tilesets using a Resource Manager
+*/
+
+/* Loads a tileset from file at `path` and stores it into given Resource Manager
+   `path` will be used as the key
+   Returns 1 on success */
+TMXEXPORT int tmx_load_tileset(tmx_resource_manager *rc_mgr, const char *path);
+
+/* Loads a tileset from a buffer and stores it into given Resource Manager
+   Returns 1 on success */
+TMXEXPORT int tmx_load_tileset_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *key);
+
+/* Loads a tileset from a file descriptor and stores it into given Resource Manager
+   The file descriptor will not be closed
+   Returns 1 on success */
+TMXEXPORT int tmx_load_tileset_fd(tmx_resource_manager *rc_mgr, int fd, const char *key);
+
+/* Loads a tileset using the given read callback and stores it into given Resource Manager
+   Returns 1 on success */
+TMXEXPORT int tmx_load_tileset_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata, const char *key);
+
+/*
+	Pre-load object templates using a Resource Manager
+*/
+
+/* Loads a template from file at `path` and stores it into given Resource Manager
+   `path` will be used as the key
+   Returns 1 on success */
+TMXEXPORT int tmx_load_template(tmx_resource_manager *rc_mgr, const char *path);
+
+/* Loads a template from a buffer and stores it into given Resource Manager
+   Returns 1 on success */
+TMXEXPORT int tmx_load_template_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *key);
+
+/* Loads a template from a file descriptor and stores it into given Resource Manager
+   The file descriptor will not be closed
+   Returns 1 on success */
+TMXEXPORT int tmx_load_template_fd(tmx_resource_manager *rc_mgr, int fd, const char *key);
+
+/* Loads a template using the given read callback and stores it into given Resource Manager
+   Returns 1 on success */
+TMXEXPORT int tmx_load_template_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata, const char *key);
+
+/*
+	Load map using a Resource Manager
+*/
+
+/* Same as tmx_load (tmx.h) but with a Resource Manager. */
+TMXEXPORT tmx_map* tmx_rcmgr_load(tmx_resource_manager *rc_mgr, const char *path);
+
+/* Same as tmx_load_buffer (tmx.h) but with a Resource Manager. */
+TMXEXPORT tmx_map* tmx_rcmgr_load_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len);
+
+/* Same as tmx_load_fd (tmx.h) but with a Resource Manager. */
+TMXEXPORT tmx_map* tmx_rcmgr_load_fd(tmx_resource_manager *rc_mgr, int fd);
+
+/* Same as tmx_load_callback (tmx.h) but with a Resource Manager. */
+TMXEXPORT tmx_map* tmx_rcmgr_load_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata);
 
 /*
 	Error handling

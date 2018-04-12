@@ -17,13 +17,12 @@ option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" off)
 
 set(SOURCES
     "src/tmx.c"
-    "src/tsx.c"
     "src/tmx_utils.c"
     "src/tmx_err.c"
     "src/tmx_xml.c"
     "src/tmx_mem.c"
     "src/tmx_hash.c")
-set(HEADERS "src/tmx.h" "src/tsx.h")
+set(HEADERS "src/tmx.h")
 
 include(CheckIncludeFiles)
 CHECK_INCLUDE_FILES("stdint.h" STDINT_H)
