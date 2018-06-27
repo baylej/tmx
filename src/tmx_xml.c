@@ -185,7 +185,7 @@ static int parse_text(xmlTextReaderPtr reader, tmx_text *text) {
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"wrap"))) { /* wrap */
-		text->color = (int)atoi(value);
+		text->wrap = (int)atoi(value);
 		tmx_free_func(value);
 	}
 
