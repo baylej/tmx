@@ -62,7 +62,7 @@ void free_ts_list(tmx_tileset_list *tsl);
 */
 #define MAX(a,b) (a<b) ? b: a;
 
-enum enccmp_t {CSV, B64Z};
+enum enccmp_t {CSV, B64Z, B64};
 int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
 
 void map_post_parsing(tmx_map **map);

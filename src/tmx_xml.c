@@ -350,15 +350,13 @@ static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscou
 
 	if (!strcmp(value, "base64")) {
 		tmx_free_func(value);
-		if (!(value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"compression"))) { /* compression */
-			tmx_err(E_MISSEL, "xml parser: missing 'compression' attribute in the 'data' element");
-			goto cleanup;
-		}
-		if (strcmp(value, "zlib") && strcmp(value, "gzip")) {
+		value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"compression"); /* compression */
+
+		if (value && strcmp(value, "zlib") && strcmp(value, "gzip")) {
 			tmx_err(E_ENCCMP, "xml parser: unsupported data compression: '%s'", value); /* unsupported compression */
 			goto cleanup;
 		}
-		if (!data_decode(str_trim(inner_xml), B64Z, gidscount, gidsadr)) goto cleanup;
+		if (!data_decode(str_trim(inner_xml), value ? B64Z : B64, gidscount, gidsadr)) goto cleanup;
 
 	} else if (!strcmp(value, "xml")) {
 		tmx_err(E_ENCCMP, "xml parser: unimplemented data encoding: XML");

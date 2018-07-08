@@ -245,6 +245,10 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32
 		tmx_free_func(b64dec);
 		if (!(*gids)) return 0;
 	}
+	else if (type==B64) {
+		*gids = (int32_t*)b64_decode(source, &b64_len);
+		if (!(*gids)) return 0;
+	}
 
 	return 1;
 }
