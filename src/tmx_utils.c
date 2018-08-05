@@ -546,15 +546,18 @@ size_t dirpath_len(const char *str) {
 
 /* ("C:\Maps\map.tmx", "tilesets\ts1.tsx") => "C:\Maps\tilesets\ts1.tsx" */
 char* mk_absolute_path(const char *base_path, const char *rel_path) {
+	size_t dp_len, rp_len, ap_len;
+	char *res;
+
 	if (base_path == NULL) {
 		return tmx_strdup(rel_path);
 	}
 	/* if base_path is a directory, it MUST have a trailing path separator */
-	size_t dp_len = dirpath_len(base_path);
-	size_t rp_len = strlen(rel_path);
-	size_t ap_len = dp_len + rp_len;
+	dp_len = dirpath_len(base_path);
+	rp_len = strlen(rel_path);
+	ap_len = dp_len + rp_len;
 
-	char* res = (char*)tmx_alloc_func(NULL, ap_len+1);
+	res = (char*)tmx_alloc_func(NULL, ap_len+1);
 	if (!res) {
 		tmx_errno = E_ALLOC;
 		return NULL;
