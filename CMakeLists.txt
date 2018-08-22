@@ -1,19 +1,16 @@
 cmake_minimum_required(VERSION 3.0)
 
-#-----------#
-# Configure
-#-----------#
-
 project(tmx VERSION 1.0.0 LANGUAGES C)
+
+# -- CONFIGURE --
+
 set(API_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 set(BUILD_VERSION "${PROJECT_VERSION}")
 
 option(WANT_ZLIB "use zlib (ability to decompress layers data) ?" on)
 option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" off)
 
-#-----------#
-#    Env
-#-----------#
+add_subdirectory(doc)
 
 set(SOURCES
     "src/tmx.c"
@@ -61,9 +58,7 @@ configure_file("tmxConfig.cmake.in" "tmxConfig.cmake" @ONLY)
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("tmxConfigVersion.cmake" COMPATIBILITY SameMajorVersion)
 
-#-----------#
-#   Build
-#-----------#
+# --   BUILD   --
 
 list(APPEND targets tmx)
 
@@ -95,9 +90,7 @@ if(BUILD_SHARED_LIBS)
                  $<INSTALL_INTERFACE:include>)
 endif(BUILD_SHARED_LIBS)
 
-#-----------#
-#  Install
-#-----------#
+# --  INSTALL  --
 
 include(GNUInstallDirs)
 

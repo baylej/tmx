@@ -18,3 +18,7 @@
 
 # build folder
 build/
+cmake-build*/
+
+# ide
+/.idea
