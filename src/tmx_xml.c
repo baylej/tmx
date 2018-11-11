@@ -268,10 +268,10 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 		if (rc_mgr) {
 			tmpl = (resource_holder*) hashtable_get((void*)rc_mgr, value);
 			if (tmpl && tmpl->type == RC_TX) {
-				obj->template = tmpl->resource.template;
+				obj->_template = tmpl->resource.template;
 			}
 		}
-		if (!(obj->template)) {
+		if (!(obj->_template)) {
 			if (!(ab_path = mk_absolute_path(filename, value))) return 0;
 			if (!(sub_reader = xmlReaderForFile(ab_path, NULL, 0))) { /* opens */
 				tmx_err(E_XDATA, "xml parser: cannot open object template file '%s'", ab_path);
@@ -279,20 +279,20 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 				tmx_free_func(value);
 				return 0;
 			}
-			obj->template = parse_template_document(sub_reader, rc_mgr, ab_path); /* and parses the template file */
+			obj->_template = parse_template_document(sub_reader, rc_mgr, ab_path); /* and parses the template file */
 			tmx_free_func(ab_path);
-			if (!(obj->template))
+			if (!(obj->_template))
 			{
 				tmx_free_func(value);
 				return 0;
 			}
 			if (rc_mgr) {
-				add_template(rc_mgr, value, obj->template);
+				add_template(rc_mgr, value, obj->_template);
 			} else {
-				obj->template->is_embedded = 1;
+				obj->_template->is_embedded = 1;
 			}
 		}
-		obj->obj_type = obj->template->object->obj_type;
+		obj->obj_type = obj->_template->object->obj_type;
 		tmx_free_func(value);
 	}
 

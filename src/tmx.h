@@ -186,7 +186,7 @@ struct _tmx_obj { /* <object> */
 	double rotation;
 
 	char *name, *type;
-	tmx_template *template;
+	tmx_template *_template;
 	tmx_properties *properties;
 	tmx_object *next;
 };
