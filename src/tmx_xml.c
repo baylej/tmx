@@ -61,7 +61,7 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 				tmx_free_func(value);
 				break;
 			case PT_FLOAT:
-				prop->value.decimal = atof(value);
+				prop->value.decimal = (float)atof(value);
 				tmx_free_func(value);
 				break;
 			case PT_BOOL:
