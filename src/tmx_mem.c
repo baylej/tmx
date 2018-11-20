@@ -156,8 +156,8 @@ void free_obj(tmx_object *o) {
 		}
 		tmx_free_func(o->type);
 		free_props(o->properties);
-		if (o->template && o->template->is_embedded) {
-			free_template(o->template);
+		if (o->template_ref && o->template_ref->is_embedded) {
+			free_template(o->template_ref);
 		}
 		tmx_free_func(o);
 	}
