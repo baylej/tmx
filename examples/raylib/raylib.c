@@ -87,20 +87,20 @@ void draw_objects(tmx_object_group *objgr)
             } else if (head->obj_type == OT_POLYLINE) {
 
                 /* You have to make Vector2* out of double** data points */
-                vectorPoints = malloc (head->content.shape->points_len * sizeof (Vector2));
-                for (i = 0; i < head->content.shape->points_len; i++) {
-                    raw_points = head->content.shape->points;
-                    x = head->x + raw_points[i][0];
-                    y = head->y + raw_points[i][1];
-                    vectorPoints->x = x -player.x;
-                    vectorPoints->y = y -player.y;
-                    vectorPoints++;
-                }
-                vectorPoints -= i;
-                DrawPolyExLines(vectorPoints, head->content.shape->points_len, color);
+//                vectorPoints = malloc (head->content.shape->points_len * sizeof (Vector2));
+//                for (i = 0; i < head->content.shape->points_len; i++) {
+//                    raw_points = head->content.shape->points;
+//                    x = head->x + raw_points[i][0];
+//                    y = head->y + raw_points[i][1];
+//                    vectorPoints->x = x -player.x;
+//                    vectorPoints->y = y -player.y;
+//                    vectorPoints++;
+//                }
+//                vectorPoints -= i;
+//                DrawPolyExLines(vectorPoints, head->content.shape->points_len, color);
 
                 /* Or you can use this */
-                //draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len, color);
+                draw_polyline(head->content.shape->points, head->x -player.x, head->y -player.y, head->content.shape->points_len, color);
             } else if (head->obj_type == OT_TEXT) {
                 DrawText(head->content.text->text, head->x -player.x, head->y -player.y, head->content.text->pixelsize, color);
             } else if (head->obj_type == OT_ELLIPSE) {
