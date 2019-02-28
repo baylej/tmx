@@ -15,7 +15,6 @@
 #define fatal_error(str)  { fputs(str, stderr); goto errquit; }
 #define DISPLAY_H 480
 #define DISPLAY_W 640
-#define PLAYER_SPEED 10
 
 
 struct Color color;
@@ -199,16 +198,16 @@ void updateMovement(Vector2 *player, tmx_map *map)
 
     /* moves */
     if (IsKeyDown( KEY_W )) {
-        player->y -= PLAYER_SPEED;
+        player->y -= 1;
     }
     if (IsKeyDown( KEY_S )) {
-        player->y += PLAYER_SPEED;
+        player->y += 1;
     }
     if (IsKeyDown( KEY_A )) {
-        player->x -= PLAYER_SPEED;
+        player->x -= 1;
     }
     if (IsKeyDown( KEY_D )) {
-        player->x += PLAYER_SPEED;
+        player->x += 1;
     }
 }
 
