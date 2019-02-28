@@ -1,5 +1,5 @@
 /*
-	TMX usage example with Raylib
+    TMX usage example with Raylib
 
     To enable support of .jpg and other image file formats,
     uncomment required in textures.c and rebuild Raylib.
@@ -128,27 +128,11 @@ void draw_layer(tmx_map *map, tmx_layer *layer)
  *    Raylib function ```LoadImagePro``` could fit well to load
  *    an Image out of raw data (img->resource_image) but no way
  *    to get needed `format` (PixelFormat) argument using TMX.
+ *  Better load Texture before the main game loop.
  *
- *  Loads texture from file when called for each frame.
  *  See SDL example.
  */
 void draw_image_layer(tmx_image *img)
-{
-    Rectangle dim;
-    dim.x = dim.y = 0;
-    char path[PATH_MAX] = "data/";  /* ATTENTION: relative path */
-    strcat(path, img->source);
-
-    RenderTexture2D renTexture = LoadRenderTexture(DISPLAY_W, DISPLAY_H);
-    BeginTextureMode(renTexture);
-        Texture texture = LoadTexture(path);
-        DrawTexture(texture, dim.x - player.x, dim.y - player.y, WHITE);
-        UnloadRenderTexture(renTexture);
-    EndTextureMode();
-    UnloadTexture(texture);
-}
-
-void draw_image_layer2(tmx_image *img)
 {
     Rectangle dim;
     dim.x = dim.y = 0;
@@ -191,7 +175,7 @@ Texture* render_map(tmx_map *map)
 
 void updateMovement(Vector2 *player, tmx_map *map)
 {
-    /* borders control */
+    /* borders check */
     if (player->x <= 0) {
         if (IsKeyDown( KEY_A )) {
             return;
