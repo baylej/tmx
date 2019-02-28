@@ -1,5 +1,5 @@
 /*
-	TMX usage example with Raylib
+    TMX usage example with Raylib
 
     Declare callback functions like `tmx_img_load_func`
     in an OpenGL context i.e., after `InitWindow`.
@@ -21,15 +21,17 @@
 #define DISPLAY_W 640
 
 
-struct Color color;
 Vector2 player = {0.0f, 0.0f}; /* invisible, just a dot: (x,y) */
 
 
-void set_color(unsigned int newOne)
+struct Color set_color(unsigned int objgrColor)
 {
-    color.r = (newOne >> 16) & 0xFF;
-    color.g = (newOne >>  8) & 0xFF;
-    color.b = (newOne)       & 0xFF;
+    struct Color color;
+    color.a = 255;  /* Alpha not implemented yet (Issue #39) */
+    color.r = (objgrColor >> 16) & 0xFF;
+    color.g = (objgrColor >>  8) & 0xFF;
+    color.b = (objgrColor)       & 0xFF;
+    return color;
 }
 
 void* raylib_load_image(const char *path)
@@ -46,7 +48,7 @@ void raylib_free_image(void *ptr)
     free(ptr);
 }
 
-void draw_polyline(double **points, double x, double y, int pointsc)
+void draw_polyline(double **points, double x, double y, int pointsc, struct Color color)
 {
     int i;
     for (i=1; i<pointsc; i++) {
@@ -54,9 +56,9 @@ void draw_polyline(double **points, double x, double y, int pointsc)
     }
 }
 
-void draw_polygon(double **points, double x, double y, int pointsc)
+void draw_polygon(double **points, double x, double y, int pointsc, struct Color color)
 {
-    draw_polyline(points, x, y, pointsc);
+    draw_polyline(points, x, y, pointsc, color);
     if (pointsc > 2) {
         DrawLine(x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1], color);
     }
@@ -64,9 +66,13 @@ void draw_polygon(double **points, double x, double y, int pointsc)
 
 void draw_objects(tmx_object_group *objgr)
 {
-    Rectangle rect;
-    set_color(objgr->color);
+    struct Color color = set_color(objgr->color);
     tmx_object *head = objgr->head;
+    Rectangle rect;
+    Vector2 *vectorPoints; /* can be fixed array to avoid malloc*/
+    double **raw_points;
+    int x, y, i;
+
 
     while (head) {
         if (head->visible) {
@@ -75,13 +81,30 @@ void draw_objects(tmx_object_group *objgr)
                 rect.y = head->y;
                 rect.width = head->width;
                 rect.height = head->height;
-                DrawRectangleLines(rect.x, rect.y, rect.width, rect.height, color);
+                DrawRectangleLines(rect.x -player.x, rect.y -player.y, rect.width, rect.height, color);
             } else if (head->obj_type  == OT_POLYGON) {
-                draw_polygon(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+                draw_polygon(head->content.shape->points, head->x -player.x, head->y -player.y, head->content.shape->points_len, color);
             } else if (head->obj_type == OT_POLYLINE) {
-                draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+
+                /* You have to make Vector2* out of double** data points */
+                vectorPoints = malloc (head->content.shape->points_len * sizeof (Vector2));
+                for (i = 0; i < head->content.shape->points_len; i++) {
+                    raw_points = head->content.shape->points;
+                    x = head->x + raw_points[i][0];
+                    y = head->y + raw_points[i][1];
+                    vectorPoints->x = x -player.x;
+                    vectorPoints->y = y -player.y;
+                    vectorPoints++;
+                }
+                vectorPoints -= i;
+                DrawPolyExLines(vectorPoints, head->content.shape->points_len, color);
+
+                /* Or you can use this */
+                //draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len, color);
+            } else if (head->obj_type == OT_TEXT) {
+                DrawText(head->content.text->text, head->x -player.x, head->y -player.y, head->content.text->pixelsize, color);
             } else if (head->obj_type == OT_ELLIPSE) {
-                /* Ellipse function  */
+                /* Ellipse function */
             }
         }
         head = head->next;
@@ -131,10 +154,10 @@ void draw_layer(tmx_map *map, tmx_layer *layer)
  *    Raylib function `LoadImagePro` could fit well to load
  *    an Image out of raw data (img->resource_image) but no way
  *    to get needed `format` (PixelFormat) argument using TMX.
- *  Possibly better is to load Textures before the
- *    main game loop and pass it though `render_map`.
- *
- *  See SDL example.
+ *  For example, load Textures before the main game loop
+ *    and pass it though `render_map`.
+ *  Left this implementation in order to keep the same structure
+ *    as in SDL example.
  */
 void draw_image_layer(tmx_image *img)
 {
@@ -195,7 +218,7 @@ void updateMovement(Vector2 *player, tmx_map *map)
             return;
         }
     }
-    if (player->y >= map->height * map->tile_width - DISPLAY_H) {
+    if (player->y >= map->height * map->tile_height - DISPLAY_H) {
         if (IsKeyDown( KEY_S )) {
             return;
         }
@@ -203,16 +226,16 @@ void updateMovement(Vector2 *player, tmx_map *map)
 
     /* moves */
     if (IsKeyDown( KEY_W )) {
-        player->y -= 1;
+        player->y -= map->tile_height/2;
     }
     if (IsKeyDown( KEY_S )) {
-        player->y += 1;
+        player->y += map->tile_height/2;
     }
     if (IsKeyDown( KEY_A )) {
-        player->x -= 1;
+        player->x -= map->tile_width/2;
     }
     if (IsKeyDown( KEY_D )) {
-        player->x += 1;
+        player->x += map->tile_width/2;
     }
 }
 
@@ -221,7 +244,6 @@ int main()
 {
     InitWindow(DISPLAY_W, DISPLAY_H, "raylib TMX");
     SetTargetFPS(60);
-    color = WHITE; /* by default */
 
     tmx_img_load_func = (void* (*)( const char* )) raylib_load_image;
     tmx_img_free_func = (void  (*)( void* )) raylib_free_image;
@@ -233,9 +255,9 @@ int main()
     /* Main game loop */
     while (!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-        render_map(map);
-        updateMovement(&player, map); /* `map` is for borders calculations */
+            ClearBackground(RAYWHITE);
+            render_map(map);
+            updateMovement(&player, map); /* map: for both borders and speed */
         EndDrawing();
     }
 
