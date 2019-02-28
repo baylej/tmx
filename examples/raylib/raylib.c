@@ -155,7 +155,7 @@ void draw_layer(tmx_map *map, tmx_layer *layer)
  *    an Image out of raw data (img->resource_image) but no way
  *    to get needed `format` (PixelFormat) argument using TMX.
  *  For example, load Textures before the main game loop
- *    and pass it though `render_map`.
+ *    and pass them though `render_map`.
  *  Left this implementation in order to keep the same structure
  *    as in SDL example.
  */
@@ -200,7 +200,7 @@ Texture* render_map(tmx_map *map)
     return res;
 }
 
-void updateMovement(Vector2 *player, tmx_map *map)
+void update_movement(Vector2 *player, tmx_map *map)
 {
     /* borders check */
     if (player->x <= 0) {
@@ -257,7 +257,7 @@ int main()
         BeginDrawing();
             ClearBackground(RAYWHITE);
             render_map(map);
-            updateMovement(&player, map); /* map: for both borders and speed */
+            update_movement(&player, map); /* map: for both borders and speed */
         EndDrawing();
     }
 
