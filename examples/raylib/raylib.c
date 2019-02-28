@@ -15,12 +15,14 @@
 #define fatal_error(str)  { fputs(str, stderr); goto errquit; }
 #define DISPLAY_H 480
 #define DISPLAY_W 640
+#define PLAYER_SPEED 10
 
 
 struct Color color;
+Vector2 player = {0.0f, 0.0f}; /* invisible, just a dot: (x,y) */
 
 
-void set_color(int newOne)
+void set_color(unsigned int newOne)
 {
     color.r = (newOne >> 16) & 0xFF;
     color.g = (newOne >>  8) & 0xFF;
@@ -109,6 +111,8 @@ void draw_layer(tmx_map *map, tmx_layer *layer)
                 srcrect.height = ts->tile_height;
                 dstrect.x = j*ts->tile_width;
                 dstrect.y = i*ts->tile_height;
+                  dstrect.x -= player.x;
+                  dstrect.y -= player.y;
                 if (im) {
                     tileset = (Texture*)im->resource_image;
                 } else {
@@ -138,7 +142,23 @@ void draw_image_layer(tmx_image *img)
     RenderTexture2D renTexture = LoadRenderTexture(DISPLAY_W, DISPLAY_H);
     BeginTextureMode(renTexture);
         Texture texture = LoadTexture(path);
-        DrawTexture(texture, dim.x, dim.y, WHITE);
+        DrawTexture(texture, dim.x - player.x, dim.y - player.y, WHITE);
+        UnloadRenderTexture(renTexture);
+    EndTextureMode();
+    UnloadTexture(texture);
+}
+
+void draw_image_layer2(tmx_image *img)
+{
+    Rectangle dim;
+    dim.x = dim.y = 0;
+    char path[PATH_MAX] = "data/";  /* ATTENTION: relative path */
+    strcat(path, img->source);
+
+    RenderTexture2D renTexture = LoadRenderTexture(DISPLAY_W, DISPLAY_H);
+    BeginTextureMode(renTexture);
+        Texture texture = LoadTexture(path);
+        DrawTexture(texture, dim.x - player.x, dim.y - player.y, WHITE);
         UnloadRenderTexture(renTexture);
     EndTextureMode();
     UnloadTexture(texture);
@@ -169,6 +189,45 @@ Texture* render_map(tmx_map *map)
     return res;
 }
 
+void updateMovement(Vector2 *player, tmx_map *map)
+{
+    /* borders control */
+    if (player->x <= 0) {
+        if (IsKeyDown( KEY_A )) {
+            return;
+        }
+    }
+    if (player->x >= map->width * map->tile_width - DISPLAY_W) {
+        if (IsKeyDown( KEY_D )) {
+            return;
+        }
+    }
+    if (player->y <= 0) {
+        if (IsKeyDown( KEY_W )) {
+            return;
+        }
+    }
+    if (player->y >= map->height * map->tile_width - DISPLAY_H) {
+        if (IsKeyDown( KEY_S )) {
+            return;
+        }
+    }
+
+    /* moves */
+    if (IsKeyDown( KEY_W )) {
+        player->y -= PLAYER_SPEED;
+    }
+    if (IsKeyDown( KEY_S )) {
+        player->y += PLAYER_SPEED;
+    }
+    if (IsKeyDown( KEY_A )) {
+        player->x -= PLAYER_SPEED;
+    }
+    if (IsKeyDown( KEY_D )) {
+        player->x += PLAYER_SPEED;
+    }
+}
+
 
 int main()
 {
@@ -187,6 +246,7 @@ int main()
         BeginDrawing();
         ClearBackground(RAYWHITE);
         render_map(map);
+        updateMovement(&player, map); /* `map` is for borders calculations */
         EndDrawing();
     }
 
