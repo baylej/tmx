@@ -1,9 +1,13 @@
 /*
-    TMX usage example with Raylib
+	TMX usage example with Raylib
 
-    To enable support of .jpg and other image file formats,
+    Declare callback functions like `tmx_img_load_func`
+    in an OpenGL context i.e., after `InitWindow`.
+
+    To enable support for .jpg and other image file formats,
     uncomment required in textures.c and rebuild Raylib.
     See "Development Platforms" section in Raylib wiki.
+
 */
 
 #include <stdio.h>
@@ -67,8 +71,8 @@ void draw_objects(tmx_object_group *objgr)
     while (head) {
         if (head->visible) {
             if (head->obj_type == OT_SQUARE) {
-                rect.x =     head->x;
-                rect.y =      head->y;
+                rect.x = head->x;
+                rect.y = head->y;
                 rect.width = head->width;
                 rect.height = head->height;
                 DrawRectangleLines(rect.x, rect.y, rect.width, rect.height, color);
@@ -124,10 +128,11 @@ void draw_layer(tmx_map *map, tmx_layer *layer)
 }
 
 /*  Further optimization is up to you:
- *    Raylib function ```LoadImagePro``` could fit well to load
+ *    Raylib function `LoadImagePro` could fit well to load
  *    an Image out of raw data (img->resource_image) but no way
  *    to get needed `format` (PixelFormat) argument using TMX.
- *  Better load Texture before the main game loop.
+ *  Possibly better is to load Textures before the
+ *    main game loop and pass it though `render_map`.
  *
  *  See SDL example.
  */
@@ -225,6 +230,7 @@ int main()
     if (!(map = tmx_load("data/objecttemplates.tmx")))
         fatal_error(tmx_strerr());
 
+    /* Main game loop */
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
