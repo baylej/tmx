@@ -196,7 +196,7 @@ void dump_objects(tmx_object *o, int depth) {
 			printf("\n%s\t" "valign=", padding); print_valign(t->valign);
 			printf("\n%s\t" "text='%s'", padding, t->text);
 		}
-		dump_template(o->template, depth+1);
+		dump_template(o->template_ref, depth+1);
 		dump_prop(o->properties, depth+1);
 		printf("\n%s}", padding);
 	}
