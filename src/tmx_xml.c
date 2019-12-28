@@ -22,7 +22,7 @@ xmlTextReaderPtr (*tmx_xml_reader_load_func) (const char *path, const char *enco
 void  (*tmx_xml_reader_free_func) (xmlTextReaderPtr reader) = NULL;
 
 static void
-set_xml_functions()
+set_xml_functions(void)
 {
 	if (!tmx_xml_reader_load_func) { tmx_xml_reader_load_func = xmlReaderForFile; }
 	if (!tmx_xml_reader_free_func) { tmx_xml_reader_free_func = xmlFreeTextReader; }
