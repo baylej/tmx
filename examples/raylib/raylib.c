@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <tmx.h>
 #include <raylib.h>
 
@@ -8,9 +7,8 @@
 #define DISPLAY_W 800
 
 void *raylib_tex_loader(const char *path) {
-	Texture2D texture = LoadTexture(path);
 	Texture2D *returnValue = malloc(sizeof(Texture2D));
-	memcpy(returnValue, &texture, sizeof(Texture2D));
+	*returnValue = LoadTexture(path);
 	return returnValue;
 }
 
@@ -23,9 +21,9 @@ void draw_polyline(double offset_x, double offset_y, double **points, int points
 	int i;
 	for (i=1; i<points_count; i++) {
 		DrawLine(offset_x + points[i-1][0],
-		         offset_y + points[i-1][1],
-		         offset_x + points[i][0],
-		         offset_y + points[i][1], color);
+		          offset_y + points[i-1][1],
+		          offset_x + points[i][0],
+		          offset_y + points[i][1], color);
 	}
 }
 
@@ -33,9 +31,9 @@ void draw_polygon(double offset_x, double offset_y, double **points, int points_
 	draw_polyline(offset_x, offset_y, points, points_count, color);
 	if (points_count > 2) {
 		DrawLine(offset_x + points[0][0],
-		         offset_y + points[0][1],
-		         offset_x + points[points_count-1][0],
-		         offset_y + points[points_count-1][1], color);
+		          offset_y + points[0][1],
+		          offset_x + points[points_count-1][0],
+		          offset_y + points[points_count-1][1], color);
 	}
 }
 

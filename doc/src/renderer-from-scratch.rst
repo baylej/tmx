@@ -155,7 +155,6 @@ display (window), and the main loop.
 
          #include <stdlib.h>
          #include <stdio.h>
-         #include <string.h>
          #include <tmx.h>
          #include <raylib.h>
 
@@ -166,6 +165,7 @@ display (window), and the main loop.
            InitWindow(DISPLAY_W, DISPLAY_H, "raylib example");
            if (!IsWindowReady()) {
              fputs("Cannot create a window", stderr);
+             return 1;
            }
 
            SetTargetFPS(30);
@@ -248,9 +248,8 @@ an easier way to do that without the hassle: :ref:`callback functions <image-aut
    .. code-tab:: c raylib
 
          void* raylib_tex_loader(const char *path) {
-           Texture2D texture = LoadTexture(path);
            Texture2D *returnValue = malloc(sizeof(Texture2D));
-           memcpy(returnValue, &texture, sizeof(Texture2D));
+           *returnValue = LoadTexture(path);
            return returnValue;
          }
 
@@ -421,8 +420,14 @@ Tile layers
 
       void draw_tile(void *image, unsigned int sx, unsigned int sy, unsigned int sw, unsigned int sh,
                      unsigned int dx, unsigned int dy, float opacity, unsigned int flags) {
-        ALLEGRO_COLOR colour = al_map_rgba_f(opacity, opacity, opacity, opacity);
-        al_draw_tinted_bitmap_region((ALLEGRO_BITMAP*)image, colour, sx, sy, sw, sh, dx, dy, flags);
+        SDL_Rect src_rect, dest_rect;
+        src_rect.x = sx;
+        src_rect.y = sy;
+        src_rect.w = dest_rect.w = sw;
+        src_rect.h = dest_rect.h = sh;
+        dest_rect.x = dx;
+        dest_rect.y = dy;
+        SDL_RenderCopy(ren, (SDL_Texture*)image, &src_rect, &dest_rect);
       }
 
    .. code-tab:: c Allegro 5
