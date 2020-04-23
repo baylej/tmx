@@ -42,13 +42,13 @@ manipulate this cache using CMake's command line interface. See the `running CMa
 
 **libTMX**'s cmake script declares two cache variables to configure the build:
 
-+-------------------+-----------------------------------------------------------------------+
-| Cache Variable    | Description                                                           |
-+===================+=======================================================================+
-| WANT_ZLIB         | Link with zlib (ability to decompress layers data).                   |
-+-------------------+-----------------------------------------------------------------------+
-| BUILD_SHARED_LIBS | Build shared libraries (dll / so), static libraries are always built. |
-+-------------------+-----------------------------------------------------------------------+
++-------------------+---------------------------------------------------------------------+
+| Cache Variable    | Description                                                         |
++===================+=====================================================================+
+| WANT_ZLIB         | Link with zlib (ability to decompress layers data).                 |
++-------------------+---------------------------------------------------------------------+
+| BUILD_SHARED_LIBS | Build shared libraries (dll / so), static libraries is the default. |
++-------------------+---------------------------------------------------------------------+
 
 Default cache variables of interest:
 

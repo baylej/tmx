@@ -84,7 +84,7 @@ void mk_padding(char pad[11], int depth) {
 }
 
 void print_prop(tmx_property *p, void *depth) {
-	char padding[12]; mk_padding(padding, (int)depth);
+	char padding[12]; mk_padding(padding, (int)(uintptr_t)depth);
 
 	printf("\n%s" "'%s'=(", padding, p->name);
 	switch(p->type) {
@@ -433,8 +433,7 @@ int main(int argc, char *argv[]) {
 					rewind(file);
 
 					buffer = (char*)dbg_alloc(NULL, size);
-					fread(buffer, 1, size, file);
-					if (ferror(file))
+					if (fread(buffer, 1, size, file)+1 && ferror(file))
 					{
 						perror("error");
 					}

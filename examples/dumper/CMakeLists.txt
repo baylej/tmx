@@ -1,15 +1,12 @@
-# This is a minimal CMakeLists.txt to link with TMX and its dependencies
+# This is a minimal CMakeLists.txt to link with libTMX and its dependencies
+cmake_minimum_required(VERSION 3.5)
 
-cmake_minimum_required(VERSION 3.0)
-
-project(dumper VERSION 0.10.1 LANGUAGES C)
-
-# `tmx` package creates two imported targets: `tmx` and `tmx_shared`
-# Imported targets requires cmake version 3.0+
-find_package(tmx REQUIRED)
+project(dumper VERSION 1.0.0 LANGUAGES C)
 
 add_executable(dumper "dumper.c")
 
-# Links with the static library
-target_link_libraries(dumper tmx ZLIB::ZLIB ${LIBXML2_LIBRARIES})
+# Uses the INSTALL_PREFIX/lib/cmake/tmx/tmxConfig.cmake file to properly link with libTMX
+find_package(tmx REQUIRED)
 
+# libTMX exports its target, all dependencies should be transitively imported
+target_link_libraries(dumper tmx)

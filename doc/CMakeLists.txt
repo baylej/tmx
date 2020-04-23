@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 
 project(tmxDocumentation NONE)
 
@@ -47,7 +47,7 @@ if(DOC_HTML)
     set_property(SOURCE doc_format_html PROPERTY SYMBOLIC True)
     set(chain_dependency "doc_format_html")
     list(APPEND enabled_doc_formats doc_format_html)
-endif(DOC_HTML)
+endif()
 
 if(DOC_SINGLEHTML)
   add_custom_command(
@@ -65,6 +65,6 @@ if(DOC_SINGLEHTML)
     set_property(SOURCE doc_format_singlehtml PROPERTY SYMBOLIC True)
     set(chain_dependency "doc_format_singlehtml")
     list(APPEND enabled_doc_formats doc_format_singlehtml)
-endif(DOC_SINGLEHTML)
+endif()
 
 add_custom_target(documentation ALL DEPENDS ${enabled_doc_formats})
