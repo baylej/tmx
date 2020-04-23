@@ -64,7 +64,6 @@ tmx_tileset*      alloc_tileset(void);
 tmx_tileset_list* alloc_tileset_list(void);
 tmx_template*     alloc_template(void);
 tmx_map*          alloc_map(void);
-tmx_tile*         alloc_tile(void);
 
 resource_holder* pack_tileset_resource(tmx_tileset *value);
 resource_holder* pack_template_resource(tmx_template *value);
@@ -135,7 +134,7 @@ void  free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator);
 #define snprintf _snprintf
 #endif
 
-char custom_msg[256];
-#define tmx_err(code, ...) tmx_errno = code; snprintf(custom_msg, 256, __VA_ARGS__)
+extern char _tmx_custom_msg[256];
+#define tmx_err(code, ...) tmx_errno = code; snprintf(_tmx_custom_msg, 256, __VA_ARGS__)
 
 #endif /* TMXUTILS_H */
