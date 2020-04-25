@@ -373,7 +373,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 	return 1;
 }
 
-static int parse_data(xmlTextReaderPtr reader, int32_t **gidsadr, size_t gidscount) {
+static int parse_data(xmlTextReaderPtr reader, uint32_t **gidsadr, size_t gidscount) {
 	char *value, *inner_xml;
 
 	if (!(value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"encoding"))) { /* encoding */

@@ -211,7 +211,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 
 	enum tmx_layer_type type;
 	union layer_content {
-		int32_t *gids;
+		uint32_t *gids;
 		tmx_object_group *objgr;
 		tmx_image *image;
 		tmx_layer *group_head;

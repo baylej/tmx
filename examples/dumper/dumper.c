@@ -291,7 +291,7 @@ void dump_layer(tmx_layer *l, unsigned int tc, int depth) {
 		if (l->type == L_LAYER && l->content.gids) {
 			printf("\n%s\t" "type=Layer" "\n%s\t" "tiles=", padding, padding);
 			for (i=0; i<tc; i++) {
-				printf("%d,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
+				printf("%u,", l->content.gids[i] & TMX_FLIP_BITS_REMOVAL);
 			}
 		} else if (l->type == L_OBJGR) {
 			printf("\n%s\t" "color=#%.6X", padding, l->content.objgr->color);

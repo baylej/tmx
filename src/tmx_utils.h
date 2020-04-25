@@ -88,7 +88,7 @@ void property_deallocator(void *val, const char *key);
 #define MAX(a,b) (a<b) ? b: a;
 
 enum enccmp_t {CSV, B64Z, B64};
-int data_decode(const char *source, enum enccmp_t type, size_t gids_count, int32_t **gids);
+int data_decode(const char *source, enum enccmp_t type, size_t gids_count, uint32_t **gids);
 
 void map_post_parsing(tmx_map **map);
 int set_tiles_runtime_props(tmx_tileset *ts);
