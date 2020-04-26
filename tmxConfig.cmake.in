@@ -1,6 +1,6 @@
 include(CMakeFindDependencyMacro)
 find_dependency(LibXml2)
-if(@WANT_ZLIB@)
+if(@WANT_ZLIB@ AND NOT @EMSCRIPTEN@)
   find_dependency(ZLIB)
 endif()
 

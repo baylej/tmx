@@ -12,6 +12,11 @@ set(BUILD_VERSION "${PROJECT_VERSION}")
 option(WANT_ZLIB "use zlib (ability to decompress layers data) ?" On)
 option(BUILD_SHARED_LIBS "Build shared libraries (dll / so)" Off)
 
+set(EMSCRIPTEN False)
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  set(EMSCRIPTEN True)
+endif()
+
 # -- Target
 
 add_library(tmx
@@ -32,7 +37,9 @@ if(NOT STDINT_H)
     message(FATAL_ERROR "error: required header stdint.h not found")
 endif()
 
-if(WANT_ZLIB)
+if(WANT_ZLIB AND EMSCRIPTEN)
+    target_link_options(tmx INTERFACE "SHELL:-s USE_ZLIB=1")
+elseif(WANT_ZLIB)
     target_compile_definitions(tmx PRIVATE WANT_ZLIB)
     include(FindZLIB)
     find_package(ZLIB REQUIRED)
