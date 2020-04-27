@@ -501,10 +501,25 @@ int parse_boolean(const char *boolean) {
 	return 0;
 }
 
-/* "#337FA2" -> 0x337FA2 */
-int get_color_rgb(const char *c) {
+/* HTML col  -> (uint32) AARRGGBB
+   #RGB      -> (uint32) FFRRGGBB
+   #ARGB     -> (uint32) AARRGGBB
+   #RRGGBB   -> (uint32) FFRRGGBB
+   #AARRGGBB -> (uint32) AARRGGBB */
+uint32_t get_color_rgb(const char *c) {
+	unsigned long clen;
+	uint32_t res;
 	if (*c == '#') c++;
-	return (int)strtol(c, NULL, 16);
+	clen = strlen(c);
+	res = (uint32_t)strtol(c, NULL, 16);
+	if (clen < 6) {
+		res = (res & 0xF000u) << 16 | (res & 0xF000u) << 12 /* AXXX */
+		    | (res & 0x0F00u) << 12 | (res & 0x0F00u) <<  8 /* XRXX */
+		    | (res & 0x00F0u) <<  8 | (res & 0x00F0u) <<  4 /* XXGX */
+		    | (res & 0x000Fu) <<  4 | (res & 0x000Fu);      /* XXXB */
+	}
+	if (clen == 6 || clen == 3) { res |= 0xFF000000u; }
+	return res;
 }
 
 int count_char_occurences(const char *str, char c) {

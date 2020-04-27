@@ -1,6 +1,6 @@
 /*
 	TMX.H - TMX C LOADER
-	Copyright (c) 2013-2018, Bayle Jonathan <baylej@github>
+	Copyright (c) 2013-2020, Bayle Jonathan <baylej@github>
 
 	Data Structures storing the map, and function prototypes
 
@@ -83,7 +83,7 @@ typedef union {
 	int integer, boolean; /* type = int or bool */
 	float decimal; /* type = float */
 	char *string, *file; /* default and type = string or file */
-	unsigned int color; /* type = color */
+	uint32_t color; /* type = color, bytes : ARGB */
 } tmx_property_value;
 
 struct _tmx_prop { /* <properties> and <property> */
@@ -154,7 +154,7 @@ struct _tmx_shape { /* <polygon> and <polyline> */
 struct _tmx_text { /* <text> */
 	char *fontfamily;
 	int pixelsize;
-	unsigned int color;
+	uint32_t color; /* bytes : ARGB */
 
 	int wrap; /* 0 == false */
 	int bold;
@@ -192,7 +192,7 @@ struct _tmx_obj { /* <object> */
 };
 
 struct _tmx_objgr { /* <objectgroup> */
-	unsigned int color; /* bytes : RGB */
+	uint32_t color; /* bytes : ARGB */
 	enum tmx_objgr_draworder draworder;
 	tmx_object *head;
 };
@@ -232,7 +232,7 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_stagger_axis stagger_axis;
 	int hexsidelength;
 
-	unsigned int backgroundcolor; /* bytes : RGB */
+	uint32_t backgroundcolor; /* bytes : ARGB */
 	enum tmx_map_renderorder renderorder;
 
 	tmx_properties *properties;
