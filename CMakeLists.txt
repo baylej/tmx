@@ -72,7 +72,7 @@ endif()
 
 # --  Installation
 
-target_include_directories(tmx INTERFACE $<INSTALL_INTERFACE:include>)
+target_include_directories(tmx INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src> $<INSTALL_INTERFACE:include>)
 
 configure_file("tmxConfig.cmake.in" "tmxConfig.cmake" @ONLY)
 
