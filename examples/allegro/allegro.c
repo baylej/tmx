@@ -22,13 +22,8 @@ void* Allegro5_tex_loader(const char *path) {
 }
 
 ALLEGRO_COLOR int_to_al_color(int color) {
-	unsigned char r, g, b;
-
-	r = (color >> 16) & 0xFF;
-	g = (color >>  8) & 0xFF;
-	b = (color)       & 0xFF;
-
-	return al_map_rgb(r, g, b);
+	tmx_col_floats res = tmx_col_to_floats(color);
+	return *((ALLEGRO_COLOR*)&res);
 }
 
 #define LINE_THICKNESS 2.5

@@ -14,13 +14,8 @@ void* SDL_tex_loader(const char *path) {
 }
 
 void set_color(int color) {
-	unsigned char r, g, b;
-
-	r = (color >> 16) & 0xFF;
-	g = (color >>  8) & 0xFF;
-	b = (color)       & 0xFF;
-
-	SDL_SetRenderDrawColor(ren, r, g, b, SDL_ALPHA_OPAQUE);
+	tmx_col_bytes col = tmx_col_to_bytes(color);
+	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 }
 
 void draw_polyline(double **points, double x, double y, int pointsc) {

@@ -130,3 +130,25 @@ Utilities
 
    Call the given callback function for each properties, userdata is forwarded as-is.
    See :c:type:`tmx_property_functor`.
+
+Colour conversion functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Helper functions to convert the unsigned int colour from the datastructure, see :c:member:`tmx_map.backgroundcolor`,
+:c:member:`tmx_object_group.color`, :c:member:`tmx_property_value.color`.
+
+.. c:type:: tmx_col_bytes
+
+   4 unsigned bytes in the following order: r, g, b, a.
+
+.. c:function:: tmx_col_bytes tmx_col_to_bytes(uint32_t color);
+
+   Splits the colour into 4 bytes.
+
+.. c:type:: tmx_col_floats
+
+   4 floats in the following order: r, g, b, a.
+
+.. c:function:: tmx_col_floats tmx_col_to_floats(uint32_t color);
+
+   Splits the colour into 4 floats.

@@ -522,6 +522,24 @@ uint32_t get_color_rgb(const char *c) {
 	return res;
 }
 
+tmx_col_bytes tmx_col_to_bytes(uint32_t color) {
+	tmx_col_bytes res;
+	res.a = (color >> 24) & 0xFF;
+	res.r = (color >> 16) & 0xFF;
+	res.g = (color >>  8) & 0xFF;
+	res.b = (color)       & 0xFF;
+	return res;
+}
+
+tmx_col_floats tmx_col_to_floats(uint32_t color) {
+	tmx_col_floats res;
+	res.a = (float)((color >> 24) & 0xFF) / 255.f;
+	res.r = (float)((color >> 16) & 0xFF) / 255.f;
+	res.g = (float)((color >>  8) & 0xFF) / 255.f;
+	res.b = (float)((color)       & 0xFF) / 255.f;
+	return res;
+}
+
 int count_char_occurences(const char *str, char c) {
 	int res = 0;
 	while(*str != '\0') {

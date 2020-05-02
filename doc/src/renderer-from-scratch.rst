@@ -281,13 +281,8 @@ Rendering a map is quite simple, clear the display to the background colour, the
    .. code-tab:: c SDL 2
 
       void set_color(int color) {
-        unsigned char r, g, b;
-
-        r = (color >> 16) & 0xFF;
-        g = (color >>  8) & 0xFF;
-        b = (color)       & 0xFF;
-
-        SDL_SetRenderDrawColor(ren, r, g, b, SDL_ALPHA_OPAQUE);
+        tmx_col_bytes col = tmx_col_to_bytes(color);
+        SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
       }
 
       void render_map(tmx_map *map) {
@@ -299,13 +294,8 @@ Rendering a map is quite simple, clear the display to the background colour, the
    .. code-tab:: c Allegro 5
 
       ALLEGRO_COLOR int_to_al_color(int color) {
-        unsigned char r, g, b;
-
-        r = (color >> 16) & 0xFF;
-        g = (color >>  8) & 0xFF;
-        b = (color)       & 0xFF;
-
-        return al_map_rgb(r, g, b);
+        tmx_col_floats res = tmx_col_to_floats(color);
+        return *((ALLEGRO_COLOR*)&res);
       }
 
       void render_map(tmx_map *map) {
@@ -315,8 +305,13 @@ Rendering a map is quite simple, clear the display to the background colour, the
 
    .. code-tab:: c raylib
 
+      Color int_to_color(int color) {
+        tmx_col_bytes res = tmx_col_to_bytes(color);
+        return *((Color*)&res);
+      }
+
       void render_map(tmx_map *map) {
-        ClearBackground(ClearBackground(GetColor(map->backgroundcolor)));
+        ClearBackground(int_to_color(map->backgroundcolor));
         draw_all_layers(map, map->ly_head); // Function to be implemented
       }
 
@@ -536,42 +531,43 @@ are limited by the availability of draw functions for each kind of shape.
 
    .. code-tab:: c raylib
 
-      void draw_polyline(double **points, double x, double y, int pointsc) {
+      #define LINE_THICKNESS 2.5
+
+      void draw_polyline(double offset_x, double offset_y, double **points, int points_count, Color color) {
         int i;
-        for (i=1; i<pointsc; i++) {
-          DrawLine(x+points[i-1][0], y+points[i-1][1], x+points[i][0], y+points[i][1], color);
+        for (i=1; i<points_count; i++) {
+          DrawLineEx((Vector2){offset_x + points[i-1][0], offset_y + points[i-1][1]},
+                     (Vector2){offset_x + points[i][0], offset_y + points[i][1]},
+                     LINE_THICKNESS, color);
         }
       }
 
-      void draw_polygon(double **points, double x, double y, int pointsc) {
-        draw_polyline(points, x, y, pointsc);
-        if (pointsc > 2) {
-          DrawLine(x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1], color);
+      void draw_polygon(double offset_x, double offset_y, double **points, int points_count, Color color) {
+        draw_polyline(offset_x, offset_y, points, points_count, color);
+        if (points_count > 2) {
+          DrawLineEx((Vector2){offset_x + points[0][0], offset_y + points[0][1]},
+                     (Vector2){offset_x + points[points_count-1][0], offset_y + points[points_count-1][1]},
+                     LINE_THICKNESS, color);
         }
       }
 
       void draw_objects(tmx_object_group *objgr) {
-        Rectangle rect;
-        set_color(objgr->color);
         tmx_object *head = objgr->head;
+        Color color = int_to_color(objgr->color);
 
         while (head) {
           if (head->visible) {
             if (head->obj_type == OT_SQUARE) {
-              rect.x = head->x;
-              rect.y = head->y;
-              rect.width = head->width;
-              rect.height = head->height;
-              DrawRectangleLines(rect.x, rect.y, rect.width, rect.height, color);
+              DrawRectangleLinesEx((Rectangle){head->x, head->y, head->width, head->height}, LINE_THICKNESS, color);
             }
             else if (head->obj_type  == OT_POLYGON) {
-              draw_polygon(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+              draw_polygon(head->x, head->y, head->content.shape->points, head->content.shape->points_len, color);
             }
             else if (head->obj_type == OT_POLYLINE) {
-              draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+              draw_polyline(head->x, head->y, head->content.shape->points, head->content.shape->points_len, color);
             }
             else if (head->obj_type == OT_ELLIPSE) {
-              /* Ellipse function  */
+              DrawEllipseLines(head->x + head->width/2.0, head->y + head->height/2.0, head->width/2.0, head->height/2.0, color);
             }
           }
           head = head->next;

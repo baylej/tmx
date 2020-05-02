@@ -17,34 +17,39 @@ void raylib_free_tex(void *ptr) {
 	free(ptr);
 }
 
+Color int_to_color(int color) {
+	tmx_col_bytes res = tmx_col_to_bytes(color);
+	return *((Color*)&res);
+}
+
+#define LINE_THICKNESS 2.5
+
 void draw_polyline(double offset_x, double offset_y, double **points, int points_count, Color color) {
 	int i;
 	for (i=1; i<points_count; i++) {
-		DrawLine(offset_x + points[i-1][0],
-		          offset_y + points[i-1][1],
-		          offset_x + points[i][0],
-		          offset_y + points[i][1], color);
+		DrawLineEx((Vector2){offset_x + points[i-1][0], offset_y + points[i-1][1]},
+		           (Vector2){offset_x + points[i][0], offset_y + points[i][1]},
+		           LINE_THICKNESS, color);
 	}
 }
 
 void draw_polygon(double offset_x, double offset_y, double **points, int points_count, Color color) {
 	draw_polyline(offset_x, offset_y, points, points_count, color);
 	if (points_count > 2) {
-		DrawLine(offset_x + points[0][0],
-		          offset_y + points[0][1],
-		          offset_x + points[points_count-1][0],
-		          offset_y + points[points_count-1][1], color);
+		DrawLineEx((Vector2){offset_x + points[0][0], offset_y + points[0][1]},
+		           (Vector2){offset_x + points[points_count-1][0], offset_y + points[points_count-1][1]},
+		           LINE_THICKNESS, color);
 	}
 }
 
 void draw_objects(tmx_object_group *objgr) {
 	tmx_object *head = objgr->head;
-	Color color = GetColor(objgr->color << 8); color.a = 255;
+	Color color = int_to_color(objgr->color);
 
 	while (head) {
 		if (head->visible) {
 			if (head->obj_type == OT_SQUARE) {
-				DrawRectangleLines(head->x, head->y, head->width, head->height, color);
+				DrawRectangleLinesEx((Rectangle){head->x, head->y, head->width, head->height}, LINE_THICKNESS, color);
 			}
 			else if (head->obj_type  == OT_POLYGON) {
 				draw_polygon(head->x, head->y, head->content.shape->points, head->content.shape->points_len, color);
@@ -53,7 +58,7 @@ void draw_objects(tmx_object_group *objgr) {
 				draw_polyline(head->x, head->y, head->content.shape->points, head->content.shape->points_len, color);
 			}
 			else if (head->obj_type == OT_ELLIPSE) {
-				/* Ellipse function  */
+				DrawEllipseLines(head->x + head->width/2.0, head->y + head->height/2.0, head->width/2.0, head->height/2.0, color);
 			}
 		}
 		head = head->next;
@@ -125,7 +130,7 @@ void draw_all_layers(tmx_map *map, tmx_layer *layers) {
 }
 
 void render_map(tmx_map *map) {
-	ClearBackground(GetColor(map->backgroundcolor));
+	ClearBackground(int_to_color(map->backgroundcolor));
 	draw_all_layers(map, map->ly_head);
 }
 

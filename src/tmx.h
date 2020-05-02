@@ -274,7 +274,8 @@ TMXEXPORT tmx_map* tmx_load_callback(tmx_read_functor callback, void *userdata);
 /* Frees the map data structure */
 TMXEXPORT void tmx_map_free(tmx_map *map);
 
-/* Returns the tile associated with this gid, returns NULL if it fails */
+/* DEPRECATED: use `map->tiles[gid]` instead.
+   Returns the tile associated with this gid, returns NULL if it fails */
 TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
 
 /* Returns the tmx_property from given hashtable and key, returns NULL if not found */
@@ -284,6 +285,14 @@ TMXEXPORT tmx_property* tmx_get_property(tmx_properties *hash, const char *key);
 typedef void (*tmx_property_functor)(tmx_property *property, void *userdata);
 /* Calls `callback` for each entry in the property hashtable, order of entries is random */
 TMXEXPORT void tmx_property_foreach(tmx_properties *hash, tmx_property_functor callback, void *userdata);
+
+/* Color conversion functions */
+typedef struct { uint8_t r,g,b,a; } tmx_col_bytes;
+typedef struct {   float r,g,b,a; } tmx_col_floats;
+/* Color component ranging from 0 to 255 */
+TMXEXPORT tmx_col_bytes tmx_col_to_bytes(uint32_t color);
+/* Color component as floats ranging from 0.f to 1.f */
+TMXEXPORT tmx_col_floats tmx_col_to_floats(uint32_t color);
 
 /*
 	Resource Manager functions
