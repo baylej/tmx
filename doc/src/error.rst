@@ -15,7 +15,7 @@ Error detection
 Error codes
 -----------
 
-.. c:type:: enum tmx_error_codes
+.. c:enum:: tmx_error_codes
 
    Possible values for :c:data:`tmx_errno`.
 

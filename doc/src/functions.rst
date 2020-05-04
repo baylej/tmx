@@ -141,7 +141,7 @@ Helper functions to convert the unsigned int colour from the datastructure, see 
 
    4 unsigned bytes in the following order: r, g, b, a.
 
-.. c:function:: tmx_col_bytes tmx_col_to_bytes(uint32_t color);
+.. c:function:: tmx_col_bytes tmx_col_to_bytes(uint32_t color)
 
    Splits the colour into 4 bytes.
 
@@ -149,6 +149,6 @@ Helper functions to convert the unsigned int colour from the datastructure, see 
 
    4 floats in the following order: r, g, b, a.
 
-.. c:function:: tmx_col_floats tmx_col_to_floats(uint32_t color);
+.. c:function:: tmx_col_floats tmx_col_to_floats(uint32_t color)
 
    Splits the colour into 4 floats.

@@ -49,7 +49,7 @@ Tiled use the 3 leftmost bits of the :term:`GID` to store if a tile is flipped.
 Enumerations
 ------------
 
-.. c:type:: enum tmx_map_orient
+.. c:enum:: tmx_map_orient
 
    Map orientation (orthogonal, isometric, hexagonal, ...).
 
@@ -67,7 +67,7 @@ Enumerations
    | O_HEX           | Hexagonal map.                                |
    +-----------------+-----------------------------------------------+
 
-.. c:type:: enum tmx_map_renderorder
+.. c:enum:: tmx_map_renderorder
 
    How the tile layers should be drawn, the order in which tiles on tile layers are rendered.
    This is especially usefull if you're drawing overlapping tiles (see the perspective_walls.tmx example that ships with
@@ -88,7 +88,7 @@ Enumerations
    +-----------------+-----------------------------------------------+
 
 
-.. c:type:: enum tmx_stagger_index
+.. c:enum:: tmx_stagger_index
 
    For staggered and hexagonal maps, determines whether the "even" or "odd" indexes along the staggered axis are shifted.
 
@@ -102,7 +102,7 @@ Enumerations
    | SI_ODD        | Even.                                       |
    +---------------+---------------------------------------------+
 
-.. c:type:: enum tmx_stagger_axis
+.. c:enum:: tmx_stagger_axis
 
    For staggered and hexagonal maps, determines which axis ("x" or "y") is staggered.
 
@@ -116,7 +116,7 @@ Enumerations
    | SA_Y         | y axis.                                    |
    +--------------+--------------------------------------------+
 
-.. c:type:: enum tmx_layer_type
+.. c:enum:: tmx_layer_type
 
    Type of :term:`layer`.
 
@@ -134,7 +134,7 @@ Enumerations
    | L_GROUP    | Group of layer layer type, use `content.group_head`. |
    +------------+------------------------------------------------------+
 
-.. c:type:: enum tmx_objgr_draworder
+.. c:enum:: tmx_objgr_draworder
 
    Whether the :term:`objects <object>` are drawn according to the order of appearance ("index") or sorted by their
    y-coordinate ("topdown").
@@ -150,7 +150,7 @@ Enumerations
    |                  | must then be reordered by their y-coordinate.        |
    +------------------+------------------------------------------------------+
 
-.. c:type:: enum tmx_obj_type
+.. c:enum:: tmx_obj_type
 
    Type of :term:`object`.
 
@@ -175,7 +175,7 @@ Enumerations
    | OT_POINT    | Point, use members `x`, `y`.                             |
    +-------------+----------------------------------------------------------+
 
-.. c:type:: enum tmx_property_type
+.. c:enum:: tmx_property_type
 
    Type of property.
 
@@ -197,7 +197,7 @@ Enumerations
    | PT_FILE       | Path to a file, use `value.file`.                      |
    +---------------+--------------------------------------------------------+
 
-.. c:type:: enum tmx_horizontal_align
+.. c:enum:: tmx_horizontal_align
 
    Horizontal alignment of the text within the object.
 
@@ -213,7 +213,7 @@ Enumerations
    | HA_RIGHT   | Right.                                   |
    +------------+------------------------------------------+
 
-.. c:type:: enum tmx_vertical_align
+.. c:enum:: tmx_vertical_align
 
    Vertical alignment of the text within the object.
 
@@ -341,7 +341,7 @@ you can access everything.
       .. note::
          You should check the value of member :c:member:`tmx_layer.type` to use the correct union member.
 
-      .. c:type:: union layer_content
+      .. c:union:: layer_content
 
          .. c:member:: int32_t *gids
 
@@ -571,7 +571,7 @@ you can access everything.
       .. note::
          You should check the value of member :c:member:`tmx_object.type` to use the correct union member.
 
-      .. c:type:: union object_content
+      .. c:union:: object_content
 
          .. c:member:: int gid
 
@@ -764,7 +764,7 @@ you can access everything.
       .. note::
          You should check the value of member :c:member:`tmx_property.type` to use the correct union member.
 
-      .. c:type:: union tmx_property_value
+      .. c:union:: tmx_property_value
 
          .. c:member:: int integer
 
@@ -790,7 +790,7 @@ you can access everything.
 
             Colour, encoded in an integer, 4 bytes: ARGB.
 
-.. c:type:: union tmx_user_data
+.. c:union:: tmx_user_data
 
    .. c:member:: int integer
 
