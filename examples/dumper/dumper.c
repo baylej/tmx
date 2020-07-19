@@ -253,6 +253,8 @@ void dump_tileset(tmx_tileset_list *tsl, int depth) {
 		printf("\n%stileset={", padding);
 		if (t) {
 			printf("\n%s\t" "firstgid=%u", padding, tsl->firstgid);
+			printf("\n%s\t" "is_embedded=%i", padding, tsl->is_embedded);
+			printf("\n%s\t" "source=%s", padding, tsl->source);
 			printf("\n%s\t" "name=%s", padding, t->name);
 			printf("\n%s\t" "tilecount=%u", padding, t->tilecount);
 			printf("\n%s\t" "tile_height=%u", padding, t->tile_height);

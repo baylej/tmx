@@ -231,6 +231,7 @@ void free_ts_list(tmx_tileset_list *tsl) {
 		if (tsl->is_embedded) {
 			free_ts(tsl->tileset);
 		}
+		tmx_free_func(tsl->source);
 		tmx_free_func(tsl);
 	}
 }

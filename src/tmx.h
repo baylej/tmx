@@ -142,6 +142,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 struct _tmx_ts_list { /* Linked list */
 	int is_embedded; /* used internally to free this node */
 	unsigned int firstgid;
+	char *source;
 	tmx_tileset *tileset;
 	tmx_tileset_list *next;
 };

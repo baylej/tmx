@@ -400,11 +400,16 @@ you can access everything.
 
    .. c:member:: int is_embedded
 
-      Private member used internally to free this tileset.
+      Private member used internally to free this tileset (depends on the usage of a resource manager).
 
    .. c:member:: unsigned int firstgid
 
       GID (Global ID) of the first tile in this tileset.
+
+   .. c:member:: char *source
+
+      In case of external tileset, path to the :term:`TSX` file (should be relative to the location of this map on the
+      file system), NULL otherwise.
 
    .. c:member:: tmx_tileset *tileset
 

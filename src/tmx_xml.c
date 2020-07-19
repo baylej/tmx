@@ -843,19 +843,18 @@ static int parse_tileset_list(xmlTextReaderPtr reader, tmx_tileset_list **ts_hea
 
 	/* External Tileset */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"source"))) { /* source */
+		res_list->source = value;
 		if (rc_mgr) {
 			rc_holder = (resource_holder*) hashtable_get((void*)rc_mgr, value);
 			if (rc_holder && rc_holder->type == RC_TSX) {
 				res = rc_holder->resource.tileset;
 				if (res) {
 					res_list->tileset = res;
-					tmx_free_func(value);
 					return 1;
 				}
 			}
 		}
 		if (!(res = alloc_tileset())) {
-			tmx_free_func(value);
 			return 0;
 		}
 		res_list->tileset = res;
@@ -866,7 +865,6 @@ static int parse_tileset_list(xmlTextReaderPtr reader, tmx_tileset_list **ts_hea
 			res_list->is_embedded = 1;
 		}
 		if (!(ab_path = mk_absolute_path(filename, value))) return 0;
-		tmx_free_func(value);
 		if (!(sub_reader = xmlReaderForFile(ab_path, NULL, 0)) || !check_reader(sub_reader)) { /* opens */
 			tmx_err(E_XDATA, "xml parser: cannot open extern tileset '%s'", ab_path);
 			tmx_free_func(ab_path);
