@@ -511,7 +511,7 @@ uint32_t get_color_rgb(const char *c) {
 	uint32_t res;
 	if (*c == '#') c++;
 	clen = strlen(c);
-	res = (uint32_t)strtol(c, NULL, 16);
+	res = (uint32_t)strtoul(c, NULL, 16);
 	if (clen < 6) {
 		res = (res & 0xF000u) << 16 | (res & 0xF000u) << 12 /* AXXX */
 		    | (res & 0x0F00u) << 12 | (res & 0x0F00u) <<  8 /* XRXX */
