@@ -285,6 +285,7 @@ void dump_layer(tmx_layer *l, unsigned int tc, int depth) {
 	if (!l) {
 		printf("%s\t (NULL) }", padding);
 	} else {
+		printf("\n%s\t" "id='%d'", padding, l->id);
 		printf("\n%s\t" "name='%s'", padding, l->name);
 		printf("\n%s\t" "visible=%s", padding, str_bool(l->visible));
 		printf("\n%s\t" "opacity='%f'", padding, l->opacity);

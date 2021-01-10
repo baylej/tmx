@@ -205,6 +205,7 @@ struct _tmx_templ { /* <template> */
 };
 
 struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
+	int id;
 	char *name;
 	double opacity;
 	int visible; /* 0 == false */
@@ -278,6 +279,13 @@ TMXEXPORT void tmx_map_free(tmx_map *map);
 /* DEPRECATED: use `map->tiles[gid]` instead.
    Returns the tile associated with this gid, returns NULL if it fails */
 TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
+
+/* Find functions, iterate on the datastructure, you should probably cache the result */
+/* Finds a layer by its id, returns NULL if not found or an error occurred */
+TMXEXPORT tmx_layer* tmx_find_layer_by_id(const tmx_map *map, int id);
+
+/* Finds a layer by its name (user-defined string), returns NULL if not found or an error occurred */
+TMXEXPORT tmx_layer* tmx_find_layer_by_name(const tmx_map *map, const char *name);
 
 /* Returns the tmx_property from given hashtable and key, returns NULL if not found */
 TMXEXPORT tmx_property* tmx_get_property(tmx_properties *hash, const char *key);

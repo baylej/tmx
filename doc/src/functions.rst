@@ -118,6 +118,14 @@ Utilities
    .. deprecated:: 1.0
       use `map->tiles[gid]` instead, see :c:member:`tmx_map.tiles`.
 
+.. c:function:: tmx_layer* tmx_find_layer_by_id(const tmx_map *map, int id)
+
+   Get a layer by its ID, see :c:member:`tmx_layer.id`.
+
+.. c:function:: tmx_layer* tmx_find_layer_by_name(const tmx_map *map, const char *name)
+
+   Get a layer by its name (user defined string, use with care, may not be unique), see :c:member:`tmx_layer.name`.
+
 .. c:function:: tmx_property* tmx_get_property(tmx_properties *hash, const char *key)
 
    Get a property by its name.

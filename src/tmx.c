@@ -72,6 +72,54 @@ tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
 	return NULL;
 }
 
+static tmx_layer* _tmx_find_layer_by_id(tmx_layer *ly_head, int id) {
+	tmx_layer *res;
+	do {
+		if (ly_head == NULL) return NULL;
+		if (ly_head->id == id) return ly_head;
+		if (ly_head->type == L_GROUP) {
+			res = _tmx_find_layer_by_id(ly_head->content.group_head, id);
+			if (res != NULL) return res;
+		}
+		ly_head = ly_head->next;
+	} while (1);
+}
+
+tmx_layer* tmx_find_layer_by_id(tmx_map const *map, int id) {
+	if (!map) {
+		tmx_err(E_INVAL, "tmx_find_layer_by_id: invalid argument: map is NULL");
+		return NULL;
+	}
+
+	return _tmx_find_layer_by_id(map->ly_head, id);
+}
+
+static tmx_layer* _tmx_find_layer_by_name(tmx_layer *ly_head, const char *name) {
+	tmx_layer *res;
+	do {
+		if (ly_head == NULL) return NULL;
+		if (!strcmp(ly_head->name, name)) return ly_head;
+		if (ly_head->type == L_GROUP) {
+			res = _tmx_find_layer_by_name(ly_head->content.group_head, name);
+			if (res != NULL) return res;
+		}
+		ly_head = ly_head->next;
+	} while (1);
+}
+
+tmx_layer* tmx_find_layer_by_name(tmx_map const *map, const char *name) {
+	if (!map) {
+		tmx_err(E_INVAL, "tmx_find_layer_by_name: invalid argument: map is NULL");
+		return NULL;
+	}
+	if (!name) {
+		tmx_err(E_INVAL, "tmx_find_layer_by_name: invalid argument: name is NULL");
+		return NULL;
+	}
+
+	return _tmx_find_layer_by_name(map->ly_head, name);
+}
+
 tmx_property* tmx_get_property(tmx_properties *hash, const char *key) {
 	if (hash == NULL) {
 		return NULL;

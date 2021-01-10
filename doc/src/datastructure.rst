@@ -309,6 +309,10 @@ you can access everything.
 
    :term:`Layer` data.
 
+   .. c:member:: int id
+
+      A map-unique ID of the :term:`layer`.
+
    .. c:member:: char *name
 
       Name of the :term:`layer` (user defined).
