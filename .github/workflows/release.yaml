@@ -27,8 +27,8 @@ jobs:
         run: |
           ARTIFACT_NAME=${GITHUB_REF:10}-linux
           DIST_PATH=${GITHUB_WORKSPACE}/${ARTIFACT_NAME}
-          echo ::set-env name=ARTIFACT_NAME::${ARTIFACT_NAME}
-          echo ::set-env name=DIST_PATH::${DIST_PATH}
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+          echo "DIST_PATH=${DIST_PATH}" >> $GITHUB_ENV
           mkdir "${DIST_PATH}"
 
       # Build and install zlib
@@ -90,8 +90,8 @@ jobs:
         run: |
           ARTIFACT_NAME=${GITHUB_REF:10}-html5
           DIST_PATH=${GITHUB_WORKSPACE}/${ARTIFACT_NAME}
-          echo ::set-env name=ARTIFACT_NAME::${ARTIFACT_NAME}
-          echo ::set-env name=DIST_PATH::${DIST_PATH}
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
+          echo "DIST_PATH=${DIST_PATH}" >> $GITHUB_ENV
           mkdir "${DIST_PATH}"
 
       # Build and install emscripten
@@ -103,10 +103,8 @@ jobs:
       - name: Install emscripten
         run: |
           ./emsdk install latest &&
-          ./emsdk activate latest &&
-          ./emsdk construct_env ${HOME}/emenv
+          ./emsdk activate latest
         working-directory: emsdk
-        # Improvement: export PATH and ENV vars for whole job using workflow commands ::set-env and ::add-path
 
       # Libraries are compiled with flag -flto to generate LLVM bytecode (to later benefit from LTO)
       # See: https://emscripten.org/docs/optimizing/Optimizing-Code.html#lto
@@ -120,7 +118,7 @@ jobs:
           ref: ${{ env.libxml2_ver }}
       - name: Build and Install libxml2
         run: |
-          . ${HOME}/emenv
+          . ${GITHUB_WORKSPACE}/emsdk/emsdk_env.sh
           emconfigure ./autogen.sh --prefix="${DIST_PATH}" ${LIBXML2_CONFIGURE_FLAGS} &&
           emmake make -j2 CFLAGS='-flto' && make install
         working-directory: libxml2
@@ -136,7 +134,7 @@ jobs:
           path: tmx
       - name: Build and Install libTMX
         run: |
-          . ${HOME}/emenv
+          . ${GITHUB_WORKSPACE}/emsdk/emsdk_env.sh
           emcmake cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${DIST_PATH}" \
                         -DCMAKE_PREFIX_PATH="${DIST_PATH}" -DCMAKE_FIND_ROOT_PATH="${DIST_PATH}" \
                         -DCMAKE_C_FLAGS='-flto' &&
@@ -157,9 +155,9 @@ jobs:
       - name: Create distribution folder
         run: |
           $ARTIFACT_NAME=$($Env:GITHUB_REF).substring(10) + "-win"
-          echo "::set-env name=ARTIFACT_NAME::$ARTIFACT_NAME"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           $DIST_PATH="$($Env:GITHUB_WORKSPACE)\$ARTIFACT_NAME"
-          echo "::set-env name=DIST_PATH::$DIST_PATH"
+          echo "DIST_PATH=$DIST_PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           mkdir "$DIST_PATH"
 
       # Build and install zlib
