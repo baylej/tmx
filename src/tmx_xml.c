@@ -375,6 +375,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 
 static int parse_data(xmlTextReaderPtr reader, uint32_t **gidsadr, size_t gidscount) {
 	char *value, *inner_xml;
+	enum enccmp_t data_type;
 
 	if (!(value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"encoding"))) { /* encoding */
 		tmx_err(E_MISSEL, "xml parser: missing 'encoding' attribute in the 'data' element");
@@ -391,11 +392,16 @@ static int parse_data(xmlTextReaderPtr reader, uint32_t **gidsadr, size_t gidsco
 		tmx_free_func(value);
 		value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"compression"); /* compression */
 
-		if (value && strcmp(value, "zlib") && strcmp(value, "gzip")) {
+		data_type = B64;
+		if (value && !strcmp(value, "zstd")) {
+			data_type = B64ZSTD;
+		} else if (value && !(strcmp(value, "zlib") && strcmp(value, "gzip"))) {
+			data_type = B64Z;
+		} else {
 			tmx_err(E_ENCCMP, "xml parser: unsupported data compression: '%s'", value); /* unsupported compression */
 			goto cleanup;
 		}
-		if (!data_decode(str_trim(inner_xml), value ? B64Z : B64, gidscount, gidsadr)) goto cleanup;
+		if (!data_decode(str_trim(inner_xml), data_type, gidscount, gidsadr)) goto cleanup;
 
 	} else if (!strcmp(value, "xml")) {
 		tmx_err(E_ENCCMP, "xml parser: unimplemented data encoding: XML");

@@ -405,6 +405,7 @@ typedef enum _tmx_error_codes {
 	E_BDATA  = 20,    /* B64 bad data */
 	E_ZDATA  = 21,    /* Zlib corrupted data */
 	E_XDATA  = 22,    /* XML corrupted data */
+	E_ZSDATA = 23,    /* Zstd corrupted data */
 	E_CDATA  = 24,    /* CSV corrupted data */
 	E_MISSEL = 30     /* Missing element, incomplete source */
 } tmx_error_codes;

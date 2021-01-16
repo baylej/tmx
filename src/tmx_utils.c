@@ -212,6 +212,51 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int rle
 
 #endif /* WANT_ZLIB */
 
+#ifdef WANT_ZSTD
+
+#include <zstd.h>
+
+char* zstd_decompress(const char *source, unsigned int slength, unsigned int rlength) {
+	char *res;
+	size_t ret;
+
+	if (!source) {
+		tmx_err(E_INVAL, "zstd_decompress: invalid argument: source is NULL");
+		return NULL;
+	}
+
+	res = (char*) tmx_alloc_func(NULL, rlength);
+	if (!res) {
+		tmx_errno = E_ALLOC;
+		return NULL;
+	}
+
+	ret = ZSTD_decompress(res, rlength, source, slength);
+
+	if (ZSTD_isError(ret)) {
+		tmx_err(E_ZSDATA, "zstd_decompress: %s\n", ZSTD_getErrorName(ret));
+		goto cleanup;
+	}
+	if (ret < rlength) {
+		tmx_err(E_ZSDATA, "layer contains not enough tiles");
+		goto cleanup;
+	}
+
+	return res;
+cleanup:
+	tmx_free_func(res);
+	return NULL;
+}
+
+#else
+
+char* zstd_decompress(const char *source, unsigned int slength, unsigned int rlength) {
+	tmx_err(E_FONCT, "This library was not built with zstd support");
+	return NULL;
+}
+
+#endif /* WANT_ZSTD */
+
 /*
 	Layer data decoders
 */
@@ -237,14 +282,19 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, uint3
 			source++;
 		}
 	}
-	else if (type==B64Z) {
+	else if (type==B64 || type==B64Z || type==B64ZSTD) {
 		if (!(b64dec = b64_decode(source, &b64_len))) return 0;
-		*gids = (uint32_t*)zlib_decompress(b64dec, b64_len, (unsigned int)(gids_count*sizeof(int32_t)));
-		tmx_free_func(b64dec);
-		if (!(*gids)) return 0;
-	}
-	else if (type==B64) {
-		*gids = (uint32_t*)b64_decode(source, &b64_len);
+		if (type==B64ZSTD) {
+			*gids = (uint32_t*)zstd_decompress(b64dec, b64_len, (unsigned int)(gids_count*sizeof(int32_t)));
+			tmx_free_func(b64dec);
+		}
+		else if (type==B64Z) {
+			*gids = (uint32_t*)zlib_decompress(b64dec, b64_len, (unsigned int)(gids_count*sizeof(int32_t)));
+			tmx_free_func(b64dec);
+		}
+		else {
+			*gids = (uint32_t*)b64dec;
+		}
 		if (!(*gids)) return 0;
 	}
 
