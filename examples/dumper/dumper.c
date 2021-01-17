@@ -48,6 +48,22 @@ void print_renderorder(enum tmx_map_renderorder ro) {
 	}
 }
 
+void print_objectalignment(enum tmx_obj_alignment oa) {
+	switch (oa) {
+		case OA_NONE:        printf("unspecified"); break;
+		case OA_TOP:         printf("top");         break;
+		case OA_LEFT:        printf("left");        break;
+		case OA_BOTTOM:      printf("bottom");      break;
+		case OA_RIGHT:       printf("right");       break;
+		case OA_CENTER:      printf("center");      break;
+		case OA_TOPLEFT:     printf("topleft");     break;
+		case OA_TOPRIGHT:    printf("topright");    break;
+		case OA_BOTTOMLEFT:  printf("bottomleft");  break;
+		case OA_BOTTOMRIGHT: printf("bottomright"); break;
+		default: printf("unknown");
+	}
+}
+
 void print_draworder(enum tmx_objgr_draworder dro) {
 	switch(dro) {
 		case G_NONE:    printf("none");    break;
@@ -263,6 +279,7 @@ void dump_tileset(tmx_tileset_list *tsl, int depth) {
 			printf("\n%s\t" "spacing=%u", padding, t->spacing);
 			printf("\n%s\t" "x_offset=%d", padding, t->x_offset);
 			printf("\n%s\t" "y_offset=%d", padding, t->y_offset);
+			printf("\n%s\t" "objectalignment=", padding); print_objectalignment(t->objectalignment);
 			dump_image(t->image, depth+1);
 			dump_tile(t->tiles, t->tilecount, depth+1);
 			dump_prop(t->properties, depth+1);

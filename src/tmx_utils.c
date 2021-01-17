@@ -436,6 +436,38 @@ enum tmx_map_renderorder parse_renderorder(const char *renderorder) {
 	return R_NONE;
 }
 
+/* "topleft" -> OA_TOPLEFT */
+enum tmx_obj_alignment parse_obj_alignment(const char *objalign_str) {
+	if (!strcmp("top", objalign_str)) {
+		return OA_TOP;
+	}
+	if (!strcmp("left", objalign_str)) {
+		return OA_LEFT;
+	}
+	if (!strcmp("bottom", objalign_str)) {
+		return OA_BOTTOM;
+	}
+	if (!strcmp("right", objalign_str)) {
+		return OA_RIGHT;
+	}
+	if (!strcmp("center", objalign_str)) {
+		return OA_CENTER;
+	}
+	if (!strcmp("topleft", objalign_str)) {
+		return OA_TOPLEFT;
+	}
+	if (!strcmp("topright", objalign_str)) {
+		return OA_TOPRIGHT;
+	}
+	if (!strcmp("bottomleft", objalign_str)) {
+		return OA_BOTTOMLEFT;
+	}
+	if (!strcmp("bottomright", objalign_str)) {
+		return OA_BOTTOMRIGHT;
+	}
+	return OA_NONE;
+}
+
 /* "index" -> G_INDEX */
 enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder) {
 	if (draworder == NULL || !strcmp(draworder, "topdown")) {

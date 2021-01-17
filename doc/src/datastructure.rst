@@ -116,6 +116,33 @@ Enumerations
    | SA_Y         | y axis.                                    |
    +--------------+--------------------------------------------+
 
+.. c:type:: enum tmx_obj_alignment
+
+   Controls the alignment of tiles.
+   When unspecified, tile objects use OA_BOTTOMLEFT in orthogonal mode and OA_BOTTOM in isometric mode (see :c:type:`tmx_map_orient`).
+
+   +----------------+----------------------------------+
+   | Object align   | Description                      |
+   +================+==================================+
+   | OA_NONE        | Object alignment is unspecified. |
+   +----------------+----------------------------------+
+   | OA_TOP         | Top.                             |
+   +----------------+----------------------------------+
+   | OA_LEFT        | Left.                            |
+   +----------------+----------------------------------+
+   | OA_BOTTOM      | Bottom.                          |
+   +----------------+----------------------------------+
+   | OA_RIGHT       | Right.                           |
+   +----------------+----------------------------------+
+   | OA_TOPLEFT     | Top-Left.                        |
+   +----------------+----------------------------------+
+   | OA_TOPRIGHT    | Top-Right.                       |
+   +----------------+----------------------------------+
+   | OA_BOTTOMLEFT  | Bottom-Left.                     |
+   +----------------+----------------------------------+
+   | OA_BOTTOMRIGHT | Bottom-Right.                    |
+   +----------------+----------------------------------+
+
 .. c:type:: enum tmx_layer_type
 
    Type of :term:`layer`.
@@ -458,6 +485,10 @@ you can access everything.
    .. c:member:: int y_offset
 
       Vertical offset in pixels, a positive value shifts the drawing of tiles down.
+
+   .. c:member:: enum tmx_obj_alignment
+
+      Controls the alignment of tiles, see :c:type:`tmx_obj_alignment`.
 
    .. c:member:: unsigned int tilecount
 

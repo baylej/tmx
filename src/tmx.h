@@ -50,6 +50,7 @@ enum tmx_map_orient {O_NONE, O_ORT, O_ISO, O_STA, O_HEX};
 enum tmx_map_renderorder {R_NONE, R_RIGHTDOWN, R_RIGHTUP, R_LEFTDOWN, R_LEFTUP};
 enum tmx_stagger_index {SI_NONE, SI_EVEN, SI_ODD};
 enum tmx_stagger_axis {SA_NONE, SA_X, SA_Y};
+enum tmx_obj_alignment {OA_NONE, OA_TOP, OA_LEFT, OA_BOTTOM, OA_RIGHT, OA_CENTER, OA_TOPLEFT, OA_TOPRIGHT, OA_BOTTOMLEFT, OA_BOTTOMRIGHT};
 enum tmx_layer_type {L_NONE, L_LAYER, L_OBJGR, L_IMAGE, L_GROUP};
 enum tmx_objgr_draworder {G_NONE, G_INDEX, G_TOPDOWN};
 enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_TILE, OT_TEXT, OT_POINT};
@@ -130,6 +131,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
 	int x_offset, y_offset; /* tileoffset */
+	enum tmx_obj_alignment objectalignment;
 
 	unsigned int tilecount;
 	tmx_image *image;

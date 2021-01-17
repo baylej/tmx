@@ -96,6 +96,7 @@ int mk_map_tile_array(tmx_map *map);
 
 enum tmx_map_orient parse_orient(const char *orient_str);
 enum tmx_map_renderorder parse_renderorder(const char *renderorder);
+enum tmx_obj_alignment parse_obj_alignment(const char *objalign_str);
 enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder);
 enum tmx_stagger_index parse_stagger_index(const char *staggerindex);
 enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis);

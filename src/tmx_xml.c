@@ -809,6 +809,11 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 		tmx_free_func(value);
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"objectalignment"))) { /* objectalignment */
+		ts_addr->objectalignment = parse_obj_alignment(value);
+		tmx_free_func(value);
+	}
+
 	if (!(ts_addr->tiles = alloc_tiles(ts_addr->tilecount))) return 0;
 
 	/* Parse each child */
