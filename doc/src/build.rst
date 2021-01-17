@@ -12,6 +12,7 @@ Prerequisites
   uses the ``<stdint.h>`` header that is in the C99 standard, therefore you may build **libTMX** using a C89 compiler as
   long as you provide that header.
 * `ZLib`_ to uncompress layers (optional, select an uncompressed layer format in the properties).
+* `ZStandard`_ to uncompress layers (optional, select an uncompressed layer format in the properties).
 * `libxml2`_ to load maps; **libTMX** uses the `IO api`_ to load from various sources
   (protip: if libxml2 was built with the built-in HTTP client, then **libTMX** will be able to load maps from a remote
   server via HTTP), and the `xmlreader api`_ to parse XML documents, and the `hash api`_ as a hashtable implementation.
@@ -42,13 +43,17 @@ manipulate this cache using CMake's command line interface. See the `running CMa
 
 **libTMX**'s cmake script declares two cache variables to configure the build:
 
-+-------------------+---------------------------------------------------------------------+
-| Cache Variable    | Description                                                         |
-+===================+=====================================================================+
-| WANT_ZLIB         | Link with zlib (ability to decompress layers data).                 |
-+-------------------+---------------------------------------------------------------------+
-| BUILD_SHARED_LIBS | Build shared libraries (dll / so), static libraries is the default. |
-+-------------------+---------------------------------------------------------------------+
++--------------------+---------------------------------------------------------------------+
+| Cache Variable     | Description                                                         |
++====================+=====================================================================+
+| WANT_ZLIB          | Link with zlib (ability to decompress layers data).                 |
++--------------------+---------------------------------------------------------------------+
+| WANT_ZSTD          | Link with zstd (ability to decompress layers data).                 |
++--------------------+---------------------------------------------------------------------+
+| ZSTD_PREFER_STATIC | Use the static build of zstd (Defaults to On).                      |
++--------------------+---------------------------------------------------------------------+
+| BUILD_SHARED_LIBS  | Build shared libraries (dll / so), static libraries is the default. |
++--------------------+---------------------------------------------------------------------+
 
 Default cache variables of interest:
 
@@ -178,6 +183,7 @@ Building ZLib requires no special configuration.
 .. _Clang: https://clang.llvm.org/
 .. _GCC: https://gcc.gnu.org/
 .. _ZLib: http://zlib.net/
+.. _ZStandard: http://zstd.net/
 .. _libxml2: http://xmlsoft.org/
 .. _IO api: http://xmlsoft.org/html/libxml-xmlIO.html
 .. _xmlreader api: http://xmlsoft.org/html/libxml-xmlreader.html
