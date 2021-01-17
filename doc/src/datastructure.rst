@@ -333,6 +333,10 @@ you can access everything.
 
       Vertical offset in pixels, a positive value shifts the layer down.
 
+   .. c:member:: uint32_t tintcolor
+
+      Optional tint colour, encoded in an integer, 4 bytes: ARGB.
+
    .. c:member:: enum tmx_layer_type type
 
       Type of layer, see :c:type:`tmx_layer_type`, tells you which member to use in :c:member:`tmx_layer.content`.

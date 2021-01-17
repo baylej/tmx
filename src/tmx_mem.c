@@ -72,6 +72,7 @@ tmx_layer* alloc_layer(void) {
 	if (res) {
 		res->opacity = 1.0f;
 		res->visible = 1;
+		res->tintcolor = 0xFFFFFFFF;
 	}
 	return res;
 }

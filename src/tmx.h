@@ -210,6 +210,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	double opacity;
 	int visible; /* 0 == false */
 	int offsetx, offsety;
+	uint32_t tintcolor; /* bytes : ARGB */
 
 	enum tmx_layer_type type;
 	union layer_content {

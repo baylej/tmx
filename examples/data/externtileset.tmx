@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.5" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" infinite="0" backgroundcolor="#ffff7f" nextlayerid="5" nextobjectid="5">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" infinite="0" backgroundcolor="#ffff7f" nextlayerid="5" nextobjectid="5">
  <properties>
   <property name="alt" type="file" value="b64zlib.tmx"/>
   <property name="bool_false" type="bool" value="false"/>
@@ -19,7 +19,7 @@ baz</property>
     <property name="alt" value="rainbow"/>
    </properties>
   </imagelayer>
-  <layer id="3" name="Layer" width="28" height="18">
+  <layer id="3" name="Layer" width="28" height="18" tintcolor="#000000">
    <data encoding="csv">
 5,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,5,5,
 5,5,3,6,6,3,3,3,1,1,1,1,1,3,1,1,1,1,1,1,3,3,3,4,4,3,1,3,

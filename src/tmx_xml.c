@@ -519,6 +519,11 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 		tmx_free_func(value);
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tintcolor"))) { /* tintcolor */
+		res->tintcolor = get_color_rgb(value);
+		tmx_free_func(value);
+	}
+
 	/* objectgroups have more properties */
 	if (type == L_OBJGR) {
 		tmx_object_group *objgr = alloc_objgr();
