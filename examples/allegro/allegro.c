@@ -7,7 +7,7 @@
 #define DISPLAY_H 600
 #define DISPLAY_W 800
 
-void* Allegro5_tex_loader(const char *path) {
+void* Allegro5_tex_loader(const char *path, void *data) {
 	ALLEGRO_BITMAP *res    = NULL;
 	ALLEGRO_PATH   *alpath = NULL;
 

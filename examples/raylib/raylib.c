@@ -6,7 +6,7 @@
 #define DISPLAY_H 600
 #define DISPLAY_W 800
 
-void *raylib_tex_loader(const char *path) {
+void *raylib_tex_loader(const char *path, void *data) {
 	Texture2D *returnValue = malloc(sizeof(Texture2D));
 	*returnValue = LoadTexture(path);
 	return returnValue;
