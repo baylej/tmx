@@ -519,6 +519,16 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 		tmx_free_func(value);
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxx"))) { /* parallaxx */
+		res->parallaxx = atof(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxy"))) { /* parallaxy */
+		res->parallaxy = atof(value);
+		tmx_free_func(value);
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tintcolor"))) { /* tintcolor */
 		res->tintcolor = get_color_rgb(value);
 		tmx_free_func(value);
