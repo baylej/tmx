@@ -308,6 +308,8 @@ void dump_layer(tmx_layer *l, unsigned int tc, int depth) {
 		printf("\n%s\t" "opacity='%f'", padding, l->opacity);
 		printf("\n%s\t" "offsetx=%d", padding, l->offsetx);
 		printf("\n%s\t" "offsety=%d", padding, l->offsety);
+		printf("\n%s\t" "parallaxx=%d", padding, l->parallaxx);
+		printf("\n%s\t" "parallaxy=%d", padding, l->parallaxy);
 		printf("\n%s\t" "tintcolor=#%.6X", padding, l->tintcolor);
 		if (l->type == L_LAYER && l->content.gids) {
 			printf("\n%s\t" "type=Layer" "\n%s\t" "tiles=", padding, padding);
