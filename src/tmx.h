@@ -389,6 +389,23 @@ TMXEXPORT tmx_map* tmx_rcmgr_load_fd(tmx_resource_manager *rc_mgr, int fd);
 TMXEXPORT tmx_map* tmx_rcmgr_load_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata);
 
 /*
+	Load map with virtual paths
+*/
+
+/* Loads a map from buffer, and returns the head of the data structure
+   returns NULL if an error occurred and set tmx_errno */
+TMXEXPORT tmx_map* tmx_rcmgr_load_buffer_vpath(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char* vpath);
+
+/* Loads a map from a file descriptor and returns the head of the data structure
+   The file descriptor will not be closed
+   returns NULL if an error occurred and set tmx_errno */
+TMXEXPORT tmx_map* tmx_rcmgr_load_fd_vpath(tmx_resource_manager *rc_mgr, int fd, const char* vpath);
+
+/* Loads a map using the given read callback and returns the head of the data structure
+   returns NULL if an error occurred and set tmx_errno */
+TMXEXPORT tmx_map* tmx_rcmgr_load_callback_vpath(tmx_resource_manager *rc_mgr, tmx_read_functor callback, const char* vpath, void *userdata);
+
+/*
 	Error handling
 	each time a function fails, tmx_errno is set
 */

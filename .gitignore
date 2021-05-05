@@ -22,3 +22,10 @@ cmake-build*/
 
 # ide
 /.idea
+/.vscode
+
+# cmake
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+CMakeFiles/

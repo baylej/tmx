@@ -217,7 +217,7 @@ static int parse_text(xmlTextReaderPtr reader, tmx_text *text) {
 		text->halign = parse_horizontal_align(value);
 		tmx_free_func(value);
 	}
-	
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"valign"))) { /* valign */
 		text->valign = parse_vertical_align(value);
 		tmx_free_func(value);
@@ -1145,13 +1145,17 @@ tmx_map *parse_xml(tmx_resource_manager *rc_mgr, const char *filename) {
 }
 
 tmx_map* parse_xml_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len) {
+	parse_xml_buffer_vpath(rc_mgr, buffer, len, NULL);
+}
+
+tmx_map* parse_xml_buffer_vpath(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *vpath) {
 	xmlTextReaderPtr reader;
 	tmx_map *res = NULL;
 
 	setup_libxml_mem();
 
 	if ((reader = xmlReaderForMemory(buffer, len, NULL, NULL, 0))) {
-		res = parse_map_document(reader, rc_mgr, NULL);
+		res = parse_map_document(reader, rc_mgr, vpath);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to create parser for buffer");
 	}
@@ -1160,13 +1164,17 @@ tmx_map* parse_xml_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int 
 }
 
 tmx_map* parse_xml_fd(tmx_resource_manager *rc_mgr, int fd) {
+	return parse_xml_fd_vpath(rc_mgr, fd, NULL);
+}
+
+tmx_map* parse_xml_fd_vpath(tmx_resource_manager *rc_mgr, int fd, const char *vpath) {
 	xmlTextReaderPtr reader;
 	tmx_map *res = NULL;
 
 	setup_libxml_mem();
 
 	if ((reader = xmlReaderForFd(fd, NULL, NULL, 0))) {
-		res = parse_map_document(reader, rc_mgr, NULL);
+		res = parse_map_document(reader, rc_mgr, vpath);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable create parser for file descriptor");
 	}
@@ -1175,13 +1183,17 @@ tmx_map* parse_xml_fd(tmx_resource_manager *rc_mgr, int fd) {
 }
 
 tmx_map* parse_xml_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata) {
+	return parse_xml_callback_vpath(rc_mgr, callback, NULL, userdata);
+}
+
+tmx_map* parse_xml_callback_vpath(tmx_resource_manager *rc_mgr, tmx_read_functor callback, const char *vpath, void *userdata) {
 	xmlTextReaderPtr reader;
 	tmx_map *res = NULL;
 
 	setup_libxml_mem();
 
 	if ((reader = xmlReaderForIO((xmlInputReadCallback)callback, NULL, userdata, NULL, NULL, 0))) {
-		res = parse_map_document(reader, rc_mgr, NULL);
+		res = parse_map_document(reader, rc_mgr, vpath);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to create parser for input callback");
 	}

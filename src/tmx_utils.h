@@ -33,8 +33,11 @@ int add_template(tmx_resource_manager *rc_mgr, const char *key, tmx_template *va
 */
 tmx_map* parse_xml(tmx_resource_manager *rc_mgr, const char *filename);
 tmx_map* parse_xml_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len);
+tmx_map* parse_xml_buffer_vpath(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *vpath);
 tmx_map* parse_xml_fd(tmx_resource_manager *rc_mgr, int fd);
+tmx_map* parse_xml_fd_vpath(tmx_resource_manager *rc_mgr, int fd, const char *vpath);
 tmx_map* parse_xml_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata);
+tmx_map* parse_xml_callback_vpath(tmx_resource_manager *rc_mgr, tmx_read_functor callback, const char *vpath, void *userdata);
 
 tmx_tileset* parse_tsx_xml(const char *filename);
 tmx_tileset* parse_tsx_xml_buffer(const char *buffer, int len);

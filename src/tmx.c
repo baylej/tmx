@@ -201,25 +201,37 @@ tmx_map* tmx_rcmgr_load(tmx_resource_manager *rc_mgr, const char *path) {
 }
 
 tmx_map* tmx_rcmgr_load_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len) {
-	tmx_map *map = NULL;
-	set_alloc_functions();
-	map = parse_xml_buffer(rc_mgr, buffer, len);
-	map_post_parsing(&map);
-	return map;
+	return tmx_rcmgr_load_buffer_vpath(rc_mgr, buffer, len, NULL);
 }
 
 tmx_map* tmx_rcmgr_load_fd(tmx_resource_manager *rc_mgr, int fd) {
+	return tmx_rcmgr_load_fd_vpath(rc_mgr, fd, NULL);
+}
+
+tmx_map* tmx_rcmgr_load_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata) {
+	return tmx_rcmgr_load_callback_vpath(rc_mgr, callback, NULL, userdata);
+}
+
+tmx_map* tmx_rcmgr_load_buffer_vpath(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *vpath) {
 	tmx_map *map = NULL;
 	set_alloc_functions();
-	map = parse_xml_fd(rc_mgr, fd);
+	map = parse_xml_buffer_vpath(rc_mgr, buffer, len, vpath);
 	map_post_parsing(&map);
 	return map;
 }
 
-tmx_map* tmx_rcmgr_load_callback(tmx_resource_manager *rc_mgr, tmx_read_functor callback, void *userdata) {
+tmx_map* tmx_rcmgr_load_fd_vpath(tmx_resource_manager *rc_mgr, int fd, const char *vpath) {
 	tmx_map *map = NULL;
 	set_alloc_functions();
-	map = parse_xml_callback(rc_mgr, callback, userdata);
+	map = parse_xml_fd_vpath(rc_mgr, fd, vpath);
+	map_post_parsing(&map);
+	return map;
+}
+
+tmx_map* tmx_rcmgr_load_callback_vpath(tmx_resource_manager *rc_mgr, tmx_read_functor callback, const char *vpath, void *userdata) {
+	tmx_map *map = NULL;
+	set_alloc_functions();
+	map = parse_xml_callback_vpath(rc_mgr, callback, vpath, userdata);
 	map_post_parsing(&map);
 	return map;
 }
