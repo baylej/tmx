@@ -262,6 +262,10 @@ TMXEXPORT tmx_map* tmx_load(const char *path);
    returns NULL if an error occurred and set tmx_errno */
 TMXEXPORT tmx_map* tmx_load_buffer(const char *buffer, int len);
 
+/* Loads a map from buffer, with a virtual path, and returns the head of the data structure
+   returns NULL if an error occurred and set tmx_errno */
+TMXEXPORT tmx_map* tmx_load_buffer_path(const char *buffer, int len, const char* path);
+
 /* Loads a map from a file descriptor and returns the head of the data structure
    The file descriptor will not be closed
    returns NULL if an error occurred and set tmx_errno */

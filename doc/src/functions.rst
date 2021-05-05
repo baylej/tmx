@@ -16,6 +16,10 @@ Load maps
 
    Load a TMX map from the given buffer whose length is len.
 
+.. c:function:: tmx_map* tmx_load_buffer_path(const char *buffer, int len, const char *path)
+
+   Load a TMX map from the given buffer whose length is len, with a given virtual path.
+
 .. c:function:: tmx_map* tmx_load_fd(int fd)
 
    Load a TMX map from a C file descriptor.
@@ -35,7 +39,7 @@ Load maps
 External resources
 ------------------
 
-libTMX has a resource manager to store tilesets and object templates to avoid loading them twice or more.  
+libTMX has a resource manager to store tilesets and object templates to avoid loading them twice or more.
 
 .. c:type:: tmx_resource_manager
 

@@ -33,6 +33,14 @@ tmx_map* tmx_load_buffer(const char *buffer, int len) {
 	return map;
 }
 
+tmx_map* tmx_load_buffer_path(const char *buffer, int len, const char *path) {
+	tmx_map *map = NULL;
+	set_alloc_functions();
+	map = parse_xml_buffer_path(NULL, buffer, len, path);
+	map_post_parsing(&map);
+	return map;
+}
+
 tmx_map* tmx_load_fd(int fd) {
 	tmx_map *map = NULL;
 	set_alloc_functions();
