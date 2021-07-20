@@ -437,7 +437,7 @@ Tile layers
 
       void draw_tile(void *image, unsigned int sx, unsigned int sy, unsigned int sw, unsigned int sh,
                      unsigned int dx, unsigned int dy, float opacity, unsigned int flags) {
-        DrawTextureRec((Texture2D*)image, (Rectangle) {sx, sy, sw, sh}, (Vector2) {dx, dy}, (Color) {opacity, opacity, opacity, opacity});
+        DrawTextureRec(*(Texture2D*)image, (Rectangle) {sx, sy, sw, sh}, (Vector2) {dx, dy}, ColorAlpha(WHITE, opacity));
       }
 
 Object layers
