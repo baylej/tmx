@@ -487,9 +487,6 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
 		res->id = atoi(value);
 		tmx_free_func(value);
-	} else {
-		tmx_err(E_MISSEL, "xml parser: missing 'id' attribute in the 'layer' element");
-		return 0;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
@@ -516,6 +513,16 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"offsety"))) { /* offsety */
 		res->offsety = (int)atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxx"))) { /* parallaxx */
+		res->parallaxx = atof(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxy"))) { /* parallaxy */
+		res->parallaxy = atof(value);
 		tmx_free_func(value);
 	}
 
