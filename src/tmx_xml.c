@@ -137,14 +137,14 @@ static int parse_points(xmlTextReaderPtr reader, tmx_shape *shape) {
 
 	shape->points = (double**)tmx_alloc_func(NULL, shape->points_len * sizeof(double*)); /* points[i][x,y] */
 	if (!(shape->points)) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return 0;
 	}
 
 	shape->points[0] = (double*)tmx_alloc_func(NULL, shape->points_len * 2 * sizeof(double));
 	if (!(shape->points[0])) {
 		tmx_free_func(shape->points);
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return 0;
 	}
 
@@ -551,6 +551,21 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 		return 1;
 	}
 
+	if (type == L_IMAGE) {
+		tmx_image_layer* imglayer = alloc_image_layer();
+		res->content.image_layer = imglayer;
+
+		if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"repeatx"))) { /* repeatx */
+			imglayer->repeatx = atoi(value);
+			tmx_free_func(value);
+		}
+
+		if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"repeaty"))) { /* repeaty */
+			imglayer->repeaty = atoi(value);
+			tmx_free_func(value);
+		}
+	}
+
 	do {
 		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 
@@ -561,7 +576,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 			} else if (!strcmp(name, "data")) {
 				if (!parse_data(reader, &(res->content.gids), map_h * map_w)) return 0;
 			} else if (!strcmp(name, "image")) {
-				if (!parse_image(reader, &(res->content.image), 0, filename)) return 0;
+				if (!parse_image(reader, &(res->content.image_layer->image), 0, filename)) return 0;
 			} else if (!strcmp(name, "object")) {
 				if (!(obj = alloc_object())) return 0;
 
@@ -577,7 +592,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 			}
 		}
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
-	         xmlTextReaderDepth(reader) != curr_depth);
+	         xmlTextReaderDepth(reader) > curr_depth);
 
 	return 1;
 }
@@ -1035,12 +1050,12 @@ static int parse_map(xmlTextReaderPtr reader, tmx_map *map, tmx_resource_manager
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxoriginx"))) { /* hexsidelength */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxoriginx"))) { /* parallaxoriginx */
 		map->parallaxoriginx = atof(value);
 		tmx_free_func(value);
 	}
 
-	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxoriginy"))) { /* hexsidelength */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxoriginy"))) { /* parallaxoriginy */
 		map->parallaxoriginy = atof(value);
 		tmx_free_func(value);
 	}

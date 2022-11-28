@@ -27,7 +27,7 @@ static void* node_alloc(size_t size) {
 	if (res) {
 		memset(res, 0, size);
 	} else {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 	}
 	return res;
 }
@@ -65,6 +65,10 @@ tmx_object* alloc_object(void) {
 
 tmx_object_group* alloc_objgr(void) {
 	return (tmx_object_group*)node_alloc(sizeof(tmx_object_group));
+}
+
+tmx_image_layer* alloc_image_layer(void) {
+	return (tmx_image_layer*)node_alloc(sizeof(tmx_image_layer));
 }
 
 tmx_layer* alloc_layer(void) {
@@ -164,10 +168,17 @@ void free_obj(tmx_object *o) {
 	}
 }
 
-void free_objgr(tmx_object_group *o) {
+void free_objgr(tmx_object_group* o) {
 	if (o) {
 		free_obj(o->head);
 		tmx_free_func(o);
+	}
+}
+
+void free_image_layer(tmx_image_layer* l) {
+	if (l) {
+		free_image(l->image);
+		tmx_free_func(l);
 	}
 }
 
@@ -192,7 +203,7 @@ void free_layers(tmx_layer *l) {
 			free_objgr(l->content.objgr);
 		}
 		else if (l->type == L_IMAGE) {
-			free_image(l->content.image);
+			free_image_layer(l->content.image_layer);
 		}
 		else if (l->type == L_GROUP) {
 			free_layers(l->content.group_head);
