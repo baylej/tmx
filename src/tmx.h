@@ -57,6 +57,8 @@ enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_T
 enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE, PT_OBJECT, PT_CUSTOM};
 enum tmx_horizontal_align {HA_NONE, HA_LEFT, HA_CENTER, HA_RIGHT, HA_JUSTIFY};
 enum tmx_vertical_align {VA_NONE, VA_TOP, VA_CENTER, VA_BOTTOM};
+enum tmx_tile_render_size {TRS_TILE, TRS_GRID};
+enum tmx_fill_mode {FM_STRETCH, FM_PRESERVE_ASPECT_FIT};
 
 /* Typedefs of the structures below */
 typedef struct _tmx_prop tmx_property;
@@ -152,6 +154,9 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 
 	unsigned int tilecount;
 	tmx_image *image;
+
+	enum tmx_tile_render_size tile_render_size;
+	enum tmx_fill_mode fill_mode;
 
 	tmx_user_data user_data;
 	tmx_properties *properties;

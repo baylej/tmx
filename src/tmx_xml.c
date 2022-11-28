@@ -916,6 +916,27 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 		tmx_free_func(value);
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilerendersize"))) { /* tilerendersize */
+		if (!strcmp(value, "tile")) ts_addr->tile_render_size = TRS_TILE;
+		else if (!strcmp(value, "grid")) ts_addr->tile_render_size = TRS_GRID;
+		else {
+			tmx_err(E_XDATA, "xml parser: unsupported tileset tile render size: '%s'", value);
+			tmx_free_func(value);
+			return 0;
+		}
+		tmx_free_func(value);
+	}
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"fillmode"))) { /* fillmode */
+		if (!strcmp(value, "stretch")) ts_addr->fill_mode = FM_STRETCH;
+		else if (!strcmp(value, "preserve-aspect-fit")) ts_addr->fill_mode = FM_PRESERVE_ASPECT_FIT;
+		else {
+			tmx_err(E_XDATA, "xml parser: unsupported tileset fill mode: '%s'", value);
+			tmx_free_func(value);
+			return 0;
+		}
+		tmx_free_func(value);
+	}
+
 	if (!(ts_addr->tiles = alloc_tiles(ts_addr->tilecount))) return 0;
 
 	/* Parse each child */
