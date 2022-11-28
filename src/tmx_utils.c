@@ -537,6 +537,9 @@ enum tmx_horizontal_align parse_horizontal_align(const char *horalign) {
 	if (!strcmp(horalign, "right")) {
 		return HA_RIGHT;
 	}
+	if (!strcmp(horalign, "justify")) {
+		return HA_JUSTIFY;
+	}
 	return HA_NONE;
 }
 
