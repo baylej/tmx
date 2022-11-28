@@ -822,6 +822,10 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 	curr_depth = xmlTextReaderDepth(reader);
 
 	/* parses each attribute */
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"version"))) {
+		ts_addr->format_version = value;
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
 		ts_addr->name = value;
 	} else {
@@ -995,6 +999,10 @@ static int parse_map(xmlTextReaderPtr reader, tmx_map *map, tmx_resource_manager
 	enum tmx_layer_type type;
 
 	curr_depth = xmlTextReaderDepth(reader);
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"version"))) {
+		map->format_version = value;
+	}
 
 	/* infinite maps not supported */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"infinite"))) {
