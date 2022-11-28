@@ -69,6 +69,7 @@ typedef struct _tmx_shape tmx_shape;
 typedef struct _tmx_text tmx_text;
 typedef struct _tmx_obj tmx_object;
 typedef struct _tmx_objgr tmx_object_group;
+typedef struct _tmx_image_layer tmx_image_layer;
 typedef struct _tmx_templ tmx_template;
 typedef struct _tmx_layer tmx_layer;
 typedef struct _tmx_map tmx_map;
@@ -200,6 +201,11 @@ struct _tmx_objgr { /* <objectgroup> */
 	tmx_object *head;
 };
 
+struct _tmx_image_layer { /* <objectgroup> */
+	tmx_image *image;
+	int repeatx, repeaty;
+};
+
 struct _tmx_templ { /* <template> */
 	int is_embedded; /* used internally to free this node */
 	tmx_tileset_list *tileset_ref; /* not null if object is a tile, is a singleton list */
@@ -219,7 +225,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	union layer_content {
 		uint32_t *gids;
 		tmx_object_group *objgr;
-		tmx_image *image;
+		tmx_image_layer *image_layer;
 		tmx_layer *group_head;
 	} content;
 

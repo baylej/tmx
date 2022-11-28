@@ -31,3 +31,7 @@ void tmx_perror(const char *pos) {
 	const char *msg = tmx_strerr();
 	fprintf(stderr, "%s: %s\n", pos, msg);
 }
+
+void tmx_set_err(tmx_error_codes err) {
+	tmx_errno = err;
+}
