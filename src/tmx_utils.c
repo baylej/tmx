@@ -312,6 +312,9 @@ void map_post_parsing(tmx_map **map) {
 			*map = NULL;
 		}
 	}
+	if (*map) {
+		/* TODO: Resolve object property references to tmx_object pointers */
+	}
 }
 
 /* Sets tile->tileset and tile->ul_x,y */
@@ -520,6 +523,9 @@ enum tmx_property_type parse_property_type(const char *propertytype) {
 	}
 	if (!strcmp(propertytype, "file")) {
 		return PT_FILE;
+	}
+	if (!strcmp(propertytype, "object")) {
+		return PT_OBJECT;
 	}
 	return PT_NONE;
 }
