@@ -119,7 +119,13 @@ struct _tmx_frame { /* <frame> */
 struct _tmx_tile { /* <tile> */
 	unsigned int id;
 	tmx_tileset *tileset;
+
+	/* for an image-based tileset, the four values below represent the rectangle inside the tileset image */
+	/* for an collection-of-images-based tileset, the four values below represent the rectangle inside the image for the tile*/
 	unsigned int ul_x, ul_y; /* upper-left coordinate of this tile */
+	unsigned int tw, th; /* the width and height of this tile inside the source image */
+
+	double probability;
 
 	tmx_image *image;
 	tmx_object *collision;
@@ -313,6 +319,9 @@ TMXEXPORT tmx_layer* tmx_find_layer_by_id(const tmx_map *map, int id);
 
 /* Finds a layer by its name (user-defined string), returns NULL if not found or an error occurred */
 TMXEXPORT tmx_layer* tmx_find_layer_by_name(const tmx_map *map, const char *name);
+
+/* Finds a tileset by its name (user-defined string), returns NULL if not found or an error occurred */
+TMXEXPORT tmx_tileset_list* tmx_find_tileset_by_name(const tmx_map* map, const char* name);
 
 /* Returns the tmx_property from given hashtable and key, returns NULL if not found */
 TMXEXPORT tmx_property* tmx_get_property(tmx_properties *hash, const char *key);

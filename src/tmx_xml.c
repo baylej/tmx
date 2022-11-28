@@ -761,10 +761,36 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 		return 0;
 	}
 
+	/* Default values for source rectangle; width and height will be set after we get an image */
+	res->ul_x = res->ul_y = 0;
+	res->tw = res->th = -1;
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"type"))) { /* type */
 		res->type = value;
 	} else if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) { /* type */
 		res->type = value;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"x"))) { /* x */
+		res->ul_x = atoi(value);
+		tmx_free_func(value);
+	}
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"y"))) { /* y */
+		res->ul_y = atoi(value);
+		tmx_free_func(value);
+	}
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"width"))) { /* width */
+		res->tw = atoi(value);
+		tmx_free_func(value);
+	}
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"height"))) { /* height */
+		res->th = atoi(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"probability"))) { /* probability */
+		res->probability = atof(value);
+		tmx_free_func(value);
 	}
 
 	if (!xmlTextReaderIsEmptyElement(reader)) {
@@ -816,6 +842,12 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 			}
 		} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 				 xmlTextReaderDepth(reader) != curr_depth);
+	}
+
+	if (res->image)
+	{
+		if (res->tw == -1) res->tw = res->image->width;
+		if (res->th == -1) res->th = res->image->height;
 	}
 
 	return 1;
@@ -908,6 +940,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 	} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
 	         xmlTextReaderDepth(reader) != curr_depth);
 
+	/* if this is not a collection-of-images tileset, determine the bounding rects for each tile */
 	if (ts_addr->image && !set_tiles_runtime_props(ts_addr)) return 0;
 
 	return 1;
