@@ -22,6 +22,8 @@
 	On failure tmx_errno is set and and an error message is generated.
 */
 
+static int parse_properties(xmlTextReaderPtr reader, tmx_properties** prop_hashptr);
+
 static void error_handler(void *arg UNUSED, const char *msg, xmlParserSeverities severity, xmlTextReaderLocatorPtr locator) {
 	if (severity == XML_PARSER_SEVERITY_ERROR) {
 		tmx_err(E_XDATA, "xml parser: error at line %d: %s", xmlTextReaderLocatorLineNumber(locator), msg);
@@ -39,6 +41,8 @@ static int check_reader(xmlTextReaderPtr reader) {
 
 static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	char *value;
+	int curr_depth;
+	const char* name;
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"name"))) { /* name */
 		prop->name = value;
@@ -46,16 +50,24 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'property' element");
 		return 0;
 	}
-
+	
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "type"))) { /* type */
 		prop->type = parse_property_type(value);
 		tmx_free_func(value);
 	} else {
 		prop->type = PT_STRING;
 	}
+	
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"propertytype"))) { /* custom type */
+		prop->type = PT_CUSTOM;
+		prop->value.custom.type_name = value;
+	} 
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "value"))) { /* source */
 		switch (prop->type) {
+			case PT_CUSTOM:
+				prop->value.custom.string_value = value;
+				break;
 			case PT_OBJECT:
 			case PT_INT:
 				prop->value.integer = atoi(value);
@@ -85,10 +97,29 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 			tmx_err(E_MISSEL, "xml parser: missing 'value' attribute or inner XML for the 'property' element");
 		}
 		prop->value.string = value;
-	} else {
+	} else if (prop->type != PT_CUSTOM) {
 		tmx_err(E_MISSEL, "xml parser: missing 'value' attribute in the 'property' element");
 		return 0;
 	}
+
+	/* If it has a child, then it's a class-typed property */
+	curr_depth = xmlTextReaderDepth(reader);
+	if (!xmlTextReaderIsEmptyElement(reader)) {
+		do {
+			if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
+
+			if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
+				name = (char*)xmlTextReaderConstName(reader);
+				if (!strcmp(name, "properties")) {
+					if (!parse_properties(reader, &(prop->value.custom.class_values))) return 0;
+				} else if (xmlTextReaderNext(reader) != 1) {
+					return 0;
+				}
+			}
+		} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
+			xmlTextReaderDepth(reader) > curr_depth);
+	}
+
 	return 1;
 }
 

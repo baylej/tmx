@@ -132,6 +132,11 @@ void free_property(tmx_property *p) {
 		if (p->type == PT_STRING || p->type == PT_FILE || p->type == PT_NONE) {
 			tmx_free_func(p->value.string);
 		}
+		else if (p->type == PT_CUSTOM) {
+			if (p->value.custom.class_values) free_props(p->value.custom.class_values);
+			if (p->value.custom.string_value) tmx_free_func(p->value.custom.string_value);
+			if (p->value.custom.type_name) tmx_free_func(p->value.custom.type_name);
+		}
 		tmx_free_func(p);
 	}
 }
