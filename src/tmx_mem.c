@@ -202,6 +202,7 @@ void free_layers(tmx_layer *l) {
 	if (l) {
 		free_layers(l->next);
 		tmx_free_func(l->name);
+		if (l->class_name) tmx_free_func(l->class_name);
 		if (l->type == L_LAYER) {
 			tmx_free_func(l->content.gids);
 		}
@@ -240,6 +241,7 @@ void free_ts(tmx_tileset *ts) {
 		free_tiles(ts->tiles, ts->tilecount);
 		tmx_free_func(ts->tiles);
 		if (ts->format_version) tmx_free_func(ts->format_version);
+		if (ts->class_name) tmx_free_func(ts->class_name);
 		tmx_free_func(ts);
 	}
 }

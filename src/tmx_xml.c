@@ -61,7 +61,7 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"propertytype"))) { /* custom type */
 		prop->type = PT_CUSTOM;
 		prop->value.custom.type_name = value;
-	} 
+	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "value"))) { /* source */
 		switch (prop->type) {
@@ -334,6 +334,8 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"type"))) { /* type */
 		obj->type = value;
+	} else if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) { /* type */
+		obj->type = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"visible"))) { /* visible */
@@ -526,6 +528,10 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'layer' element");
 		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
+		res->class_name = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"visible"))) { /* visible */
@@ -757,6 +763,8 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"type"))) { /* type */
 		res->type = value;
+	} else if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) { /* type */
+		res->type = value;
 	}
 
 	if (!xmlTextReaderIsEmptyElement(reader)) {
@@ -831,6 +839,10 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 	} else {
 		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'tileset' element");
 		return 0;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
+		ts_addr->class_name = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilecount"))) { /* tilecount */
@@ -1002,6 +1014,10 @@ static int parse_map(xmlTextReaderPtr reader, tmx_map *map, tmx_resource_manager
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"version"))) {
 		map->format_version = value;
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
+		map->class_name = value;
 	}
 
 	/* infinite maps not supported */
