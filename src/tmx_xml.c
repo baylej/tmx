@@ -56,6 +56,7 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "value"))) { /* source */
 		switch (prop->type) {
+			case PT_OBJECT:
 			case PT_INT:
 				prop->value.integer = atoi(value);
 				tmx_free_func(value);
