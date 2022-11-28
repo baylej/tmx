@@ -122,6 +122,24 @@ tmx_layer* tmx_find_layer_by_name(tmx_map const *map, const char *name) {
 	return _tmx_find_layer_by_name(map->ly_head, name);
 }
 
+tmx_tileset_list* tmx_find_tileset_by_name(const tmx_map* map, const char* name) {
+	tmx_tileset_list* res;
+
+	if (!map) {
+		tmx_err(E_INVAL, "tmx_find_tileset_by_name: invalid argument: map is NULL");
+		return NULL;
+	}
+	if (!name) {
+		tmx_err(E_INVAL, "tmx_find_tileset_by_name: invalid argument: name is NULL");
+		return NULL;
+	}
+
+	for (res = map->ts_head; res; res = res->next) {
+		if (res->tileset && !strcmp(res->tileset->name, name)) return res;
+	}
+	return NULL;
+}
+
 tmx_property* tmx_get_property(tmx_properties *hash, const char *key) {
 	if (hash == NULL) {
 		return NULL;

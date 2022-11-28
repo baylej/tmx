@@ -349,6 +349,8 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 
 		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing);
 		ts->tiles[i].ul_y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing);
+		ts->tiles[i].tw = ts->tile_width;
+		ts->tiles[i].th = ts->tile_height;
 	}
 
 	return 1;
