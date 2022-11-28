@@ -55,6 +55,7 @@ void tmx_map_free(tmx_map *map) {
 		free_props(map->properties);
 		free_layers(map->ly_head);
 		tmx_free_func(map->tiles);
+		if (map->format_version) tmx_free_func(map->format_version);
 		tmx_free_func(map);
 	}
 }

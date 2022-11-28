@@ -134,6 +134,8 @@ struct _tmx_tile { /* <tile> */
 };
 
 struct _tmx_ts { /* <tileset> and <tileoffset> */
+	char *format_version;
+
 	char *name;
 
 	unsigned int tile_width, tile_height;
@@ -242,6 +244,8 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 };
 
 struct _tmx_map { /* <map> (Head of the data structure) */
+	char *format_version;
+
 	enum tmx_map_orient orient;
 
 	unsigned int width, height;

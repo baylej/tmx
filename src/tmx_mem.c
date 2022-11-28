@@ -239,6 +239,7 @@ void free_ts(tmx_tileset *ts) {
 		free_props(ts->properties);
 		free_tiles(ts->tiles, ts->tilecount);
 		tmx_free_func(ts->tiles);
+		if (ts->format_version) tmx_free_func(ts->format_version);
 		tmx_free_func(ts);
 	}
 }
