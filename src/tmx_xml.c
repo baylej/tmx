@@ -1035,6 +1035,16 @@ static int parse_map(xmlTextReaderPtr reader, tmx_map *map, tmx_resource_manager
 		tmx_free_func(value);
 	}
 
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxoriginx"))) { /* hexsidelength */
+		map->parallaxoriginx = atof(value);
+		tmx_free_func(value);
+	}
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"parallaxoriginy"))) { /* hexsidelength */
+		map->parallaxoriginy = atof(value);
+		tmx_free_func(value);
+	}
+
 	/* Parse each child */
 	do {
 		if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */

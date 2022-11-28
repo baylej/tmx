@@ -238,6 +238,8 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	enum tmx_stagger_axis stagger_axis;
 	int hexsidelength;
 
+	double parallaxoriginx, parallaxoriginy;
+
 	uint32_t backgroundcolor; /* bytes : ARGB */
 	enum tmx_map_renderorder renderorder;
 
