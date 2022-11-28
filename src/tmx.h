@@ -137,6 +137,7 @@ struct _tmx_ts { /* <tileset> and <tileoffset> */
 	char *format_version;
 
 	char *name;
+	char *class_name;
 
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
@@ -224,6 +225,7 @@ struct _tmx_templ { /* <template> */
 struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	int id;
 	char *name;
+	char *class_name;
 	double opacity;
 	int visible; /* 0 == false */
 	int offsetx, offsety;
@@ -263,6 +265,8 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	tmx_properties *properties;
 	tmx_tileset_list *ts_head;
 	tmx_layer *ly_head;
+
+	char *class_name;
 
 	unsigned int tilecount; /* length of map->tiles */
 	tmx_tile **tiles; /* GID indexed tile array (array of pointers to tmx_tile) */
