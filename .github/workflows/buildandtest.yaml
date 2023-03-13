@@ -1,12 +1,11 @@
 name: Build and Test
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
   pull_request:
-    branches:
-      - master
 
 jobs:
   build:
@@ -14,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Create build dir
         run: mkdir build
       - name: Configure CMake
