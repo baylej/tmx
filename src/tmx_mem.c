@@ -2,6 +2,7 @@
 	Node allocation
 */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include <libxml/xmlmemory.h>
