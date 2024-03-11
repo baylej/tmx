@@ -1,0 +1,16 @@
+version: 2
+build:
+  os: ubuntu-22.04
+  apt_packages:
+    - cmake
+  tools:
+    python: "3.8"
+  jobs:
+    pre_build:
+      - cmake . -DDOC_HTML=On -DDOC_HTML_THEME=sphinx_rtd_theme
+      - cp doc/conf.py doc/src/conf.py # https://github.com/readthedocs/readthedocs.org/issues/7883
+sphinx:
+  configuration: doc/src/conf.py
+python:
+  install:
+    - requirements: doc/requirements.txt
