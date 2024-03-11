@@ -104,5 +104,5 @@ install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(EXPORT tmx_exports
         FILE "tmxExports.cmake"
         DESTINATION "lib/cmake/tmx")
-install(FILES "${CMAKE_BUILD_DIR}/tmxConfig.cmake" "${CMAKE_BUILD_DIR}/tmxConfigVersion.cmake"
+install(FILES "${CMAKE_BINARY_DIR}/tmxConfig.cmake" "${CMAKE_BINARY_DIR}/tmxConfigVersion.cmake"
         DESTINATION "lib/cmake/tmx")
