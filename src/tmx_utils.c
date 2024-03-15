@@ -29,7 +29,7 @@ char* b64_encode(const char *source, unsigned int length) {
 
 	res = (char*) tmx_alloc_func(NULL, mlen);
 	if (!res) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return NULL;
 	}
 	res[mlen-1] = '\0';
@@ -100,7 +100,7 @@ char* b64_decode(const char *source, unsigned int *rlength) { /* NULL terminated
 	*rlength = (src_len/4)*3;
 	res = (char*) tmx_alloc_func(NULL, *rlength);
 	if (!res) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return NULL;
 	}
 
@@ -168,7 +168,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int rle
 
 	res = (char*) tmx_alloc_func(NULL, rlength);
 	if (!res) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return NULL;
 	}
 
@@ -227,7 +227,7 @@ char* zstd_decompress(const char *source, unsigned int slength, unsigned int rle
 
 	res = (char*) tmx_alloc_func(NULL, rlength);
 	if (!res) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return NULL;
 	}
 
@@ -267,7 +267,7 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, uint3
 
 	if (type==CSV) {
 		if (!(*gids = (uint32_t*)tmx_alloc_func(NULL, gids_count * sizeof(int32_t)))) {
-			tmx_errno = E_ALLOC;
+			tmx_set_err(E_ALLOC);
 			return 0;
 		}
 		for (i=0; i<gids_count; i++) {
@@ -312,6 +312,9 @@ void map_post_parsing(tmx_map **map) {
 			*map = NULL;
 		}
 	}
+	if (*map) {
+		/* TODO: Resolve object property references to tmx_object pointers */
+	}
 }
 
 /* Sets tile->tileset and tile->ul_x,y */
@@ -346,6 +349,8 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 
 		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing);
 		ts->tiles[i].ul_y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing);
+		ts->tiles[i].tw = ts->tile_width;
+		ts->tiles[i].th = ts->tile_height;
 	}
 
 	return 1;
@@ -384,7 +389,7 @@ int mk_map_tile_array(tmx_map *map) {
 
 	/* Allocates the GID indexed tile array */
 	if (!(map->tiles = tmx_alloc_func(NULL, map->tilecount * sizeof(void*)))) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return 0;
 	}
 	memset(map->tiles, 0, map->tilecount * sizeof(void*));
@@ -521,6 +526,12 @@ enum tmx_property_type parse_property_type(const char *propertytype) {
 	if (!strcmp(propertytype, "file")) {
 		return PT_FILE;
 	}
+	if (!strcmp(propertytype, "object")) {
+		return PT_OBJECT;
+	}
+	if (!strcmp(propertytype, "class")) {
+		return PT_CUSTOM;
+	}
 	return PT_NONE;
 }
 
@@ -536,6 +547,9 @@ enum tmx_horizontal_align parse_horizontal_align(const char *horalign) {
 	}
 	if (!strcmp(horalign, "right")) {
 		return HA_RIGHT;
+	}
+	if (!strcmp(horalign, "justify")) {
+		return HA_JUSTIFY;
 	}
 	return HA_NONE;
 }
@@ -674,7 +688,7 @@ char* mk_absolute_path(const char *base_path, const char *rel_path) {
 
 	res = (char*)tmx_alloc_func(NULL, ap_len+1);
 	if (!res) {
-		tmx_errno = E_ALLOC;
+		tmx_set_err(E_ALLOC);
 		return NULL;
 	}
 

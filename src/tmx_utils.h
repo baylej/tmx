@@ -61,6 +61,7 @@ tmx_shape*        alloc_shape(void);
 tmx_text*         alloc_text(void);
 tmx_object*       alloc_object(void);
 tmx_object_group* alloc_objgr(void);
+tmx_image_layer*  alloc_image_layer(void);
 tmx_layer*        alloc_layer(void);
 tmx_tile*         alloc_tiles(int count);
 tmx_tileset*      alloc_tileset(void);
@@ -139,6 +140,7 @@ void  free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator);
 #endif
 
 extern char _tmx_custom_msg[256];
-#define tmx_err(code, ...) tmx_errno = code; snprintf(_tmx_custom_msg, 256, __VA_ARGS__)
+void tmx_set_err(tmx_error_codes err);
+#define tmx_err(code, ...) snprintf(_tmx_custom_msg, 256, __VA_ARGS__); tmx_set_err(code)
 
 #endif /* TMXUTILS_H */
