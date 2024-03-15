@@ -72,6 +72,35 @@ tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid) {
 	return NULL;
 }
 
+void tmx_update_animation(tmx_map *map, int delta_time_msec) {
+    
+    tmx_tileset_list *ts_list = map->ts_head;
+    
+    while (ts_list != NULL) {
+        tmx_tileset *ts = ts_list->tileset;
+        
+        for(int i = 0; i < ts->tilecount; i++) {
+            tmx_tile *tile = &ts->tiles[i];
+            
+            if(!tile->animation)
+                continue;
+
+            tmx_anim_frame *cur_frame = &tile->animation[tile->current_animation_frame];
+            
+            tile->animation_timer += delta_time_msec;
+            
+            if(tile->animation_timer <= cur_frame->duration)
+                continue;
+            
+            tile->animation_timer -= cur_frame->duration;
+            
+            tile->current_animation_frame = (tile->current_animation_frame + 1) % tile->animation_len;
+        }
+        
+        ts_list = ts_list->next;
+    }
+}
+
 static tmx_layer* _tmx_find_layer_by_id(tmx_layer *ly_head, int id) {
 	tmx_layer *res;
 	do {
