@@ -53,7 +53,7 @@ Image Autoload/Autofree
 Set (there is no default implementation) load and free functions to load/free images automatically as they are read in
 the map source.
 
-.. c:var:: void* (*tmx_img_load_func) (const char *path)
+.. c:var:: void* (*tmx_img_load_func) (const char *path, void *data)
 
    Load the resource (image) at the given path, return a pointer to void.
    The returned value is then stored in a :c:member:`tmx_image.resource_image`.

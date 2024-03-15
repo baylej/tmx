@@ -203,19 +203,21 @@ an easier way to do that without the hassle: :ref:`callback functions <image-aut
 | **libTMX** can use two callback functions to delegate the image loading and image freeing to your library/engine.
 | One callback to load: :c:data:`tmx_img_load_func`.
 | One callback to free: :c:data:`tmx_img_free_func`.
+| Optional pointer to any data needed by your load function: :c:data:`tmx_img_load_data`.
 | These callbacks **must be set BEFORE you call any load function**.
 
 .. tabs::
 
    .. code-tab:: c SDL 2
 
-         void* SDL_tex_loader(const char *path) {
-           return IMG_LoadTexture(ren, path);
+         void* SDL_tex_loader(const char *path, void *data) {
+           return IMG_LoadTexture((SDL_Renderer*)data, path);
          }
 
          /* Set the callback globs in the main function */
          tmx_img_load_func = SDL_tex_loader;
          tmx_img_free_func = (void (*)(void*))SDL_DestroyTexture;
+         tmx_img_load_data = ren;
 
          tmx_map *map = tmx_load(argv[1]);
          /* ... */
@@ -223,7 +225,7 @@ an easier way to do that without the hassle: :ref:`callback functions <image-aut
 
    .. code-tab:: c Allegro 5
 
-         void* Allegro5_tex_loader(const char *path) {
+         void* Allegro5_tex_loader(const char *path, void *data) {
            ALLEGRO_BITMAP *res    = NULL;
            ALLEGRO_PATH   *alpath = NULL;
 
@@ -247,7 +249,7 @@ an easier way to do that without the hassle: :ref:`callback functions <image-aut
 
    .. code-tab:: c raylib
 
-         void* raylib_tex_loader(const char *path) {
+         void* raylib_tex_loader(const char *path, void *data) {
            Texture2D *returnValue = malloc(sizeof(Texture2D));
            *returnValue = LoadTexture(path);
            return returnValue;
