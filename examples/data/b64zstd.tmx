@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" class="map_class" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" infinite="0" backgroundcolor="#ffff7f" nextlayerid="5" nextobjectid="5">
  <properties>
-  <property name="alt" type="file" value="csv.tmx"/>
+  <property name="alt" type="file" value="b64zstd.tmx"/>
   <property name="bool_false" type="bool" value="false"/>
   <property name="bool_true" type="bool" value="true"/>
   <property name="colour" type="color" value="#cc1a1a1a"/>
