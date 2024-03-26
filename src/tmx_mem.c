@@ -28,9 +28,13 @@ static void* node_alloc(size_t size) {
 	if (res) {
 		memset(res, 0, size);
 	} else {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 	}
 	return res;
+}
+
+tmx_custom_property* alloc_custom_prop(void) {
+	return (tmx_custom_property*)node_alloc(sizeof(tmx_custom_property));
 }
 
 tmx_property* alloc_prop(void) {
@@ -66,10 +70,6 @@ tmx_object* alloc_object(void) {
 
 tmx_object_group* alloc_objgr(void) {
 	return (tmx_object_group*)node_alloc(sizeof(tmx_object_group));
-}
-
-tmx_image_layer* alloc_image_layer(void) {
-	return (tmx_image_layer*)node_alloc(sizeof(tmx_image_layer));
 }
 
 tmx_layer* alloc_layer(void) {
@@ -126,6 +126,14 @@ resource_holder* pack_template_resource(tmx_template *value) {
 	Node free
 */
 
+void free_custom_prop(tmx_custom_property *p) {
+	if (p) {
+		tmx_free_func(p->propertytype);
+		free_props(p->properties);
+		tmx_free_func(p);
+	}
+}
+
 void free_property(tmx_property *p) {
 	if (p) {
 		tmx_free_func(p->name);
@@ -133,9 +141,7 @@ void free_property(tmx_property *p) {
 			tmx_free_func(p->value.string);
 		}
 		else if (p->type == PT_CUSTOM) {
-			if (p->value.custom.class_values) free_props(p->value.custom.class_values);
-			if (p->value.custom.string_value) tmx_free_func(p->value.custom.string_value);
-			if (p->value.custom.type_name) tmx_free_func(p->value.custom.type_name);
+			free_custom_prop(p->value.custom);
 		}
 		tmx_free_func(p);
 	}
@@ -181,13 +187,6 @@ void free_objgr(tmx_object_group* o) {
 	}
 }
 
-void free_image_layer(tmx_image_layer* l) {
-	if (l) {
-		free_image(l->image);
-		tmx_free_func(l);
-	}
-}
-
 void free_image(tmx_image *i) {
 	if (i) {
 		tmx_free_func(i->source);
@@ -210,7 +209,7 @@ void free_layers(tmx_layer *l) {
 			free_objgr(l->content.objgr);
 		}
 		else if (l->type == L_IMAGE) {
-			free_image_layer(l->content.image_layer);
+			free_image(l->content.image);
 		}
 		else if (l->type == L_GROUP) {
 			free_layers(l->content.group_head);
@@ -240,7 +239,6 @@ void free_ts(tmx_tileset *ts) {
 		free_props(ts->properties);
 		free_tiles(ts->tiles, ts->tilecount);
 		tmx_free_func(ts->tiles);
-		if (ts->format_version) tmx_free_func(ts->format_version);
 		if (ts->class_name) tmx_free_func(ts->class_name);
 		tmx_free_func(ts);
 	}
