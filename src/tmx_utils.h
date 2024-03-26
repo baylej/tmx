@@ -55,19 +55,18 @@ tmx_template* parse_tx_xml_callback(tmx_resource_manager *rc_mgr, tmx_read_funct
 void set_alloc_functions();
 void setup_libxml_mem();
 
-tmx_property*     alloc_prop(void);
-tmx_image*        alloc_image(void);
-tmx_shape*        alloc_shape(void);
-tmx_text*         alloc_text(void);
-tmx_object*       alloc_object(void);
-tmx_object_group* alloc_objgr(void);
-tmx_image_layer*  alloc_image_layer(void);
-tmx_layer*        alloc_layer(void);
-tmx_tile*         alloc_tiles(int count);
-tmx_tileset*      alloc_tileset(void);
-tmx_tileset_list* alloc_tileset_list(void);
-tmx_template*     alloc_template(void);
-tmx_map*          alloc_map(void);
+tmx_property*        alloc_prop(void);
+tmx_image*           alloc_image(void);
+tmx_shape*           alloc_shape(void);
+tmx_text*            alloc_text(void);
+tmx_object*          alloc_object(void);
+tmx_object_group*    alloc_objgr(void);
+tmx_layer*           alloc_layer(void);
+tmx_tile*            alloc_tiles(int count);
+tmx_tileset*         alloc_tileset(void);
+tmx_tileset_list*    alloc_tileset_list(void);
+tmx_template*        alloc_template(void);
+tmx_map*             alloc_map(void);
 
 resource_holder* pack_tileset_resource(tmx_tileset *value);
 resource_holder* pack_template_resource(tmx_template *value);
@@ -101,6 +100,8 @@ int mk_map_tile_array(tmx_map *map);
 enum tmx_map_orient parse_orient(const char *orient_str);
 enum tmx_map_renderorder parse_renderorder(const char *renderorder);
 enum tmx_obj_alignment parse_obj_alignment(const char *objalign_str);
+enum tmx_fill_mode parse_fillmode(const char *fillmode);
+enum tmx_tile_render_size parse_tile_render_size(const char *tile_render_size);
 enum tmx_objgr_draworder parse_objgr_draworder(const char *draworder);
 enum tmx_stagger_index parse_stagger_index(const char *staggerindex);
 enum tmx_stagger_axis parse_stagger_axis(const char *staggeraxis);
@@ -140,7 +141,6 @@ void  free_hashtable(void *hashtable, hashtable_entry_deallocator deallocator);
 #endif
 
 extern char _tmx_custom_msg[256];
-void tmx_set_err(tmx_error_codes err);
-#define tmx_err(code, ...) snprintf(_tmx_custom_msg, 256, __VA_ARGS__); tmx_set_err(code)
+#define tmx_err(code, ...) snprintf(_tmx_custom_msg, 256, __VA_ARGS__); tmx_errno = code
 
 #endif /* TMXUTILS_H */
