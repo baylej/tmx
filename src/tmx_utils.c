@@ -205,7 +205,7 @@ cleanup:
 
 #else
 
-char* zlib_decompress(const char *source, unsigned int slength, unsigned int rlength) {
+char* zlib_decompress(UNUSED const char *source, UNUSED unsigned int slength, UNUSED unsigned int rlength) {
 	tmx_err(E_FONCT, "This library was not built with the zlib/gzip support");
 	return NULL;
 }
@@ -250,7 +250,7 @@ cleanup:
 
 #else
 
-char* zstd_decompress(const char *source, unsigned int slength, unsigned int rlength) {
+char* zstd_decompress(UNUSED const char *source, UNUSED unsigned int slength, UNUSED unsigned int rlength) {
 	tmx_err(E_FONCT, "This library was not built with zstd support");
 	return NULL;
 }

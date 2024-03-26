@@ -722,6 +722,7 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 	unsigned int id;
 	int curr_depth;
 	int len, to_move;
+	int has_width = 0, has_height = 0;
 	const char *name;
 	char *value;
 
@@ -778,10 +779,12 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"width"))) { /* width */
 		res->width = atoi(value);
 		tmx_free_func(value);
+		has_width = 1;
 	}
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"height"))) { /* height */
 		res->height = atoi(value);
 		tmx_free_func(value);
+		has_height = 1;
 	}
 
 	if (!xmlTextReaderIsEmptyElement(reader)) {
@@ -835,10 +838,9 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 				 xmlTextReaderDepth(reader) != curr_depth);
 	}
 
-	if (res->image)
-	{
-		if (res->width == -1) res->width = res->image->width;
-		if (res->height == -1) res->height = res->image->height;
+	if (res->image)	{
+		if (!has_width) res->width = res->image->width;
+		if (!has_height) res->height = res->image->height;
 	}
 
 	return 1;
@@ -1256,7 +1258,7 @@ tmx_map *parse_xml(tmx_resource_manager *rc_mgr, const char *filename) {
 }
 
 tmx_map* parse_xml_buffer(tmx_resource_manager *rc_mgr, const char *buffer, int len) {
-	parse_xml_buffer_vpath(rc_mgr, buffer, len, NULL);
+	return parse_xml_buffer_vpath(rc_mgr, buffer, len, NULL);
 }
 
 tmx_map* parse_xml_buffer_vpath(tmx_resource_manager *rc_mgr, const char *buffer, int len, const char *vpath) {
