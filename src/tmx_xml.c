@@ -530,7 +530,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
-		res->class_name = value;
+		res->class = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"visible"))) { /* visible */
@@ -861,7 +861,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
-		ts_addr->class_name = value;
+		ts_addr->class = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilecount"))) { /* tilecount */
@@ -1047,7 +1047,7 @@ static int parse_map(xmlTextReaderPtr reader, tmx_map *map, tmx_resource_manager
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
-		map->class_name = value;
+		map->class = value;
 	}
 
 	/* infinite maps not supported */
