@@ -1,0 +1,56 @@
+{
+    "automappingRulesFile": "",
+    "commands": [
+    ],
+    "compatibilityVersion": 1100,
+    "extensionsPath": "extensions",
+    "folders": [
+        "."
+    ],
+    "properties": [
+    ],
+    "propertyTypes": [
+        {
+            "id": 1,
+            "name": "MyEnum",
+            "storageType": "int",
+            "type": "enum",
+            "values": [
+                "VAL1",
+                "VAL2",
+                "VAL3"
+            ],
+            "valuesAsFlags": true
+        },
+        {
+            "color": "#ff613583",
+            "drawFill": true,
+            "id": 2,
+            "members": [
+                {
+                    "name": "MyInt",
+                    "type": "int",
+                    "value": 0
+                },
+                {
+                    "name": "MyName",
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "name": "MyClass",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        }
+    ]
+}
