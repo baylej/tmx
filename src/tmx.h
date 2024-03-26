@@ -57,8 +57,8 @@ enum tmx_obj_type {OT_NONE, OT_SQUARE, OT_POLYGON, OT_POLYLINE, OT_ELLIPSE, OT_T
 enum tmx_property_type {PT_NONE, PT_INT, PT_FLOAT, PT_BOOL, PT_STRING, PT_COLOR, PT_FILE, PT_OBJECT, PT_CUSTOM};
 enum tmx_horizontal_align {HA_NONE, HA_LEFT, HA_CENTER, HA_RIGHT, HA_JUSTIFY};
 enum tmx_vertical_align {VA_NONE, VA_TOP, VA_CENTER, VA_BOTTOM};
-enum tmx_tile_render_size {TRS_TILE, TRS_GRID};
-enum tmx_fill_mode {FM_STRETCH, FM_PRESERVE_ASPECT_FIT};
+enum tmx_tile_render_size {TRS_NONE, TRS_TILE, TRS_GRID};
+enum tmx_fill_mode {FM_NONE, FM_STRETCH, FM_PRESERVE_ASPECT_FIT};
 
 /* Typedefs of the structures below */
 typedef struct _tmx_prop tmx_property;
@@ -71,7 +71,6 @@ typedef struct _tmx_shape tmx_shape;
 typedef struct _tmx_text tmx_text;
 typedef struct _tmx_obj tmx_object;
 typedef struct _tmx_objgr tmx_object_group;
-typedef struct _tmx_image_layer tmx_image_layer;
 typedef struct _tmx_templ tmx_template;
 typedef struct _tmx_layer tmx_layer;
 typedef struct _tmx_map tmx_map;
@@ -83,22 +82,17 @@ typedef union {
 	void *pointer;
 } tmx_user_data;
 
-typedef struct {
-	char *type_name;
-	char *string_value;
-	tmx_properties *class_values;
-} tmx_custom_property;
-
 typedef union {
-	int integer, boolean, id; /* type = int or bool or object */
+	int integer, boolean, object_id; /* type = int or bool or object */
 	float decimal; /* type = float */
 	char *string, *file; /* default and type = string or file */
 	uint32_t color; /* type = color, bytes : ARGB */
-	tmx_custom_property custom; /* type = custom */
+	tmx_properties *properties; /* type = custom */
 } tmx_property_value;
 
 struct _tmx_prop { /* <properties> and <property> */
 	char *name;
+	char *propertytype; /* for custom classes and enums */
 	enum tmx_property_type type;
 	tmx_property_value value;
 };
@@ -125,9 +119,7 @@ struct _tmx_tile { /* <tile> */
 	/* for an image-based tileset, the four values below represent the rectangle inside the tileset image */
 	/* for an collection-of-images-based tileset, the four values below represent the rectangle inside the image for the tile*/
 	unsigned int ul_x, ul_y; /* upper-left coordinate of this tile */
-	unsigned int tw, th; /* the width and height of this tile inside the source image */
-
-	double probability;
+	unsigned int width, height; /* the width and height of this tile inside the source image */
 
 	tmx_image *image;
 	tmx_object *collision;
@@ -142,10 +134,8 @@ struct _tmx_tile { /* <tile> */
 };
 
 struct _tmx_ts { /* <tileset> and <tileoffset> */
-	char *format_version;
-
 	char *name;
-	char *class_name;
+	char *class_type;
 
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
@@ -222,11 +212,6 @@ struct _tmx_objgr { /* <objectgroup> */
 	tmx_object *head;
 };
 
-struct _tmx_image_layer { /* <objectgroup> */
-	tmx_image *image;
-	int repeatx, repeaty;
-};
-
 struct _tmx_templ { /* <template> */
 	int is_embedded; /* used internally to free this node */
 	tmx_tileset_list *tileset_ref; /* not null if object is a tile, is a singleton list */
@@ -236,18 +221,19 @@ struct _tmx_templ { /* <template> */
 struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	int id;
 	char *name;
-	char *class_name;
+	char *class_type;
 	double opacity;
 	int visible; /* 0 == false */
 	int offsetx, offsety;
 	double parallaxx, parallaxy;
 	uint32_t tintcolor; /* bytes : ARGB */
+	int repeatx, repeaty; /* only of image layers */
 
 	enum tmx_layer_type type;
 	union layer_content {
 		uint32_t *gids;
 		tmx_object_group *objgr;
-		tmx_image_layer *image_layer;
+		tmx_image *image;
 		tmx_layer *group_head;
 	} content;
 
@@ -258,6 +244,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 
 struct _tmx_map { /* <map> (Head of the data structure) */
 	char *format_version;
+	char *class_type;
 
 	enum tmx_map_orient orient;
 
@@ -276,8 +263,6 @@ struct _tmx_map { /* <map> (Head of the data structure) */
 	tmx_properties *properties;
 	tmx_tileset_list *ts_head;
 	tmx_layer *ly_head;
-
-	char *class_name;
 
 	unsigned int tilecount; /* length of map->tiles */
 	tmx_tile **tiles; /* GID indexed tile array (array of pointers to tmx_tile) */

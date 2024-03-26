@@ -29,7 +29,7 @@ char* b64_encode(const char *source, unsigned int length) {
 
 	res = (char*) tmx_alloc_func(NULL, mlen);
 	if (!res) {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 	res[mlen-1] = '\0';
@@ -100,7 +100,7 @@ char* b64_decode(const char *source, unsigned int *rlength) { /* NULL terminated
 	*rlength = (src_len/4)*3;
 	res = (char*) tmx_alloc_func(NULL, *rlength);
 	if (!res) {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 
@@ -168,7 +168,7 @@ char* zlib_decompress(const char *source, unsigned int slength, unsigned int rle
 
 	res = (char*) tmx_alloc_func(NULL, rlength);
 	if (!res) {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 
@@ -205,7 +205,7 @@ cleanup:
 
 #else
 
-char* zlib_decompress(const char *source, unsigned int slength, unsigned int rlength) {
+char* zlib_decompress(UNUSED const char *source, UNUSED unsigned int slength, UNUSED unsigned int rlength) {
 	tmx_err(E_FONCT, "This library was not built with the zlib/gzip support");
 	return NULL;
 }
@@ -227,7 +227,7 @@ char* zstd_decompress(const char *source, unsigned int slength, unsigned int rle
 
 	res = (char*) tmx_alloc_func(NULL, rlength);
 	if (!res) {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 
@@ -250,7 +250,7 @@ cleanup:
 
 #else
 
-char* zstd_decompress(const char *source, unsigned int slength, unsigned int rlength) {
+char* zstd_decompress(UNUSED const char *source, UNUSED unsigned int slength, UNUSED unsigned int rlength) {
 	tmx_err(E_FONCT, "This library was not built with zstd support");
 	return NULL;
 }
@@ -267,7 +267,7 @@ int data_decode(const char *source, enum enccmp_t type, size_t gids_count, uint3
 
 	if (type==CSV) {
 		if (!(*gids = (uint32_t*)tmx_alloc_func(NULL, gids_count * sizeof(int32_t)))) {
-			tmx_set_err(E_ALLOC);
+			tmx_errno = E_ALLOC;
 			return 0;
 		}
 		for (i=0; i<gids_count; i++) {
@@ -349,8 +349,8 @@ int set_tiles_runtime_props(tmx_tileset *ts) {
 
 		ts->tiles[i].ul_x = ts->margin + (tx * ts->tile_width)  + (tx * ts->spacing);
 		ts->tiles[i].ul_y = ts->margin + (ty * ts->tile_height) + (ty * ts->spacing);
-		ts->tiles[i].tw = ts->tile_width;
-		ts->tiles[i].th = ts->tile_height;
+		ts->tiles[i].width = ts->tile_width;
+		ts->tiles[i].height = ts->tile_height;
 	}
 
 	return 1;
@@ -389,7 +389,7 @@ int mk_map_tile_array(tmx_map *map) {
 
 	/* Allocates the GID indexed tile array */
 	if (!(map->tiles = tmx_alloc_func(NULL, map->tilecount * sizeof(void*)))) {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 		return 0;
 	}
 	memset(map->tiles, 0, map->tilecount * sizeof(void*));
@@ -471,6 +471,28 @@ enum tmx_obj_alignment parse_obj_alignment(const char *objalign_str) {
 		return OA_BOTTOMRIGHT;
 	}
 	return OA_NONE;
+}
+
+/* "stretch" -> FM_STRETCH */
+enum tmx_fill_mode parse_fillmode(const char *fillmode) {
+	if (!strcmp(fillmode, "stretch")) {
+		return FM_STRETCH;
+	}
+	if (!strcmp(fillmode, "preserve-aspect-fit")) {
+		return FM_PRESERVE_ASPECT_FIT;
+	}
+	return FM_NONE;
+}
+
+/* "tile" -> TRS_TILE */
+enum tmx_tile_render_size parse_tile_render_size(const char *tile_render_size) {
+	if (!strcmp(tile_render_size, "tile")) {
+		return TRS_TILE;
+	}
+	if (!strcmp(tile_render_size, "grid")) {
+		return TRS_GRID;
+	}
+	return TRS_NONE;
 }
 
 /* "index" -> G_INDEX */
@@ -688,7 +710,7 @@ char* mk_absolute_path(const char *base_path, const char *rel_path) {
 
 	res = (char*)tmx_alloc_func(NULL, ap_len+1);
 	if (!res) {
-		tmx_set_err(E_ALLOC);
+		tmx_errno = E_ALLOC;
 		return NULL;
 	}
 
