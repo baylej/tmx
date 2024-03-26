@@ -64,6 +64,22 @@ void print_objectalignment(enum tmx_obj_alignment oa) {
 	}
 }
 
+void print_tile_render_size(enum tmx_tile_render_size trs) {
+	switch (trs) {
+		case TRS_GRID: printf("grid"); break;
+		case TRS_TILE: printf("tile"); break;
+		default: printf("unknown");
+	}
+}
+
+void print_fill_mode(enum tmx_fill_mode fm) {
+	switch (fm) {
+		case FM_PRESERVE_ASPECT_FIT: printf("preserve-aspect-fit"); break;
+		case FM_STRETCH:             printf("stretch");             break;
+		default: printf("unknown");
+	}
+}
+
 void print_draworder(enum tmx_objgr_draworder dro) {
 	switch(dro) {
 		case G_NONE:    printf("none");    break;
@@ -99,6 +115,8 @@ void mk_padding(char pad[11], int depth) {
 	pad[depth] = '\0';
 }
 
+void dump_prop(tmx_properties *p, int depth);
+
 void print_prop(tmx_property *p, void *depth) {
 	char padding[12]; mk_padding(padding, (int)(uintptr_t)depth);
 
@@ -111,7 +129,11 @@ void print_prop(tmx_property *p, void *depth) {
 		case PT_STRING: printf("string");  break;
 		case PT_COLOR:  printf("color");   break;
 		case PT_FILE:   printf("file");    break;
+		case PT_CUSTOM: printf("class");    break;
 		default: printf("unknown");
+	}
+	if (p->propertytype) {
+		printf(" type '%s'", p->propertytype);
 	}
 	printf(")");
 	switch(p->type) {
@@ -119,6 +141,8 @@ void print_prop(tmx_property *p, void *depth) {
 		case PT_FLOAT:  printf("%f", p->value.decimal); break;
 		case PT_BOOL:   printf(p->value.integer? "true": "false"); break;
 		case PT_COLOR:  printf("#%.6X", p->value.color); break;
+		case PT_OBJECT: printf("obj #%d", p->value.object_id); break;
+		case PT_CUSTOM: dump_prop(p->value.properties, ((int)(uintptr_t)depth)+1); break;
 		case PT_NONE:
 		case PT_STRING:
 		case PT_FILE:
@@ -245,6 +269,8 @@ void dump_tile(tmx_tile *t, unsigned int tilecount, int depth) {
 		printf("\n%s" "tile={", padding);
 		printf("\n%s\t" "id=%u", padding, t[i].id);
 		printf("\n%s\t" "upper-left=(%u,%u)", padding, t[i].ul_x, t[i].ul_y);
+		printf("\n%s\t" "height=%u", padding, t[i].height);
+		printf("\n%s\t" "width=%u", padding, t[i].width);
 		printf("\n%s\t" "type='%s'", padding, t[i].type);
 		dump_image(t[i].image, depth+1);
 		dump_prop(t[i].properties, depth+1);
@@ -272,6 +298,7 @@ void dump_tileset(tmx_tileset_list *tsl, int depth) {
 			printf("\n%s\t" "is_embedded=%i", padding, tsl->is_embedded);
 			printf("\n%s\t" "source=%s", padding, tsl->source);
 			printf("\n%s\t" "name=%s", padding, t->name);
+			printf("\n%s\t" "class=%s", padding, t->class_type);
 			printf("\n%s\t" "tilecount=%u", padding, t->tilecount);
 			printf("\n%s\t" "tile_height=%u", padding, t->tile_height);
 			printf("\n%s\t" "tile_width=%u", padding, t->tile_width);
@@ -280,6 +307,8 @@ void dump_tileset(tmx_tileset_list *tsl, int depth) {
 			printf("\n%s\t" "x_offset=%d", padding, t->x_offset);
 			printf("\n%s\t" "y_offset=%d", padding, t->y_offset);
 			printf("\n%s\t" "objectalignment=", padding); print_objectalignment(t->objectalignment);
+			printf("\n%s\t" "tile_render_size=", padding); print_tile_render_size(t->tile_render_size);
+			printf("\n%s\t" "fill_mode=", padding); print_fill_mode(t->fill_mode);
 			dump_image(t->image, depth+1);
 			dump_tile(t->tiles, t->tilecount, depth+1);
 			dump_prop(t->properties, depth+1);
@@ -304,12 +333,13 @@ void dump_layer(tmx_layer *l, unsigned int tc, int depth) {
 	} else {
 		printf("\n%s\t" "id='%d'", padding, l->id);
 		printf("\n%s\t" "name='%s'", padding, l->name);
+		printf("\n%s\t" "class=%s", padding, l->class_type);
 		printf("\n%s\t" "visible=%s", padding, str_bool(l->visible));
 		printf("\n%s\t" "opacity='%f'", padding, l->opacity);
 		printf("\n%s\t" "offsetx=%d", padding, l->offsetx);
 		printf("\n%s\t" "offsety=%d", padding, l->offsety);
-		printf("\n%s\t" "parallaxx=%d", padding, l->parallaxx);
-		printf("\n%s\t" "parallaxy=%d", padding, l->parallaxy);
+		printf("\n%s\t" "parallaxx=%f", padding, l->parallaxx);
+		printf("\n%s\t" "parallaxy=%f", padding, l->parallaxy);
 		printf("\n%s\t" "tintcolor=#%.6X", padding, l->tintcolor);
 		if (l->type == L_LAYER && l->content.gids) {
 			printf("\n%s\t" "type=Layer" "\n%s\t" "tiles=", padding, padding);
@@ -322,6 +352,8 @@ void dump_layer(tmx_layer *l, unsigned int tc, int depth) {
 			printf("\n%s\t" "type=ObjectGroup", padding);
 			dump_objects(l->content.objgr->head, depth+1);
 		} else if (l->type == L_IMAGE) {
+			printf("\n%s\t" "repeatx=%d", padding, l->repeatx);
+			printf("\n%s\t" "repeaty=%d", padding, l->repeaty);
 			printf("\n%s\t" "type=ImageLayer", padding);
 			dump_image(l->content.image, depth+1);
 		} else if (l->type == L_GROUP) {
@@ -341,6 +373,8 @@ void dump_map(tmx_map *m) {
 	if (!m) tmx_perror("error");
 	printf("map={");
 	if (m) {
+		printf("\n\t" "format_version=%s", m->format_version);
+		printf("\n\t" "class=%s", m->class_type);
 		printf("\n\t" "orient="); print_orient(m->orient);
 		printf("\n\t" "renderorder=%d", m->renderorder);
 		printf("\n\t" "height=%u", m->height);
@@ -351,6 +385,8 @@ void dump_map(tmx_map *m) {
 		printf("\n\t" "staggerindex="); print_stagger_index(m->stagger_index);
 		printf("\n\t" "staggeraxis="); print_stagger_axis(m->stagger_axis);
 		printf("\n\t" "hexsidelength=%d", m->hexsidelength);
+		printf("\n\t" "parallaxoriginx=%f", m->parallaxoriginx);
+		printf("\n\t" "parallaxoriginy=%f", m->parallaxoriginy);
 	} else {
 		printf("\n(NULL)");
 	}
