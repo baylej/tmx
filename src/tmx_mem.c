@@ -33,10 +33,6 @@ static void* node_alloc(size_t size) {
 	return res;
 }
 
-tmx_custom_property* alloc_custom_prop(void) {
-	return (tmx_custom_property*)node_alloc(sizeof(tmx_custom_property));
-}
-
 tmx_property* alloc_prop(void) {
 	return (tmx_property*)node_alloc(sizeof(tmx_property));
 }
@@ -75,9 +71,11 @@ tmx_object_group* alloc_objgr(void) {
 tmx_layer* alloc_layer(void) {
 	tmx_layer *res = (tmx_layer*)node_alloc(sizeof(tmx_layer));
 	if (res) {
-		res->opacity = 1.0f;
+		res->opacity = 1.0;
 		res->visible = 1;
 		res->tintcolor = 0xFFFFFFFF;
+		res->parallaxx = 1.0;
+		res->parallaxy = 1.0;
 	}
 	return res;
 }
@@ -126,14 +124,6 @@ resource_holder* pack_template_resource(tmx_template *value) {
 	Node free
 */
 
-void free_custom_prop(tmx_custom_property *p) {
-	if (p) {
-		tmx_free_func(p->propertytype);
-		free_props(p->properties);
-		tmx_free_func(p);
-	}
-}
-
 void free_property(tmx_property *p) {
 	if (p) {
 		tmx_free_func(p->name);
@@ -141,7 +131,7 @@ void free_property(tmx_property *p) {
 			tmx_free_func(p->value.string);
 		}
 		else if (p->type == PT_CUSTOM) {
-			free_custom_prop(p->value.custom);
+			free_props(p->value.properties);
 		}
 		tmx_free_func(p);
 	}
@@ -201,7 +191,7 @@ void free_layers(tmx_layer *l) {
 	if (l) {
 		free_layers(l->next);
 		tmx_free_func(l->name);
-		if (l->class) tmx_free_func(l->class);
+		if (l->class_type) tmx_free_func(l->class_type);
 		if (l->type == L_LAYER) {
 			tmx_free_func(l->content.gids);
 		}
@@ -239,7 +229,7 @@ void free_ts(tmx_tileset *ts) {
 		free_props(ts->properties);
 		free_tiles(ts->tiles, ts->tilecount);
 		tmx_free_func(ts->tiles);
-		if (ts->class) tmx_free_func(ts->class);
+		if (ts->class_type) tmx_free_func(ts->class_type);
 		tmx_free_func(ts);
 	}
 }

@@ -72,7 +72,6 @@ typedef struct _tmx_shape tmx_shape;
 typedef struct _tmx_text tmx_text;
 typedef struct _tmx_obj tmx_object;
 typedef struct _tmx_objgr tmx_object_group;
-typedef struct _tmx_image_layer tmx_image_layer;
 typedef struct _tmx_templ tmx_template;
 typedef struct _tmx_layer tmx_layer;
 typedef struct _tmx_map tmx_map;
@@ -89,16 +88,12 @@ typedef union {
 	float decimal; /* type = float */
 	char *string, *file; /* default and type = string or file */
 	uint32_t color; /* type = color, bytes : ARGB */
-	tmx_custom_property *custom; /* type = custom */
+	tmx_properties *properties; /* type = custom */
 } tmx_property_value;
-
-struct _tmx_custom_prop {
-	char *propertytype;
-	tmx_properties *properties;
-};
 
 struct _tmx_prop { /* <properties> and <property> */
 	char *name;
+	char *propertytype; /* for custom classes and enums */
 	enum tmx_property_type type;
 	tmx_property_value value;
 };
@@ -141,7 +136,7 @@ struct _tmx_tile { /* <tile> */
 
 struct _tmx_ts { /* <tileset> and <tileoffset> */
 	char *name;
-	char *class;
+	char *class_type;
 
 	unsigned int tile_width, tile_height;
 	unsigned int spacing, margin;
@@ -227,7 +222,7 @@ struct _tmx_templ { /* <template> */
 struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 	int id;
 	char *name;
-	char *class;
+	char *class_type;
 	double opacity;
 	int visible; /* 0 == false */
 	int offsetx, offsety;
@@ -250,7 +245,7 @@ struct _tmx_layer { /* <layer> or <imagelayer> or <objectgroup> */
 
 struct _tmx_map { /* <map> (Head of the data structure) */
 	char *format_version;
-	char *class;
+	char *class_type;
 
 	enum tmx_map_orient orient;
 

@@ -50,7 +50,11 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 		tmx_err(E_MISSEL, "xml parser: missing 'name' attribute in the 'property' element");
 		return 0;
 	}
-	
+
+	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"propertytype"))) { /* propertytype */
+		prop->propertytype = value;
+	}
+
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*) "type"))) { /* type */
 		prop->type = parse_property_type(value);
 		tmx_free_func(value);
@@ -97,21 +101,14 @@ static int parse_property(xmlTextReaderPtr reader, tmx_property *prop) {
 	/* If it has a child, then it's a class-typed property */
 	curr_depth = xmlTextReaderDepth(reader);
 	if (!xmlTextReaderIsEmptyElement(reader)) {
-		value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"propertytype");
-		if (!value) { /* custom type */
-			tmx_err(E_MISSEL, "xml parser: missing 'propertytype' attribute in a 'property' element of type 'class'");
-		}
 		do {
 			if (xmlTextReaderRead(reader) != 1) return 0; /* error_handler has been called */
 
 			if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT) {
 				name = (char*)xmlTextReaderConstName(reader);
 				if (!strcmp(name, "properties")) {
-					prop->value.custom = alloc_custom_prop();
-					prop->value.custom->propertytype = value;
-					if (!parse_properties(reader, &(prop->value.custom->properties))) return 0;
+					if (!parse_properties(reader, &(prop->value.properties))) return 0;
 				} else if (xmlTextReaderNext(reader) != 1) {
-					tmx_free_func(value);
 					return 0;
 				}
 			}
@@ -530,7 +527,7 @@ static int parse_layer(xmlTextReaderPtr reader, tmx_layer **layer_headadr, int m
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
-		res->class = value;
+		res->class_type = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"visible"))) { /* visible */
@@ -863,7 +860,7 @@ static int parse_tileset(xmlTextReaderPtr reader, tmx_tileset *ts_addr, tmx_reso
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
-		ts_addr->class = value;
+		ts_addr->class_type = value;
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"tilecount"))) { /* tilecount */
@@ -1049,7 +1046,7 @@ static int parse_map(xmlTextReaderPtr reader, tmx_map *map, tmx_resource_manager
 	}
 
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"class"))) {
-		map->class = value;
+		map->class_type = value;
 	}
 
 	/* infinite maps not supported */
