@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" infinite="0" backgroundcolor="#ffff7f" nextlayerid="5" nextobjectid="6">
+<map version="1.10" tiledversion="1.10.2" class="map_class" orientation="orthogonal" renderorder="right-down" width="28" height="18" tilewidth="32" tileheight="32" infinite="0" backgroundcolor="#ffff7f" nextlayerid="5" nextobjectid="5">
  <properties>
-  <property name="alt" type="file" value="b64zlib.tmx"/>
+  <property name="alt" type="file" value="csv.tmx"/>
   <property name="bool_false" type="bool" value="false"/>
   <property name="bool_true" type="bool" value="true"/>
   <property name="colour" type="color" value="#cc1a1a1a"/>
   <property name="multilines">foo
 bar
 baz</property>
+  <property name="my_class" type="class" propertytype="MyClass">
+   <properties>
+    <property name="MyInt" type="int" value="22"/>
+    <property name="MyName" value="my_class_name"/>
+   </properties>
+  </property>
+  <property name="my_enum" type="int" propertytype="MyEnum" value="5"/>
+  <property name="obj" type="object" value="3"/>
   <property name="pi" type="float" value="3.14"/>
   <property name="xml" value="libxml2"/>
  </properties>
- <tileset firstgid="1" name="base" tilewidth="32" tileheight="32" spacing="1" tilecount="9" columns="3" objectalignment="bottomleft">
+ <tileset firstgid="1" name="base" class="ts_class" tilewidth="32" tileheight="32" spacing="1" tilecount="9" columns="3">
   <image source="numbers.png" width="100" height="100"/>
   <tile id="0">
    <properties>
@@ -45,13 +53,13 @@ baz</property>
   </tile>
  </tileset>
  <group id="1" name="Group">
-  <imagelayer id="2" name="Image">
+  <imagelayer id="2" name="Image" class="img_layer_class" repeatx="1" repeaty="1">
    <image source="bg.jpg" width="896" height="576"/>
    <properties>
     <property name="alt" value="rainbow"/>
    </properties>
   </imagelayer>
-  <layer id="3" name="Layer" width="28" height="18" tintcolor="#000000">
+  <layer id="3" name="Layer" class="layer_class" width="28" height="18" tintcolor="#000000">
    <data encoding="csv">
 5,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,5,5,
 5,5,3,6,6,3,3,3,1,1,1,1,1,3,1,1,1,1,1,1,3,3,3,4,4,3,1,3,
@@ -74,7 +82,7 @@ baz</property>
 </data>
   </layer>
  </group>
- <objectgroup color="#aa0000" id="4" name="Objects">
+ <objectgroup color="#aa0000" id="4" name="Objects" class="obj_layer_class">
   <object id="1" name="square" type="spawn" x="128" y="128" width="192" height="192" rotation="22.5"/>
   <object id="2" name="polygon" x="492" y="325">
    <polygon points="20,-5 -44,-197 180,-229"/>
