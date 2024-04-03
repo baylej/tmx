@@ -312,9 +312,6 @@ void map_post_parsing(tmx_map **map) {
 			*map = NULL;
 		}
 	}
-	if (*map) {
-		/* TODO: Resolve object property references to tmx_object pointers */
-	}
 }
 
 /* Sets tile->tileset and tile->ul_x,y */

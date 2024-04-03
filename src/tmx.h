@@ -310,6 +310,9 @@ TMXEXPORT tmx_layer* tmx_find_layer_by_id(const tmx_map *map, int id);
 /* Finds a layer by its name (user-defined string), returns NULL if not found or an error occurred */
 TMXEXPORT tmx_layer* tmx_find_layer_by_name(const tmx_map *map, const char *name);
 
+/* Finds an object by its id, returns NULL if not found or an error occurred */
+TMXEXPORT tmx_object* tmx_find_object_by_id(const tmx_map *map, unsigned int id);
+
 /* Finds a tileset by its name (user-defined string), returns NULL if not found or an error occurred */
 TMXEXPORT tmx_tileset_list* tmx_find_tileset_by_name(const tmx_map* map, const char* name);
 
