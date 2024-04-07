@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(tmx VERSION 1.4.0 LANGUAGES C)
+project(tmx VERSION 1.10.0 LANGUAGES C)
 
 add_subdirectory(doc) # Sphinx documentation
 
