@@ -144,6 +144,14 @@ Utilities
 
    Get a layer by its name (user defined string, use with care, may not be unique), see :c:member:`tmx_layer.name`.
 
+.. c:function:: tmx_object* tmx_find_object_by_id(const tmx_map *map, unsigned int id)
+
+   Get an object by its ID, see :c:member:`tmx_object.id`.
+
+.. c:function:: tmx_tileset_list* tmx_find_tileset_by_name(const tmx_map* map, const char* name)
+
+   Get a tileset by its name (user defined string, use with care, may not be unique), see :c:member:`tmx_tileset.name`.
+
 .. c:function:: tmx_property* tmx_get_property(tmx_properties *hash, const char *key)
 
    Get a property by its name.

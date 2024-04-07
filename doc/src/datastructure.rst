@@ -223,6 +223,10 @@ Enumerations
    +---------------+--------------------------------------------------------+
    | PT_FILE       | Path to a file, use `value.file`.                      |
    +---------------+--------------------------------------------------------+
+   | PT_OBJECT     | An object, use `value.object_id`.                      |
+   +---------------+--------------------------------------------------------+
+   | PT_CUSTOM     | Custom type, use `value.properties`.                   |
+   +---------------+--------------------------------------------------------+
 
 .. c:type:: enum tmx_horizontal_align
 
@@ -238,6 +242,8 @@ Enumerations
    | HA_CENTER  | Center.                                  |
    +------------+------------------------------------------+
    | HA_RIGHT   | Right.                                   |
+   +------------+------------------------------------------+
+   | HA_JUSTIFY | Justify.                                 |
    +------------+------------------------------------------+
 
 .. c:type:: enum tmx_vertical_align
@@ -256,6 +262,34 @@ Enumerations
    | VA_BOTTOM  | Bottom.                                  |
    +------------+------------------------------------------+
 
+.. c:type:: enum tmx_tile_render_size
+
+   The size to use when rendering tiles.
+
+   +-------------+-------------------------------------------+
+   | Render size | Description                               |
+   +=============+===========================================+
+   | TRS_NONE    | In case of error, or unknown render size. |
+   +-------------+-------------------------------------------+
+   | TRS_TILE    | Tile size in its tileset                  |
+   +-------------+-------------------------------------------+
+   | TRS_GRID    | Tile grid size of the map                 |
+   +-------------+-------------------------------------------+
+
+.. c:type:: enum tmx_fill_mode
+
+   The fill mode to use when rendering tiles scaled.
+
+   +------------------------+-----------------------------------------+
+   | Fill mode              | Description                             |
+   +========================+=========================================+
+   | FM_NONE                | In case of error, or unknown fill mode. |
+   +------------------------+-----------------------------------------+
+   | FM_STRETCH             | Stretch to fit.                         |
+   +------------------------+-----------------------------------------+
+   | FM_PRESERVE_ASPECT_FIT | Preserve aspect ratio.                  |
+   +------------------------+-----------------------------------------+
+
 
 Data Structures
 ---------------
@@ -266,6 +300,14 @@ you can access everything.
 .. c:type:: tmx_map
 
    The :term:`root <Tree>` of the datastructure.
+
+   .. c:member:: char *format_version
+
+      The TMX format version, eg: "1.0".
+
+   .. c:member:: char *class_type
+
+      Class of the map (user defined).
 
    .. c:member:: enum tmx_map_orient orient
 
@@ -299,6 +341,14 @@ you can access everything.
 
       Only for hexagonal maps. Determines the width or height (depending on the staggered axis) of the tile’s edge,
       in pixels.
+
+   .. c:member:: int parallaxoriginx
+
+      X coordinate of the parallax origin in pixels.
+
+   .. c:member:: int parallaxoriginy
+
+      Y coordinate of the parallax origin in pixels.
 
    .. c:member:: unsigned int backgroundcolor
 
@@ -344,6 +394,10 @@ you can access everything.
 
       Name of the :term:`layer` (user defined).
 
+   .. c:member:: char *class_type
+
+      Class of the :term:`layer` (user defined).
+
    .. c:member:: double opacity
 
       Opacity of the layer (0.0 = transparent, 1.0 = opaque).
@@ -363,6 +417,14 @@ you can access everything.
    .. c:member:: uint32_t tintcolor
 
       Optional tint colour, encoded in an integer, 4 bytes: ARGB.
+
+   .. c:member:: int repeatx
+
+      Boolean, whether the image drawn by this layer is repeated along the X axis. (image layers only)
+
+   .. c:member:: int repeaty
+
+      Boolean, whether the image drawn by this layer is repeated along the Y axis. (image layers only)
 
    .. c:member:: enum tmx_layer_type type
 
@@ -462,6 +524,10 @@ you can access everything.
 
       Name of the tileset (user defined).
 
+   .. c:member:: char *class_type
+
+      Class of the tileset (user defined).
+
    .. c:member:: unsigned int tile_width
 
       The width of tiles in pixels.
@@ -498,6 +564,14 @@ you can access everything.
 
       Image for this tileset, may be NULL if this tileset is a collection of single images (one image per tile).
 
+   .. c:member:: enum tmx_tile_render_size
+
+      Controls the size of tiles, see :c:type:`tmx_tile_render_size`.
+
+   .. c:member:: enum tmx_fill_mode
+
+      Controls how tiles scale, see :c:type:`tmx_fill_mode`.
+
    .. c:member:: tmx_user_data user_data
 
       Use that member to store your own data, see :c:type:`tmx_user_data`.
@@ -531,11 +605,19 @@ you can access everything.
 
    .. c:member:: unsigned int ul_x
 
-      Upper-left x coordinate of this tile on the tileset image, irrelevant if the this tile has its own image.
+      Upper-left x coordinate of this tile on the tileset image, irrelevant if this tile has its own image.
 
    .. c:member:: unsigned int ul_y
 
-      Upper-left y coordinate of this tile on the tileset image, irrelevant if the this tile has its own image.
+      Upper-left y coordinate of this tile on the tileset image, irrelevant if this tile has its own image.
+
+   .. c:member:: unsigned int width
+
+      Witdh of this tile on the tileset image, irrelevant if this tile has its own image.
+
+   .. c:member:: unsigned int height
+
+      Height of this tile on the tileset image, irrelevant if this tile has its own image.
 
    .. c:member:: tmx_image *image
 
@@ -796,6 +878,10 @@ you can access everything.
 
       Name of the property (user defined).
 
+   .. c:member:: char *propertytype
+
+      The name of the custom property type (user defined).
+
    .. c:member:: enum tmx_property_type type
 
       Type of the property (String, Boolean, Path, ...), see :c:type:`tmx_property_type`,
@@ -833,6 +919,14 @@ you can access everything.
          .. c:member:: unsigned int color
 
             Colour, encoded in an integer, 4 bytes: ARGB.
+
+         .. c:member:: int object_id
+
+            Object unique identifier, see :c:func:`tmx_find_object_by_id`.
+
+         .. c:member:: tmx_properties *properties
+
+            Members of a custom property type.
 
 .. c:type:: union tmx_user_data
 
