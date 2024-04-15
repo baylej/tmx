@@ -20,7 +20,7 @@ env:
 jobs:
   linux64:
     name: Linux 64 Build
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     steps:
       # context expressions lack the most basic string manipulation functions...
       - name: Create distribution folder
@@ -150,7 +150,7 @@ jobs:
 
   windows:
     name: Windows Build
-    runs-on: windows-2016
+    runs-on: windows-2019
     steps:
       - name: Create distribution folder
         run: |
