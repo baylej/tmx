@@ -821,6 +821,9 @@ static int parse_tile(xmlTextReaderPtr reader, tmx_tileset *tileset, tmx_resourc
 						if (!strcmp(name, "frame")) {
 							res->animation = parse_animation(reader, 0, &(res->animation_len));
 							if (!(res->animation)) return 0;
+                            
+                            res->current_animation_frame = 0;
+                            res->animation_timer = 0;
 						}
 						/* else: ignore */
 					} while (xmlTextReaderNodeType(reader) != XML_READER_TYPE_END_ELEMENT ||
