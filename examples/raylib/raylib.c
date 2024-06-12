@@ -42,7 +42,32 @@ void draw_polygon(double offset_x, double offset_y, double **points, int points_
 	}
 }
 
-void draw_objects(tmx_object_group *objgr) {
+void draw_tile(void *image, unsigned int sx, unsigned int sy, unsigned int sw, unsigned int sh,
+               unsigned int dx, unsigned int dy, float opacity) {
+    Texture2D *texture = (Texture2D*)image;
+    int op = 0xFF * opacity;
+    DrawTextureRec(*texture, (Rectangle) {sx, sy, sw, sh}, (Vector2) {dx, dy}, (Color) {op, op, op, op});
+}
+
+void draw_object_tile(tmx_tile *tile, unsigned long x, unsigned long y, float op) {
+    tmx_image *im = tile->image;
+    void *image;
+    unsigned int ux, uy, w, h;
+    ux  = tile->ul_x;
+    uy  = tile->ul_y;
+    w  = tile->width;
+    h  = tile->height;
+    if (im && im->resource_image)
+    {
+        image = im->resource_image;
+    }
+    else {
+        image = tile->tileset->image->resource_image;
+    }
+    draw_tile(image, ux, uy, w, h, x, y, op);
+}
+
+void draw_objects(tmx_map *map, tmx_layer *layer, tmx_object_group *objgr) {
 	tmx_object *head = objgr->head;
 	Color color = int_to_color(objgr->color);
 
@@ -60,7 +85,13 @@ void draw_objects(tmx_object_group *objgr) {
 			else if (head->obj_type == OT_ELLIPSE) {
 				DrawEllipseLines(head->x + head->width/2.0, head->y + head->height/2.0, head->width/2.0, head->height/2.0, color);
 			}
-		}
+			else if (head->obj_type == OT_TILE) {
+                unsigned int gid = head->content.gid;
+                if (map->tiles[gid] != NULL) {
+                    draw_object_tile(map->tiles[gid], head->x, head->y - head->height, layer->opacity);
+                }
+            }
+        }
 		head = head->next;
 	}
 }
@@ -70,39 +101,19 @@ void draw_image_layer(tmx_image *image) {
 	DrawTexture(*texture, 0, 0, WHITE);
 }
 
-void draw_tile(void *image, unsigned int sx, unsigned int sy, unsigned int sw, unsigned int sh,
-               unsigned int dx, unsigned int dy, float opacity, unsigned int flags) {
-    Texture2D *texture = (Texture2D*)image;
-    int op = 0xFF * opacity;
-    DrawTextureRec(*texture, (Rectangle) {sx, sy, sw, sh}, (Vector2) {dx, dy}, (Color) {op, op, op, op});
-}
-
 void draw_layer(tmx_map *map, tmx_layer *layer) {
 	unsigned long i, j;
-	unsigned int gid, x, y, w, h, flags;
+	unsigned int gid;
 	float op;
 	tmx_tileset *ts;
-	tmx_image *im;
 	void* image;
 	op = layer->opacity;
 	for (i=0; i<map->height; i++) {
 		for (j=0; j<map->width; j++) {
 			gid = (layer->content.gids[(i*map->width)+j]) & TMX_FLIP_BITS_REMOVAL;
 			if (map->tiles[gid] != NULL) {
-				ts = map->tiles[gid]->tileset;
-				im = map->tiles[gid]->image;
-				x  = map->tiles[gid]->ul_x;
-				y  = map->tiles[gid]->ul_y;
-				w  = ts->tile_width;
-				h  = ts->tile_height;
-				if (im) {
-                    image = im->resource_image;
-				}
-				else {
-                    image = ts->image->resource_image;
-				}
-				flags = (layer->content.gids[(i*map->width)+j]) & ~TMX_FLIP_BITS_REMOVAL;
-                draw_tile(image, x, y, w, h, j*ts->tile_width, i*ts->tile_height, op, flags);
+                ts = map->tiles[gid]->tileset;
+                draw_object_tile(map->tiles[gid], j*ts->tile_width, i*ts->tile_height, op);
 			}
 		}
 	}
@@ -116,7 +127,7 @@ void draw_all_layers(tmx_map *map, tmx_layer *layers) {
 				draw_all_layers(map, layers->content.group_head); // recursive call
 			}
 			else if (layers->type == L_OBJGR) {
-				draw_objects(layers->content.objgr);
+				draw_objects(map, layers, layers->content.objgr);
 			}
 			else if (layers->type == L_IMAGE) {
 				draw_image_layer(layers->content.image);
