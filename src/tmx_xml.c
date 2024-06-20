@@ -14,6 +14,21 @@
 #include "tmx_utils.h"
 
 /*
+   - Loaders -
+	 This functions override the default XML loaders if you want to use an external filesystem instead.
+ */
+
+xmlTextReaderPtr (*tmx_xml_reader_load_func) (const char *path, const char *encoding, int options) = NULL;
+void  (*tmx_xml_reader_free_func) (xmlTextReaderPtr reader) = NULL;
+
+static void
+set_xml_functions(void)
+{
+	if (!tmx_xml_reader_load_func) { tmx_xml_reader_load_func = xmlReaderForFile; }
+	if (!tmx_xml_reader_free_func) { tmx_xml_reader_free_func = xmlFreeTextReader; }
+}
+
+/*
 	 - Parsers -
 	Each function is called when the XML reader is on an element
 	with the same name.
@@ -267,6 +282,8 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 	resource_holder *tmpl;
 	xmlTextReaderPtr sub_reader;
 
+	set_xml_functions();
+
 	/* parses each attribute */
 	if ((value = (char*)xmlTextReaderGetAttribute(reader, (xmlChar*)"id"))) { /* id */
 		obj->id = atoi(value);
@@ -301,7 +318,7 @@ static int parse_object(xmlTextReaderPtr reader, tmx_object *obj, int is_on_map,
 		}
 		if (!(obj->template_ref)) {
 			if (!(ab_path = mk_absolute_path(filename, value))) return 0;
-			if (!(sub_reader = xmlReaderForFile(ab_path, NULL, 0))) { /* opens */
+			if (!(sub_reader = tmx_xml_reader_load_func(ab_path, NULL, 0))) { /* opens */
 				tmx_err(E_XDATA, "xml parser: cannot open object template file '%s'", ab_path);
 				tmx_free_func(ab_path);
 				tmx_free_func(value);
@@ -951,6 +968,8 @@ static int parse_tileset_list(xmlTextReaderPtr reader, tmx_tileset_list **ts_hea
 	char *value, *ab_path;
 	xmlTextReaderPtr sub_reader;
 
+	set_xml_functions();
+
 	if (!(res_list = alloc_tileset_list())) return 0;
 	res_list->next = *ts_headadr;
 	*ts_headadr = res_list;
@@ -988,13 +1007,14 @@ static int parse_tileset_list(xmlTextReaderPtr reader, tmx_tileset_list **ts_hea
 			res_list->is_embedded = 1;
 		}
 		if (!(ab_path = mk_absolute_path(filename, value))) return 0;
-		if (!(sub_reader = xmlReaderForFile(ab_path, NULL, 0)) || !check_reader(sub_reader)) { /* opens */
+		tmx_free_func(value);
+		if (!(sub_reader = tmx_xml_reader_load_func(ab_path, NULL, 0)) || !check_reader(sub_reader)) { /* opens */
 			tmx_err(E_XDATA, "xml parser: cannot open extern tileset '%s'", ab_path);
 			tmx_free_func(ab_path);
 			return 0;
 		}
 		ret = parse_tileset(sub_reader, res, rc_mgr, ab_path); /* and parses the tsx file */
-		xmlFreeTextReader(sub_reader);
+		tmx_xml_reader_free_func(sub_reader);
 		tmx_free_func(ab_path);
 		return ret;
 	}
@@ -1170,6 +1190,8 @@ static tmx_map* parse_map_document(xmlTextReaderPtr reader, tmx_resource_manager
 	tmx_map *res = NULL;
 	char *name;
 
+	set_xml_functions();
+
 	if (check_reader(reader)) {
 		/* DTD before root element */
 		if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_DOCUMENT_TYPE)
@@ -1189,13 +1211,15 @@ static tmx_map* parse_map_document(xmlTextReaderPtr reader, tmx_resource_manager
 		}
 	}
 cleanup:
-	xmlFreeTextReader(reader);
+	tmx_xml_reader_free_func(reader);
 	return res;
 }
 
 static tmx_tileset* parse_tileset_document(xmlTextReaderPtr reader, const char *filename) {
 	tmx_tileset *res = NULL;
 	char *name;
+
+	set_xml_functions();
 
 	if (check_reader(reader)) {
 		name = (char*) xmlTextReaderConstName(reader);
@@ -1210,13 +1234,15 @@ static tmx_tileset* parse_tileset_document(xmlTextReaderPtr reader, const char *
 			}
 		}
 	}
-	xmlFreeTextReader(reader);
+	tmx_xml_reader_free_func(reader);
 	return res;
 }
 
 static tmx_template* parse_template_document(xmlTextReaderPtr reader, tmx_resource_manager *rc_mgr, const char *filename) {
 	tmx_template *res = NULL;
 	char *name;
+
+	set_xml_functions();
 
 	if (check_reader(reader)) {
 		name = (char*) xmlTextReaderConstName(reader);
@@ -1231,7 +1257,7 @@ static tmx_template* parse_template_document(xmlTextReaderPtr reader, tmx_resour
 			}
 		}
 	}
-	xmlFreeTextReader(reader);
+	tmx_xml_reader_free_func(reader);
 	return res;
 }
 
@@ -1244,8 +1270,9 @@ tmx_map *parse_xml(tmx_resource_manager *rc_mgr, const char *filename) {
 	tmx_map *res = NULL;
 
 	setup_libxml_mem();
+	set_xml_functions();
 
-	if ((reader = xmlReaderForFile(filename, NULL, 0))) {
+	if ((reader = tmx_xml_reader_load_func(filename, NULL, 0))) {
 		res = parse_map_document(reader, rc_mgr, filename);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to open %s", filename);
@@ -1320,8 +1347,9 @@ tmx_tileset* parse_tsx_xml(const char *filename) {
 	tmx_tileset *res = NULL;
 
 	setup_libxml_mem();
+	set_xml_functions();
 
-	if ((reader = xmlReaderForFile(filename, NULL, 0))) {
+	if ((reader = tmx_xml_reader_load_func(filename, NULL, 0))) {
 		res = parse_tileset_document(reader, filename);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to open %s", filename);
@@ -1384,8 +1412,9 @@ tmx_template* parse_tx_xml(tmx_resource_manager *rc_mgr, const char *filename) {
 	tmx_template *res = NULL;
 
 	setup_libxml_mem();
+	set_xml_functions();
 
-	if ((reader = xmlReaderForFile(filename, NULL, 0))) {
+	if ((reader = tmx_xml_reader_load_func(filename, NULL, 0))) {
 		res = parse_template_document(reader, rc_mgr, filename);
 	} else {
 		tmx_err(E_UNKN, "xml parser: unable to open %s", filename);
