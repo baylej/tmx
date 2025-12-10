@@ -9,7 +9,7 @@ static char *errmsgs[] = {
 	"Memory alloc failed",
 	"Missing privileges to access the file",
 	"File not found",
-	"Unsupproted/Unknown map file format"
+	"Unsupported/Unknown map file format"
 };
 
 char _tmx_custom_msg[256];
