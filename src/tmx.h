@@ -125,6 +125,8 @@ struct _tmx_tile { /* <tile> */
 	tmx_object *collision;
 
 	unsigned int animation_len;
+    unsigned int current_animation_frame;
+    int animation_timer;
 	tmx_anim_frame *animation;
 
 	char *type;
@@ -302,6 +304,8 @@ TMXEXPORT void tmx_map_free(tmx_map *map);
 /* DEPRECATED: use `map->tiles[gid]` instead.
    Returns the tile associated with this gid, returns NULL if it fails */
 TMXEXPORT tmx_tile* tmx_get_tile(tmx_map *map, unsigned int gid);
+
+TMXEXPORT void tmx_update_animation(tmx_map *map, int delta_time_msec);
 
 /* Find functions, iterate on the datastructure, you should probably cache the result */
 /* Finds a layer by its id, returns NULL if not found or an error occurred */
