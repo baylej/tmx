@@ -63,7 +63,8 @@ else()
 endif()
 
 find_package(LibXml2 REQUIRED)
-target_link_libraries(tmx LibXml2::LibXml2)
+include_directories(${LIBXML2_INCLUDE_DIR})
+list(APPEND libs ${LIBXML2_LIBRARIES})
 
 # -- Build
 
