@@ -38,9 +38,12 @@ TMXEXPORT extern void* (*tmx_alloc_func) (void *address, size_t len); /* realloc
 TMXEXPORT extern void  (*tmx_free_func ) (void *address);             /* free */
 
 /* load/free tmx_image->resource_image, you should set this if you want
-   the library to load/free images */
-TMXEXPORT extern void* (*tmx_img_load_func) (const char *path);
+   the library to load/free images. Optionally, you can point tmx_img_load_data
+   to any memory needed by your loader function, and it will be accessed as 
+   the data argument */
+TMXEXPORT extern void* (*tmx_img_load_func) (const char *path, void *data);
 TMXEXPORT extern void  (*tmx_img_free_func) (void *address);
+TMXEXPORT extern void*   tmx_img_load_data; 
 
 /*
 	Data Structures

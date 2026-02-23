@@ -724,7 +724,7 @@ void* load_image(void **ptr, const char *base_path, const char *rel_path) {
 	if (tmx_img_load_func) {
 		ap_img = mk_absolute_path(base_path, rel_path);
 		if (!ap_img) return 0;
-		*ptr = tmx_img_load_func(ap_img);
+		*ptr = tmx_img_load_func(ap_img, tmx_img_load_data);
 		tmx_free_func(ap_img);
 		return(*ptr);
 	}

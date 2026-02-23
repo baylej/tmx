@@ -7,34 +7,32 @@
 #define DISPLAY_H 600
 #define DISPLAY_W 800
 
-static SDL_Renderer *ren = NULL;
-
-void* SDL_tex_loader(const char *path) {
-	return IMG_LoadTexture(ren, path);
+void* SDL_tex_loader(const char *path, void *data) {
+	return IMG_LoadTexture((SDL_Renderer*)data, path);
 }
 
-void set_color(int color) {
+void set_color(int color, SDL_Renderer *ren) {
 	tmx_col_bytes col = tmx_col_to_bytes(color);
 	SDL_SetRenderDrawColor(ren, col.r, col.g, col.b, col.a);
 }
 
-void draw_polyline(double **points, double x, double y, int pointsc) {
+void draw_polyline(double **points, double x, double y, int pointsc, SDL_Renderer *ren) {
 	int i;
 	for (i=1; i<pointsc; i++) {
 		SDL_RenderDrawLine(ren, x+points[i-1][0], y+points[i-1][1], x+points[i][0], y+points[i][1]);
 	}
 }
 
-void draw_polygon(double **points, double x, double y, int pointsc) {
-	draw_polyline(points, x, y, pointsc);
+void draw_polygon(double **points, double x, double y, int pointsc, SDL_Renderer *ren) {
+	draw_polyline(points, x, y, pointsc, ren);
 	if (pointsc > 2) {
 		SDL_RenderDrawLine(ren, x+points[0][0], y+points[0][1], x+points[pointsc-1][0], y+points[pointsc-1][1]);
 	}
 }
 
-void draw_objects(tmx_object_group *objgr) {
+void draw_objects(tmx_object_group *objgr, SDL_Renderer *ren) {
 	SDL_Rect rect;
-	set_color(objgr->color);
+	set_color(objgr->color, ren);
 	tmx_object *head = objgr->head;
 	while (head) {
 		if (head->visible) {
@@ -44,10 +42,10 @@ void draw_objects(tmx_object_group *objgr) {
 				SDL_RenderDrawRect(ren, &rect);
 			}
 			else if (head->obj_type  == OT_POLYGON) {
-				draw_polygon(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+				draw_polygon(head->content.shape->points, head->x, head->y, head->content.shape->points_len, ren);
 			}
 			else if (head->obj_type == OT_POLYLINE) {
-				draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len);
+				draw_polyline(head->content.shape->points, head->x, head->y, head->content.shape->points_len, ren);
 			}
 			else if (head->obj_type == OT_ELLIPSE) {
 				/* FIXME: no function in SDL2 */
@@ -57,7 +55,7 @@ void draw_objects(tmx_object_group *objgr) {
 	}
 }
 
-void draw_tile(void *image, unsigned int sx, unsigned int sy, unsigned int sw, unsigned int sh,
+void draw_tile(SDL_Renderer *ren, void *image, unsigned int sx, unsigned int sy, unsigned int sw, unsigned int sh,
                unsigned int dx, unsigned int dy, float opacity, unsigned int flags) {
 	SDL_Rect src_rect, dest_rect;
 	src_rect.x = sx;
@@ -69,7 +67,7 @@ void draw_tile(void *image, unsigned int sx, unsigned int sy, unsigned int sw, u
 	SDL_RenderCopy(ren, (SDL_Texture*)image, &src_rect, &dest_rect);
 }
 
-void draw_layer(tmx_map *map, tmx_layer *layer) {
+void draw_layer(tmx_map *map, tmx_layer *layer, SDL_Renderer *ren) {
 	unsigned long i, j;
 	unsigned int gid, x, y, w, h, flags;
 	float op;
@@ -94,13 +92,13 @@ void draw_layer(tmx_map *map, tmx_layer *layer) {
 					image = ts->image->resource_image;
 				}
 				flags = (layer->content.gids[(i*map->width)+j]) & ~TMX_FLIP_BITS_REMOVAL;
-				draw_tile(image, x, y, w, h, j*ts->tile_width, i*ts->tile_height, op, flags);
+				draw_tile(ren, image, x, y, w, h, j*ts->tile_width, i*ts->tile_height, op, flags);
 			}
 		}
 	}
 }
 
-void draw_image_layer(tmx_image *image) {
+void draw_image_layer(tmx_image *image, SDL_Renderer *ren) {
 	SDL_Rect dim;
 	dim.x = dim.y = 0;
 
@@ -109,31 +107,31 @@ void draw_image_layer(tmx_image *image) {
 	SDL_RenderCopy(ren, texture, NULL, &dim);
 }
 
-void draw_all_layers(tmx_map *map, tmx_layer *layers) {
+void draw_all_layers(tmx_map *map, tmx_layer *layers, SDL_Renderer *ren) {
 	while (layers) {
 		if (layers->visible) {
 
 			if (layers->type == L_GROUP) {
-				draw_all_layers(map, layers->content.group_head);
+				draw_all_layers(map, layers->content.group_head, ren);
 			}
 			else if (layers->type == L_OBJGR) {
-				draw_objects(layers->content.objgr);
+				draw_objects(layers->content.objgr, ren);
 			}
 			else if (layers->type == L_IMAGE) {
-				draw_image_layer(layers->content.image);
+				draw_image_layer(layers->content.image, ren);
 			}
 			else if (layers->type == L_LAYER) {
-				draw_layer(map, layers);
+				draw_layer(map, layers, ren);
 			}
 		}
 		layers = layers->next;
 	}
 }
 
-void render_map(tmx_map *map) {
-	set_color(map->backgroundcolor);
+void render_map(tmx_map *map, SDL_Renderer *ren) {
+	set_color(map->backgroundcolor, ren);
 	SDL_RenderClear(ren);
-	draw_all_layers(map, map->ly_head);
+	draw_all_layers(map, map->ly_head, ren);
 }
 
 Uint32 timer_func(Uint32 interval, void *param) {
@@ -154,6 +152,7 @@ Uint32 timer_func(Uint32 interval, void *param) {
 
 int main(int argc, char **argv) {
 	SDL_Window *win;
+	SDL_Renderer *ren;
 	SDL_Event ev;
 	SDL_TimerID timer_id;
 
@@ -191,7 +190,7 @@ int main(int argc, char **argv) {
 
 		if (ev.type == SDL_QUIT) break;
 
-		render_map(map);
+		render_map(map, ren);
 		SDL_RenderPresent(ren);
 	}
 
