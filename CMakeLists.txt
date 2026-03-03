@@ -25,9 +25,9 @@ add_library(tmx
     "src/tmx.c"
     "src/tmx_utils.c"
     "src/tmx_err.c"
-    "src/tmx_xml.c"
-    "src/tmx_mem.c"
-    "src/tmx_hash.c"
+    "src/tmx_xml_yxml.c"
+    "src/tmx_mem_yxml.c"
+    "src/tmx_hash_yxml.c"
     "src/yxml.c")
 set(HEADERS "src/tmx.h")
 set_target_properties(tmx PROPERTIES VERSION ${BUILD_VERSION})
@@ -63,8 +63,8 @@ else()
     message("zstd not wanted")
 endif()
 
-find_package(LibXml2 REQUIRED)
-target_link_libraries(tmx LibXml2::LibXml2)
+#find_package(LibXml2 REQUIRED)
+#target_link_libraries(tmx LibXml2::LibXml2)
 
 # -- Build
 

@@ -1,8 +1,7 @@
 /*
 	Hashtable
 
-	Self-contained chaining hashtable. Replaces the previous implementation
-	that wrapped libxml2's xmlHashTable.
+	Self-contained chaining hashtable. 
 */
 
 #include <stdlib.h>
