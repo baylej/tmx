@@ -5,12 +5,22 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libxml/xmlmemory.h>
+
 #include "tmx.h"
 #include "tmx_utils.h"
 
 void set_alloc_functions() {
 	if (!tmx_alloc_func) tmx_alloc_func = realloc;
 	if (!tmx_free_func) tmx_free_func = free;
+}
+
+static void* tmx_malloc(size_t len) {
+	return tmx_alloc_func(NULL, len);
+}
+
+void setup_libxml_mem() {
+	xmlMemSetup((xmlFreeFunc)tmx_free_func, (xmlMallocFunc)tmx_malloc, (xmlReallocFunc)tmx_alloc_func, (xmlStrdupFunc)tmx_strdup);
 }
 
 static void* node_alloc(size_t size) {

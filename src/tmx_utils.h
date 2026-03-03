@@ -53,6 +53,7 @@ tmx_template* parse_tx_xml_callback(tmx_resource_manager *rc_mgr, tmx_read_funct
 	Memory management, node allocation and free - tmx_mem.c
 */
 void set_alloc_functions();
+void setup_libxml_mem();
 
 tmx_property*        alloc_prop(void);
 tmx_image*           alloc_image(void);
