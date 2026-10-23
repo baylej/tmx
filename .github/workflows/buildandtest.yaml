@@ -28,6 +28,7 @@ jobs:
           make || ( echo 'Build failed' && exit 1 )
           cd ../data
           ../dumper/dumper b64zlib.tmx &&
+          ../dumper/dumper b64.tmx &&
           ../dumper/dumper --use-rc-mgr --fd tileset.tsx --callback pointtemplate.tx --buffer tiletemplate.tx objecttemplates.tmx
         working-directory: ./examples/dumper
       - name: Test C++ compatibility

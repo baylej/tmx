@@ -441,7 +441,7 @@ static int parse_data(xmlTextReaderPtr reader, uint32_t **gidsadr, size_t gidsco
 			data_type = B64ZSTD;
 		} else if (value && !(strcmp(value, "zlib") && strcmp(value, "gzip"))) {
 			data_type = B64Z;
-		} else {
+		} else if (value && *value) {
 			tmx_err(E_ENCCMP, "xml parser: unsupported data compression: '%s'", value); /* unsupported compression */
 			goto cleanup;
 		}
